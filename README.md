@@ -25,9 +25,80 @@ Those tools are great for developers who know exactly what flags to pass. Conten
 | [AI Video Enhancer](https://contenta-software.com/aivideoenhancer/) | `aivideoenhancer` | [4 tools](ai-video-enhancer/mcp-server.md) | AI upscaling (Real-ESRGAN), frame interpolation (RIFE), stabilization |
 | [RAW Express](https://contenta-software.com/rawexpress/) | `rawexpress` | -- | Dedicated RAW batch converter with white balance and exposure control |
 
-## Quick Start: MCP Server
+## Getting Started
 
-Install a product, add it to your AI client config, and start using it immediately — the MCP server works during the free trial.
+### Step 1: Install the software
+
+Download and install the product you need from its website (see [Products](#products) table above). All products are Windows desktop applications with a standard `.exe` installer.
+
+- **No account required** — just download and run the installer
+- **30-day free trial** starts automatically — no credit card needed
+- **CLI and MCP server are included** in the same installer, no separate download
+- **.NET 9 runtime is bundled** — no prerequisites to install
+
+### Step 2: Add the CLI to your PATH
+
+After installation, add the install directory to your system PATH so you can use the CLI from any terminal:
+
+```
+# Default install locations:
+C:\Program Files\ContentaSoft\Contenta Converter PREMIUM\
+C:\Program Files\ContentaSoft\VideoRecompress Studio\
+C:\Program Files\ContentaSoft\3D CAD Batch Converter\
+C:\Program Files\ContentaSoft\AI Video Enhancer Studio\
+```
+
+Verify it works:
+
+```bash
+contenta status          # should show "Trial: 30 days remaining"
+videorecompress status   # same for VideoRecompress
+```
+
+### Step 3: Use the CLI
+
+```bash
+# Convert a RAW photo to JPEG
+contenta convert photo.cr2 --format jpg --quality 92
+
+# Resize product photos for Amazon — knows the exact 2000x2000 spec
+contenta workflows --id builtin.ecommerce --platforms amazon --input ./photos --output ./ready
+
+# AI upscale 4x with GPU
+contenta upscale photo.jpg --scale 4
+
+# Compress wedding videos — picks H.265, CRF 18, hardware-accelerated
+videorecompress batch ./raw-footage --output ./archived --preset wedding_archive
+
+# Convert STEP to STL for 3D printing
+cadconvert convert model.step --format stl --quality fine
+
+# AI upscale old video to 4K
+aivideoenhancer enhance old_tape.mp4 --upscale 4x --denoise strong
+```
+
+### Step 4: Connect the MCP server to your AI client
+
+Add the product to your AI client's MCP configuration. The MCP server works during the free trial.
+
+**Claude Desktop** — edit `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "contenta-converter": {
+      "command": "contenta",
+      "args": ["serve"]
+    },
+    "videorecompress": {
+      "command": "videorecompress",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+**Claude Code** — edit `.claude/settings.json`:
 
 ```json
 {
@@ -40,7 +111,7 @@ Install a product, add it to your AI client config, and start using it immediate
 }
 ```
 
-Add only the products you've installed. See [MCP Config Guide](mcp-config/) for Claude Desktop, Cursor, Windsurf, and Claude Code setup.
+Add only the products you've installed. See [MCP Config Guide](mcp-config/) for Cursor, Windsurf, and other clients.
 
 | Server | Command | Tools | Full reference |
 |--------|---------|-------|----------------|
@@ -49,29 +120,17 @@ Add only the products you've installed. See [MCP Config Guide](mcp-config/) for 
 | CAD Converter | `cadconvert serve` | 4 3D tools | [MCP Docs](cad-converter/mcp-server.md) |
 | AI Video Enhancer | `aivideoenhancer serve` | 4 AI tools | [MCP Docs](ai-video-enhancer/mcp-server.md) |
 
-## Quick Start: CLI
+### Step 5 (optional): Install Claude Code skills
+
+Skills teach Claude Code about every command, format, preset, and platform dimension — so you can describe what you want in plain English.
 
 ```bash
-# Resize product photos for Amazon — knows the exact 2000x2000 spec
-contenta workflows --id builtin.ecommerce --platforms amazon --input ./photos --output ./ready
-
-# AI upscale 4x with GPU
-contenta upscale photo.jpg --scale 4
-
-# Compress wedding videos — picks H.265, CRF 18, hardware-accelerated
-videorecompress batch ./raw-footage --output ./archived --preset wedding_archive
-```
-
-## Claude Code Skills
-
-Install skills that teach Claude Code to use ContentaSoft tools directly via CLI:
-
-```bash
+# Install all 4 skills at once
 git clone https://github.com/brunojanvier77/ContentaSoft.git /tmp/ContentaSoft
 cp -r /tmp/ContentaSoft/skills/* ~/.claude/skills/
 ```
 
-This installs all 4 skills. After installing, Claude Code knows the commands, platform dimensions, presets, and format routing for each tool.
+After installing, try: *"Resize all photos in D:\Products for Amazon and Etsy"* — Claude will pick the right commands, dimensions, and output formats.
 
 | Skill | Slash command | What it teaches Claude Code |
 |-------|-------------|---------------------------|
@@ -80,12 +139,26 @@ This installs all 4 skills. After installing, Claude Code knows the commands, pl
 | [CAD Conversion](skills/contenta-cad/SKILL.md) | `/contenta-cad` | STEP/IGES to STL/OBJ/glTF, tessellation control, unit conversion, mesh repair |
 | [Video Enhancement](skills/contenta-video-enhancer/SKILL.md) | `/contenta-video-enhancer` | AI upscale 2x/4x, frame interpolation 60fps, stabilization, denoising, 6 presets |
 
-## Platform
+### Trial & Licensing
+
+| | Trial (30 days) | Licensed |
+|---|---|---|
+| **Desktop GUI** | Full access | Full access |
+| **CLI** | Full access, watermark after 10 files/session | Full access |
+| **MCP Server** | Full access, watermark after 10 files/session | Full access |
+| **Agent Skills** | Work with trial CLI | Work with licensed CLI |
+| **Duration** | 30 days from install | Permanent |
+| **Credit card** | Not required | One-time purchase |
+
+All licenses are **one-time purchases** — no subscriptions, no renewals. Buy once, use forever including all minor updates.
+
+## Platform & Licensing
 
 - **OS**: Windows 10/11 (x64)
 - **Runtime**: .NET 9 (bundled in installer)
 - **GPU**: Optional — NVIDIA/Intel/AMD for accelerated upscaling and video encoding
-- **Trial**: 30-day free trial, no credit card, MCP server included
+- **Trial**: 30-day free trial, no credit card required. All features including CLI and MCP server work during trial. Output files get a small watermark after 10 files per session.
+- **License**: One-time purchase per product. No subscription. Removes all watermarks and trial limits permanently.
 
 ## Links
 
