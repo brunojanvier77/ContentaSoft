@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "contenta-converter": {
+      "command": "contenta",
+      "args": ["serve"]
+    }
+  }
+}
