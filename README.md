@@ -67,18 +67,18 @@ videorecompress batch ./raw-footage --output ./archived --preset wedding_archive
 Install skills that teach Claude Code to use ContentaSoft tools directly via CLI:
 
 ```bash
-# Image processing skill (convert, resize, workflows, upscale, PDF albums, slideshows, metadata)
 git clone https://github.com/brunojanvier77/ContentaSoft.git /tmp/ContentaSoft
-cp -r /tmp/ContentaSoft/skills/contenta-image-processing ~/.claude/skills/contenta-image-processing
-
-# Video processing skill (recompress, batch encode, analyze)
-cp -r /tmp/ContentaSoft/skills/contenta-video ~/.claude/skills/contenta-video
+cp -r /tmp/ContentaSoft/skills/* ~/.claude/skills/
 ```
 
-After installing, Claude Code can process images and videos when you ask — it knows the commands, platform dimensions, and presets.
+This installs all 4 skills. After installing, Claude Code knows the commands, platform dimensions, presets, and format routing for each tool.
 
-- [`/contenta-image-processing`](skills/contenta-image-processing/SKILL.md) — image conversion, e-commerce/social/real-estate workflows, AI upscale, PDF albums, slideshows
-- [`/contenta-video`](skills/contenta-video/SKILL.md) — video compression with H.265/AV1, 7 presets, GPU acceleration
+| Skill | Slash command | What it teaches Claude Code |
+|-------|-------------|---------------------------|
+| [Image Processing](skills/contenta-image-processing/SKILL.md) | `/contenta-image-processing` | Convert formats, resize for Amazon/Etsy/MLS/Instagram, AI upscale, PDF albums, slideshows, metadata |
+| [Video Compression](skills/contenta-video/SKILL.md) | `/contenta-video` | H.265/AV1 compression, 7 presets, GPU acceleration, batch processing |
+| [CAD Conversion](skills/contenta-cad/SKILL.md) | `/contenta-cad` | STEP/IGES to STL/OBJ/glTF, tessellation control, unit conversion, mesh repair |
+| [Video Enhancement](skills/contenta-video-enhancer/SKILL.md) | `/contenta-video-enhancer` | AI upscale 2x/4x, frame interpolation 60fps, stabilization, denoising, 6 presets |
 
 ## Platform
 
