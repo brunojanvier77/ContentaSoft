@@ -3,6 +3,18 @@
     "contenta-converter": {
       "command": "contenta",
       "args": ["serve"]
+    },
+    "videorecompress": {
+      "command": "videorecompress",
+      "args": ["serve"]
+    },
+    "cad-converter": {
+      "command": "cadconvert",
+      "args": ["serve"]
+    },
+    "ai-video-enhancer": {
+      "command": "aivideoenhancer",
+      "args": ["serve"]
     }
   }
 }

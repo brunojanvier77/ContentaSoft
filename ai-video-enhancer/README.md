@@ -23,6 +23,7 @@ AI-powered video enhancement for Windows. Upscale, interpolate frames, stabilize
 | `analyze` | Analyze video properties |
 | `presets` | List available enhancement presets |
 | `status` | Check trial/registration status |
+| `serve` | Start the MCP server |
 
 ## Presets
 
@@ -41,3 +42,13 @@ AI-powered video enhancement for Windows. Upscale, interpolate frames, stabilize
 # Enhance old footage
 aivideoenhancer enhance old-video.mp4 --output enhanced.mp4 --preset old_video_restoration
 ```
+
+## MCP Server
+
+AI Video Enhancer includes a built-in MCP server with 4 tools for AI agent integration. See the [full MCP documentation](mcp-server.md).
+
+```bash
+aivideoenhancer serve
+```
+
+Tools: `analyze_video`, `enhance_video`, `list_presets`, `get_status`.

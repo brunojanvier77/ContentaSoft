@@ -1,12 +1,21 @@
 # MCP Configuration Guide
 
-Set up Contenta Converter as an MCP server in your AI client.
+Set up ContentaSoft tools as MCP servers in your AI client.
+
+## Available MCP Servers
+
+| Server | Command | Tools | Documentation |
+|--------|---------|-------|---------------|
+| Contenta Converter | `contenta serve` | 11 image tools | [Docs](../contenta-converter/mcp-server.md) |
+| VideoRecompress | `videorecompress serve` | 5 video tools | [Docs](../videorecompress/mcp-server.md) |
+| CAD Converter | `cadconvert serve` | 4 3D tools | [Docs](../cad-converter/mcp-server.md) |
+| AI Video Enhancer | `aivideoenhancer serve` | 4 AI tools | [Docs](../ai-video-enhancer/mcp-server.md) |
 
 ## Prerequisites
 
-1. **Install** Contenta Converter from [contenta-converter.com](https://contenta-converter.com)
-2. **Register** your license: `contenta register --key YOUR-KEY`
-3. Verify the CLI works: `contenta status`
+1. **Install** the product(s) you want to use
+2. **Register** your license (each product requires its own key)
+3. Verify the CLI works (e.g., `contenta status`, `videorecompress status`)
 
 ## Claude Desktop
 
@@ -18,12 +27,24 @@ Edit `%APPDATA%\Claude\claude_desktop_config.json`:
     "contenta-converter": {
       "command": "contenta",
       "args": ["serve"]
+    },
+    "videorecompress": {
+      "command": "videorecompress",
+      "args": ["serve"]
+    },
+    "cad-converter": {
+      "command": "cadconvert",
+      "args": ["serve"]
+    },
+    "ai-video-enhancer": {
+      "command": "aivideoenhancer",
+      "args": ["serve"]
     }
   }
 }
 ```
 
-Restart Claude Desktop. You should see "contenta-converter" in the MCP tools list.
+Add only the servers for products you have installed. Restart Claude Desktop after saving.
 
 ## Cursor
 

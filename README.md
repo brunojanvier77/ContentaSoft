@@ -10,13 +10,13 @@ All tools run locally on Windows — no cloud uploads, no subscriptions, no per-
 |---------|---------|-----|------------|----------------|
 | [Contenta Converter PREMIUM](https://contenta-converter.com) | [contenta-converter.com](https://contenta-converter.com) | `contenta` (15 commands) | 11 tools | 50+ formats, 35+ effects, AI upscaling, professional workflows |
 | [RAW Express](https://contenta-software.com/rawexpress/) | [contenta-software.com/rawexpress](https://contenta-software.com/rawexpress/) | `rawexpress` (9 commands) | -- | RAW processing for 600+ camera models |
-| [VideoRecompress Studio](https://contenta-videorecompress.com) | [contenta-videorecompress.com](https://contenta-videorecompress.com) | `videorecompress` (7 commands) | -- | H.265/AV1 compression, GPU acceleration |
-| [3D CAD Batch Converter](https://contenta-software.com/cadconverter/) | [contenta-software.com/cadconverter](https://contenta-software.com/cadconverter/) | `cadconvert` (6 commands) | -- | STEP/IGES to STL/OBJ/FBX/glTF |
-| [AI Video Enhancer](https://contenta-software.com/aivideoenhancer/) | [contenta-software.com/aivideoenhancer](https://contenta-software.com/aivideoenhancer/) | `aivideoenhancer` (4 commands) | -- | Real-ESRGAN upscaling, RIFE frame interpolation |
+| [VideoRecompress Studio](https://contenta-videorecompress.com) | [contenta-videorecompress.com](https://contenta-videorecompress.com) | `videorecompress` (8 commands) | 5 tools | H.265/AV1 compression, GPU acceleration |
+| [3D CAD Batch Converter](https://contenta-software.com/cadconverter/) | [contenta-software.com/cadconverter](https://contenta-software.com/cadconverter/) | `cadconvert` (7 commands) | 4 tools | STEP/IGES to STL/OBJ/FBX/glTF |
+| [AI Video Enhancer](https://contenta-software.com/aivideoenhancer/) | [contenta-software.com/aivideoenhancer](https://contenta-software.com/aivideoenhancer/) | `aivideoenhancer` (5 commands) | 4 tools | Real-ESRGAN upscaling, RIFE frame interpolation |
 
 ## Quick Start: MCP Server
 
-Add Contenta Converter as an MCP server in your AI client (Claude Desktop, Cursor, etc.):
+Add any ContentaSoft tool as an MCP server in your AI client (Claude Desktop, Cursor, etc.):
 
 ```json
 {
@@ -24,12 +24,29 @@ Add Contenta Converter as an MCP server in your AI client (Claude Desktop, Curso
     "contenta-converter": {
       "command": "contenta",
       "args": ["serve"]
+    },
+    "videorecompress": {
+      "command": "videorecompress",
+      "args": ["serve"]
+    },
+    "cad-converter": {
+      "command": "cadconvert",
+      "args": ["serve"]
+    },
+    "ai-video-enhancer": {
+      "command": "aivideoenhancer",
+      "args": ["serve"]
     }
   }
 }
 ```
 
-This gives your AI agent access to 11 image processing tools. See [MCP Server Documentation](contenta-converter/mcp-server.md) for the full tool reference.
+| Server | Tools | Documentation |
+|--------|-------|---------------|
+| Contenta Converter | 11 image tools | [MCP Docs](contenta-converter/mcp-server.md) |
+| VideoRecompress | 5 video tools | [MCP Docs](videorecompress/mcp-server.md) |
+| CAD Converter | 4 3D tools | [MCP Docs](cad-converter/mcp-server.md) |
+| AI Video Enhancer | 4 AI tools | [MCP Docs](ai-video-enhancer/mcp-server.md) |
 
 See [MCP Config Guide](mcp-config/) for setup instructions for different clients.
 

@@ -29,6 +29,7 @@ Desktop video compression tool for Windows. Reduce video file sizes by 30-70% us
 | `profile` | Show user/license info |
 | `status` | Check trial/registration status |
 | `watch` | Watch folder for auto-compression |
+| `serve` | Start the MCP server |
 
 ## Presets
 
@@ -61,3 +62,13 @@ videorecompress recompress video.mp4 --output compressed.mp4 --preset phone_arch
 ```bash
 videorecompress batch --input ./videos --output ./compressed --preset max_savings
 ```
+
+## MCP Server
+
+VideoRecompress includes a built-in MCP server with 5 tools for AI agent integration. See the [full MCP documentation](mcp-server.md).
+
+```bash
+videorecompress serve
+```
+
+Tools: `analyze_video`, `recompress_video`, `list_presets`, `estimate_savings`, `batch_recompress`.

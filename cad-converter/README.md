@@ -25,6 +25,7 @@ Convert between STEP, IGES, and 15+ 3D mesh formats on Windows.
 | `formats` | List supported formats |
 | `watch` | Watch folder for auto-conversion |
 | `register` | Register a license key |
+| `serve` | Start the MCP server |
 
 ## CLI Examples
 
@@ -43,3 +44,13 @@ cadconvert convert model.stl --format glb
 
 **Input (BREP)**: STEP (.step, .stp), IGES (.iges, .igs)
 **Input/Output (Mesh)**: STL, OBJ, PLY, FBX, DAE (Collada), 3MF, glTF (.gltf), GLB (.glb)
+
+## MCP Server
+
+The CAD Converter includes a built-in MCP server with 4 tools for AI agent integration. See the [full MCP documentation](mcp-server.md).
+
+```bash
+cadconvert serve
+```
+
+Tools: `convert_cad`, `get_file_info`, `detect_format`, `list_formats`.
