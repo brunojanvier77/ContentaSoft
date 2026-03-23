@@ -9,10 +9,10 @@ All tools run locally on Windows — no cloud uploads, no subscriptions, no per-
 | Product | Website | CLI | MCP Server | Key Capability |
 |---------|---------|-----|------------|----------------|
 | [Contenta Converter PREMIUM](https://contenta-converter.com) | [contenta-converter.com](https://contenta-converter.com) | `contenta` (15 commands) | 11 tools | 50+ formats, 35+ effects, AI upscaling, professional workflows |
-| [RAW Express](https://contenta-converter.com) | [contenta-converter.com](https://contenta-converter.com) | `rawexpress` (9 commands) | -- | RAW processing for 600+ camera models |
+| [RAW Express](https://contenta-software.com/rawexpress/) | [contenta-software.com/rawexpress](https://contenta-software.com/rawexpress/) | `rawexpress` (9 commands) | -- | RAW processing for 600+ camera models |
 | [VideoRecompress Studio](https://contenta-videorecompress.com) | [contenta-videorecompress.com](https://contenta-videorecompress.com) | `videorecompress` (7 commands) | -- | H.265/AV1 compression, GPU acceleration |
-| [3D CAD Batch Converter](https://contenta-software.com) | [contenta-software.com](https://contenta-software.com) | `cadconvert` (6 commands) | -- | STEP/IGES to STL/OBJ/FBX/glTF |
-| [AI Video Enhancer](https://contenta-software.com) | [contenta-software.com](https://contenta-software.com) | `aivideoenhancer` (4 commands) | -- | Real-ESRGAN upscaling, RIFE frame interpolation |
+| [3D CAD Batch Converter](https://contenta-software.com/cadconverter/) | [contenta-software.com/cadconverter](https://contenta-software.com/cadconverter/) | `cadconvert` (6 commands) | -- | STEP/IGES to STL/OBJ/FBX/glTF |
+| [AI Video Enhancer](https://contenta-software.com/aivideoenhancer/) | [contenta-software.com/aivideoenhancer](https://contenta-software.com/aivideoenhancer/) | `aivideoenhancer` (4 commands) | -- | Real-ESRGAN upscaling, RIFE frame interpolation |
 
 ## Quick Start: MCP Server
 
@@ -76,3 +76,6 @@ Drop-in skill files for [Claude Code](https://claude.com/claude-code) that teach
 - [contenta-converter.com](https://contenta-converter.com) — Contenta Converter PREMIUM
 - [contenta-videorecompress.com](https://contenta-videorecompress.com) — VideoRecompress Studio
 - [contenta-software.com](https://contenta-software.com) — Full product suite
+- [contenta-software.com/rawexpress](https://contenta-software.com/rawexpress/) — RAW Express
+- [contenta-software.com/cadconverter](https://contenta-software.com/cadconverter/) — 3D CAD Batch Converter
+- [contenta-software.com/aivideoenhancer](https://contenta-software.com/aivideoenhancer/) — AI Video Enhancer Studio

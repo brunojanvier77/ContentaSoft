@@ -2,7 +2,7 @@
 
 Batch RAW photo converter for Windows. Convert RAW files from 600+ camera models to JPG, PNG, WebP, TIFF, or AVIF with full control over white balance, exposure, and denoising.
 
-[Download Free Trial](https://contenta-converter.com)
+[Download Free Trial](https://contenta-software.com/rawexpress/)
 
 ## Features
 

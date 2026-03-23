@@ -2,7 +2,7 @@
 
 Convert between STEP, IGES, and 15+ 3D mesh formats on Windows.
 
-[Download Free Trial](https://contenta-software.com)
+[Download Free Trial](https://contenta-software.com/cadconverter/)
 
 ## Features
 

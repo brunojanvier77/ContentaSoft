@@ -2,7 +2,7 @@
 
 AI-powered video enhancement for Windows. Upscale, interpolate frames, stabilize, and denoise videos using Real-ESRGAN and RIFE.
 
-[Download Free Trial](https://contenta-software.com)
+[Download Free Trial](https://contenta-software.com/aivideoenhancer/)
 
 ## Features
 
