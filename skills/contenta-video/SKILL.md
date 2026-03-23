@@ -1,11 +1,10 @@
 ---
-name: Contenta Video Processing
-description: Recompress and optimize video files using the VideoRecompress CLI — reduce file sizes by 30-70% with modern codecs (H.265, AV1) and GPU acceleration.
-tools:
-  - Bash
+name: contenta-video
+description: Recompress and optimize video files using the VideoRecompress CLI. Use when the user asks to compress videos, reduce file sizes, convert video codecs (H.265, AV1), or batch process video folders.
+allowed-tools: Bash
 ---
 
-# Contenta Video Processing Skill
+# Contenta Video Processing
 
 You have access to the `videorecompress` CLI for video compression and optimization. All commands support `--json` for structured output.
 
@@ -15,16 +14,20 @@ You have access to the `videorecompress` CLI for video compression and optimizat
 ```bash
 videorecompress analyze <input> --json
 ```
-Returns codec, resolution, bitrate, duration, file size, and estimated savings.
+Returns codec, resolution, bitrate, duration, file size, and audio info.
 
 ### Recompress a single video
 ```bash
-videorecompress recompress <input> --output <file> --preset <preset_id>
+videorecompress recompress <input> --output <dir> --preset <preset_id>
+```
+Or with manual settings:
+```bash
+videorecompress recompress <input> --output <dir> --codec h265 --crf 23 --hw-accel auto
 ```
 
-### Batch recompress a directory
+### Batch recompress
 ```bash
-videorecompress batch --input <dir> --output <dir> --preset <preset_id>
+videorecompress batch <input-dir> --output <dir> --preset <preset_id> --workers 2
 ```
 
 ### List presets
@@ -32,9 +35,9 @@ videorecompress batch --input <dir> --output <dir> --preset <preset_id>
 videorecompress presets --json
 ```
 
-### Watch folder for auto-compression
+### Watch folder
 ```bash
-videorecompress watch --input <dir> --output <dir> --preset <preset_id>
+videorecompress watch --folder <dir> --preset <preset_id>
 ```
 
 ## Built-in Presets
@@ -49,26 +52,12 @@ videorecompress watch --input <dir> --output <dir> --preset <preset_id>
 | `quick_h264` | H.264 | 23 | Fast, compatible | 20-30% |
 | `web_optimized` | VP9 | 30 | Web delivery | 45-55% |
 
-## Supported Codecs
-
-- **H.264** — maximum compatibility
-- **H.265 (HEVC)** — best quality/size balance
-- **AV1** — maximum compression (slower encoding)
-- **VP9** — web-optimized
-
-## GPU Acceleration
-
-Hardware encoding is used automatically when available:
-- **NVIDIA NVENC** — GeForce/Quadro GPUs
-- **Intel QSV** — Intel integrated/Arc GPUs
-- **AMD AMF** — Radeon GPUs
-
-Falls back to software encoding if no compatible GPU is detected.
-
 ## Guidelines
 
 - Always run `analyze` first to understand the input before choosing a preset.
 - For archival, recommend `phone_archive` (H.265) as the best balance of quality and savings.
 - For maximum savings where encoding time doesn't matter, use `max_savings` (AV1).
 - For quick results with wide compatibility, use `quick_h264`.
+- GPU acceleration is used automatically when available (NVIDIA NVENC, Intel QSV, AMD AMF). Use `--hw-accel software` to force CPU encoding.
 - Report estimated and actual savings to the user after compression.
+- Trial users get a watermark on output after 10 files. No other restrictions.

@@ -1,11 +1,10 @@
 ---
-name: Contenta Image Processing
-description: Process images using the Contenta Converter CLI — convert formats, resize, apply effects, run professional workflows, AI upscale, create PDF albums, video slideshows, and manage metadata.
-tools:
-  - Bash
+name: contenta-image-processing
+description: Convert, resize, upscale, and process images using the Contenta Converter CLI. Use when the user asks to convert image formats, resize photos for e-commerce/social media, apply effects, AI upscale, create PDF albums, video slideshows, or read/write image metadata.
+allowed-tools: Bash
 ---
 
-# Contenta Image Processing Skill
+# Contenta Image Processing
 
 You have access to the `contenta` CLI for professional image processing. All commands support `--json` for structured output.
 
@@ -28,10 +27,10 @@ contenta workflows --id <workflow_id> --platforms <p1,p2> --input <dir> --output
 ```
 Workflow IDs: `builtin.ecommerce`, `builtin.social`, `builtin.realestate`, `builtin.wedding`
 
-E-Commerce platforms: amazon, etsy, shopify, ebay, walmart
-Social platforms: instagram, tiktok, youtube, pinterest, facebook, twitter
-Real Estate platforms: mls, zillow, website-hero, print-brochure, email
-Wedding platforms: lab-prints, gallery, watermarked-proofs, social-media
+E-Commerce platforms: amazon (2000x2000), etsy (2700x2025), shopify (2048x2048), ebay (1600x1600), walmart (2000x2000)
+Social platforms: instagram (1080x1080), tiktok (1080x1920), youtube (1280x720), pinterest (1000x1500), facebook (1200x630), twitter (1600x900)
+Real Estate platforms: mls (1024x768), zillow (3000x2000), website-hero (1920x1080), print-brochure (2400x3000), email (800x600)
+Wedding platforms: lab-prints (3600x2400), gallery (2048x1365), watermarked-proofs (1200x800), social-media (1080x1080)
 
 ### AI upscale
 ```bash
@@ -55,13 +54,14 @@ Ken Burns modes: zoom-in, zoom-out, pan-left, pan-right, alternating, off
 contenta info <file> --json
 ```
 
-### List effects
+### Write metadata
 ```bash
-contenta effects --json
+contenta convert <file> --copyright "text" --creator "name"
 ```
 
-### List supported formats
+### List effects and formats
 ```bash
+contenta effects --json
 contenta formats --json
 ```
 
@@ -74,7 +74,8 @@ contenta watch --input <dir> --output <dir> --format <fmt>
 
 - Always use `--json` when you need to parse the output programmatically.
 - For batch operations, set `--workers` to match available CPU cores for best performance.
-- When the user asks to "resize for Amazon/Etsy/Instagram", use the `workflows` command — it knows the exact dimensions.
-- For RAW files (CR2, NEF, ARW, etc.), `contenta` handles them automatically — no special flags needed.
+- When the user asks to "resize for Amazon/Etsy/Instagram/MLS", use the `workflows` command with the right platform ID. It knows the exact dimensions each platform requires.
+- For RAW files (CR2, NEF, ARW, DNG, RAF, etc.), `contenta` handles them automatically.
 - AI upscale uses GPU by default. Add `--force-cpu` if GPU is not available.
 - The `--quality` flag applies to lossy formats (JPG, WebP, AVIF). For PNG, it controls compression level.
+- Trial users get a watermark on output after 10 images. No other restrictions.

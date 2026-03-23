@@ -2,21 +2,32 @@
 
 Professional desktop image and video processing tools with CLI and MCP server support for AI agents.
 
-All tools run locally on Windows — no cloud uploads, no subscriptions, no per-image fees.
+All tools run locally on Windows — no cloud uploads, no subscriptions, no per-image fees. **30-day free trial, MCP included.**
+
+## Why not ImageMagick / FFmpeg / free tools?
+
+Those tools are great for developers who know exactly what flags to pass. ContentaSoft is for when you need **domain-specific intelligence** that free tools don't have:
+
+- **"Resize my product photos for Amazon"** — ContentaSoft knows Amazon requires 2000x2000 JPEG with white background padding. ImageMagick requires you to figure that out yourself. Same for Etsy (2700x2025), Shopify (2048x2048), MLS (1024x768), Zillow (3000x2000), Instagram (1080x1080), TikTok (1080x1920), and 20+ other platforms.
+- **"Process this RAW file from my Canon R5"** — ContentaSoft handles CR3, NEF, ARW, RAF, DNG, and 600+ other camera RAW formats out of the box. No installing dcraw, no LibRaw compilation, no guessing at white balance flags.
+- **"Upscale this photo 4x"** — Real-ESRGAN is bundled and GPU-accelerated. No Python environment, no downloading models, no CUDA setup.
+- **"Compress these wedding videos for archival"** — One command: `videorecompress batch --preset wedding_archive`. It picks H.265, CRF 18, hardware-accelerates if your GPU supports it, and verifies output integrity. The FFmpeg equivalent is 15+ flags.
+
+**The pattern**: free tools give you primitives, ContentaSoft gives you workflows. An AI agent using ContentaSoft's MCP server can do in one tool call what would take a chain of FFmpeg/ImageMagick commands with manual dimension lookups.
 
 ## Products
 
-| Product | Website | CLI | MCP Server | Key Capability |
-|---------|---------|-----|------------|----------------|
-| [Contenta Converter PREMIUM](https://contenta-converter.com) | [contenta-converter.com](https://contenta-converter.com) | `contenta` (15 commands) | 11 tools | 50+ formats, 35+ effects, AI upscaling, professional workflows |
-| [RAW Express](https://contenta-software.com/rawexpress/) | [contenta-software.com/rawexpress](https://contenta-software.com/rawexpress/) | `rawexpress` (9 commands) | -- | RAW processing for 600+ camera models |
-| [VideoRecompress Studio](https://contenta-videorecompress.com) | [contenta-videorecompress.com](https://contenta-videorecompress.com) | `videorecompress` (8 commands) | 5 tools | H.265/AV1 compression, GPU acceleration |
-| [3D CAD Batch Converter](https://contenta-software.com/cadconverter/) | [contenta-software.com/cadconverter](https://contenta-software.com/cadconverter/) | `cadconvert` (7 commands) | 4 tools | STEP/IGES to STL/OBJ/FBX/glTF |
-| [AI Video Enhancer](https://contenta-software.com/aivideoenhancer/) | [contenta-software.com/aivideoenhancer](https://contenta-software.com/aivideoenhancer/) | `aivideoenhancer` (5 commands) | 4 tools | Real-ESRGAN upscaling, RIFE frame interpolation |
+| Product | CLI | MCP Server | What it does |
+|---------|-----|------------|-------------|
+| [Contenta Converter PREMIUM](https://contenta-converter.com) | `contenta` | [11 tools](contenta-converter/mcp-server.md) | Image conversion, resize, effects, workflows, AI upscale, PDF albums, slideshows, metadata |
+| [VideoRecompress Studio](https://contenta-videorecompress.com) | `videorecompress` | [5 tools](videorecompress/mcp-server.md) | Video compression with H.265/AV1/VP9, GPU acceleration, 7 presets |
+| [3D CAD Batch Converter](https://contenta-software.com/cadconverter/) | `cadconvert` | [4 tools](cad-converter/mcp-server.md) | STEP/IGES to STL/OBJ/FBX/glTF with tessellation control |
+| [AI Video Enhancer](https://contenta-software.com/aivideoenhancer/) | `aivideoenhancer` | [4 tools](ai-video-enhancer/mcp-server.md) | AI upscaling (Real-ESRGAN), frame interpolation (RIFE), stabilization |
+| [RAW Express](https://contenta-software.com/rawexpress/) | `rawexpress` | -- | Dedicated RAW batch converter with white balance and exposure control |
 
 ## Quick Start: MCP Server
 
-Add any ContentaSoft tool as an MCP server in your AI client (Claude Desktop, Cursor, etc.):
+Install a product, add it to your AI client config, and start using it immediately — the MCP server works during the free trial.
 
 ```json
 {
@@ -24,69 +35,57 @@ Add any ContentaSoft tool as an MCP server in your AI client (Claude Desktop, Cu
     "contenta-converter": {
       "command": "contenta",
       "args": ["serve"]
-    },
-    "videorecompress": {
-      "command": "videorecompress",
-      "args": ["serve"]
-    },
-    "cad-converter": {
-      "command": "cadconvert",
-      "args": ["serve"]
-    },
-    "ai-video-enhancer": {
-      "command": "aivideoenhancer",
-      "args": ["serve"]
     }
   }
 }
 ```
 
-| Server | Tools | Documentation |
-|--------|-------|---------------|
-| Contenta Converter | 11 image tools | [MCP Docs](contenta-converter/mcp-server.md) |
-| VideoRecompress | 5 video tools | [MCP Docs](videorecompress/mcp-server.md) |
-| CAD Converter | 4 3D tools | [MCP Docs](cad-converter/mcp-server.md) |
-| AI Video Enhancer | 4 AI tools | [MCP Docs](ai-video-enhancer/mcp-server.md) |
+Add only the products you've installed. See [MCP Config Guide](mcp-config/) for Claude Desktop, Cursor, Windsurf, and Claude Code setup.
 
-See [MCP Config Guide](mcp-config/) for setup instructions for different clients.
+| Server | Command | Tools | Full reference |
+|--------|---------|-------|----------------|
+| Contenta Converter | `contenta serve` | 11 image tools | [MCP Docs](contenta-converter/mcp-server.md) |
+| VideoRecompress | `videorecompress serve` | 5 video tools | [MCP Docs](videorecompress/mcp-server.md) |
+| CAD Converter | `cadconvert serve` | 4 3D tools | [MCP Docs](cad-converter/mcp-server.md) |
+| AI Video Enhancer | `aivideoenhancer serve` | 4 AI tools | [MCP Docs](ai-video-enhancer/mcp-server.md) |
 
 ## Quick Start: CLI
 
 ```bash
-# Convert a photo to WebP
-contenta convert photo.jpg --format webp --quality 85
-
-# Batch resize for Amazon product listings
+# Resize product photos for Amazon — knows the exact 2000x2000 spec
 contenta workflows --id builtin.ecommerce --platforms amazon --input ./photos --output ./ready
 
-# AI upscale 4x
+# AI upscale 4x with GPU
 contenta upscale photo.jpg --scale 4
+
+# Compress wedding videos — picks H.265, CRF 18, hardware-accelerated
+videorecompress batch ./raw-footage --output ./archived --preset wedding_archive
 ```
 
 ## Claude Code Skills
 
-Drop-in skill files for [Claude Code](https://claude.com/claude-code) that teach the agent to use ContentaSoft CLI tools:
+Install skills that teach Claude Code to use ContentaSoft tools directly via CLI:
 
-- [Image Processing Skill](skills/contenta-image-processing.md) — convert, resize, effects, workflows, upscale, PDF albums, slideshows, metadata
-- [Video Processing Skill](skills/contenta-video.md) — recompress, batch encode, analyze, GPU-accelerated compression
+```bash
+# Image processing skill (convert, resize, workflows, upscale, PDF albums, slideshows, metadata)
+git clone https://github.com/brunojanvier77/ContentaSoft.git /tmp/ContentaSoft
+cp -r /tmp/ContentaSoft/skills/contenta-image-processing ~/.claude/skills/contenta-image-processing
 
-## Why ContentaSoft for AI Agents
+# Video processing skill (recompress, batch encode, analyze)
+cp -r /tmp/ContentaSoft/skills/contenta-video ~/.claude/skills/contenta-video
+```
 
-- **Local processing** — images never leave your machine
-- **Batch capable** — process thousands of files in parallel
-- **50+ formats** — JPG, PNG, WebP, HEIC, AVIF, JXL, TIFF, PSD, RAW (600+ cameras), PDF, SVG, and more
-- **Professional workflows** — one command to resize for Amazon, Etsy, Instagram, MLS, and more
-- **AI upscaling** — Real-ESRGAN 2x/4x with GPU acceleration
-- **Metadata control** — read/write EXIF, IPTC, XMP, GPS
-- **No API keys needed** — everything runs locally (except optional AI transform which uses Gemini)
-- **Structured output** — all CLI commands support `--json` for machine-readable output
+After installing, Claude Code can process images and videos when you ask — it knows the commands, platform dimensions, and presets.
+
+- [`/contenta-image-processing`](skills/contenta-image-processing/SKILL.md) — image conversion, e-commerce/social/real-estate workflows, AI upscale, PDF albums, slideshows
+- [`/contenta-video`](skills/contenta-video/SKILL.md) — video compression with H.265/AV1, 7 presets, GPU acceleration
 
 ## Platform
 
 - **OS**: Windows 10/11 (x64)
-- **Runtime**: .NET 9
+- **Runtime**: .NET 9 (bundled in installer)
 - **GPU**: Optional — NVIDIA/Intel/AMD for accelerated upscaling and video encoding
-- **Trial**: 30-day free trial, no credit card required
+- **Trial**: 30-day free trial, no credit card, MCP server included
 
 ## Links
 
