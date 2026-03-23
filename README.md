@@ -6,13 +6,13 @@ All tools run locally on Windows — no cloud uploads, no subscriptions, no per-
 
 ## Products
 
-| Product | Price | CLI | MCP Server | Key Capability |
-|---------|-------|-----|------------|----------------|
-| [Contenta Converter PREMIUM](contenta-converter/) | [$129 lifetime](https://contenta-converter.com) | `contenta` (15 commands) | 11 tools | 50+ formats, 35+ effects, AI upscaling, professional workflows |
-| [RAW Express](raw-express/) | [Free trial](https://contenta-converter.com) | `rawexpress` (9 commands) | -- | RAW processing for 600+ camera models |
-| [VideoRecompress Studio](videorecompress/) | [$49-$149](https://contenta-videorecompress.com) | `videorecompress` (7 commands) | -- | H.265/AV1 compression, GPU acceleration |
-| [3D CAD Batch Converter](cad-converter/) | [Free trial](https://contenta-software.com) | `cadconvert` (6 commands) | -- | STEP/IGES to STL/OBJ/FBX/glTF |
-| [AI Video Enhancer](ai-video-enhancer/) | [Free trial](https://contenta-software.com) | `aivideoenhancer` (4 commands) | -- | Real-ESRGAN upscaling, RIFE frame interpolation |
+| Product | Website | CLI | MCP Server | Key Capability |
+|---------|---------|-----|------------|----------------|
+| [Contenta Converter PREMIUM](https://contenta-converter.com) | [contenta-converter.com](https://contenta-converter.com) | `contenta` (15 commands) | 11 tools | 50+ formats, 35+ effects, AI upscaling, professional workflows |
+| [RAW Express](https://contenta-converter.com) | [contenta-converter.com](https://contenta-converter.com) | `rawexpress` (9 commands) | -- | RAW processing for 600+ camera models |
+| [VideoRecompress Studio](https://contenta-videorecompress.com) | [contenta-videorecompress.com](https://contenta-videorecompress.com) | `videorecompress` (7 commands) | -- | H.265/AV1 compression, GPU acceleration |
+| [3D CAD Batch Converter](https://contenta-software.com) | [contenta-software.com](https://contenta-software.com) | `cadconvert` (6 commands) | -- | STEP/IGES to STL/OBJ/FBX/glTF |
+| [AI Video Enhancer](https://contenta-software.com) | [contenta-software.com](https://contenta-software.com) | `aivideoenhancer` (4 commands) | -- | Real-ESRGAN upscaling, RIFE frame interpolation |
 
 ## Quick Start: MCP Server
 

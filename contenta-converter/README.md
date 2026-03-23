@@ -2,7 +2,7 @@
 
 Professional batch image conversion, resizing, and processing for Windows.
 
-**$129 one-time lifetime license** | [Download Free Trial](https://contenta-converter.com) | [MCP Server Docs](mcp-server.md)
+[Download Free Trial](https://contenta-converter.com) | [MCP Server Docs](mcp-server.md)
 
 ## Features
 

@@ -2,7 +2,7 @@
 
 Desktop video compression tool for Windows. Reduce video file sizes by 30-70% using modern codecs with GPU acceleration.
 
-**$49 Single / $79 Family / $149 Commercial** | [Download Free Trial](https://contenta-videorecompress.com)
+[Download Free Trial](https://contenta-videorecompress.com)
 
 ## Features
 
