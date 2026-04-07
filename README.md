@@ -21,7 +21,7 @@ Those tools are great for developers who know exactly what flags to pass. Conten
 |---------|-----|------------|-------------|
 | [Contenta Converter PREMIUM](https://contenta-converter.com) | `contenta` | [11 tools](contenta-converter/mcp-server.md) | Image conversion, resize, effects, workflows, AI upscale, PDF albums, slideshows, metadata |
 | [VideoRecompress Studio](https://contenta-videorecompress.com) | `videorecompress` | [5 tools](videorecompress/mcp-server.md) | Video compression with H.265/AV1/VP9, GPU acceleration, 7 presets |
-| [3D CAD Batch Converter](https://contenta-software.com/cadconverter/) | `cadconvert` | [4 tools](cad-converter/mcp-server.md) | STEP/IGES to STL/OBJ/FBX/glTF with tessellation control |
+| [3D CAD Converter](https://contenta-software.com/cadconverter/) | `cadconvert` | [4 tools](cad-converter/mcp-server.md) | STEP/IGES to STL/OBJ/FBX/glTF with tessellation control |
 | [AI Video Enhancer](https://contenta-software.com/aivideoenhancer/) | `aivideoenhancer` | [4 tools](ai-video-enhancer/mcp-server.md) | AI upscaling (Real-ESRGAN), frame interpolation (RIFE), stabilization |
 | [RAW Express](https://contenta-software.com/rawexpress/) | `rawexpress` | -- | Dedicated RAW batch converter with white balance and exposure control |
 
@@ -44,7 +44,7 @@ After installation, add the install directory to your system PATH so you can use
 # Default install locations:
 C:\Program Files\ContentaSoft\Contenta Converter PREMIUM\
 C:\Program Files\ContentaSoft\VideoRecompress Studio\
-C:\Program Files\ContentaSoft\3D CAD Batch Converter\
+C:\Program Files\ContentaSoft\3D CAD Converter\
 C:\Program Files\ContentaSoft\AI Video Enhancer Studio\
 ```
 
@@ -166,5 +166,5 @@ All licenses are **one-time purchases** — no subscriptions, no renewals. Buy o
 - [contenta-videorecompress.com](https://contenta-videorecompress.com) — VideoRecompress Studio
 - [contenta-software.com](https://contenta-software.com) — Full product suite
 - [contenta-software.com/rawexpress](https://contenta-software.com/rawexpress/) — RAW Express
-- [contenta-software.com/cadconverter](https://contenta-software.com/cadconverter/) — 3D CAD Batch Converter
+- [contenta-software.com/cadconverter](https://contenta-software.com/cadconverter/) — 3D CAD Converter
 - [contenta-software.com/aivideoenhancer](https://contenta-software.com/aivideoenhancer/) — AI Video Enhancer Studio

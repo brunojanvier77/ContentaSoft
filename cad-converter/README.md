@@ -1,4 +1,4 @@
-# 3D CAD Batch Converter
+# 3D CAD Converter
 
 Convert between STEP, IGES, and 15+ 3D mesh formats on Windows.
 

@@ -1,4 +1,4 @@
-# 3D CAD Batch Converter — MCP Server
+# 3D CAD Converter — MCP Server
 
 The CAD Converter exposes 4 tools for 3D file conversion and analysis via the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP).
 
