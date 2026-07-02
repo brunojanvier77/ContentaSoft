@@ -8,12 +8,14 @@ The CAD Converter exposes 4 tools for 3D file conversion and analysis via the [M
 {
   "mcpServers": {
     "cad-converter": {
-      "command": "cadconvert",
+      "command": "C:\\Program Files\\ContentaSoft\\3D CAD Converter\\cadconvert.exe",
       "args": ["serve"]
     }
   }
 }
 ```
+
+If the install directory is on your `PATH`, `"command": "cadconvert"` also works.
 
 ## Protocol Details
 
@@ -29,19 +31,28 @@ The CAD Converter exposes 4 tools for 3D file conversion and analysis via the [M
 
 ### convert_cad
 
-Convert a 3D CAD file (STEP, IGES) to mesh formats (STL, OBJ, PLY, FBX, glTF, 3MF) or between mesh formats.
+Convert a 3D CAD file (STEP, IGES, BREP) to mesh formats (STL, OBJ, PLY, FBX, glTF, 3MF, …) or between mesh formats.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `input_path` | string | Yes | Absolute path to the source 3D file |
 | `output_path` | string | Yes | Output file path |
-| `format` | string | No | Target format: `stl`, `obj`, `ply`, `gltf`, `glb`, `3mf`, `dae`, `step`, `iges` |
+| `format` | string | No | Target format: `stl`, `obj`, `ply`, `gltf`, `glb`, `3mf`, `dae`, `step`, `iges`, `fbx`, `vrml`, `off`, `brep`. If omitted, inferred from the output file extension |
 | `tessellation` | string | No | Tessellation preset: `draft`, `standard`, `fine`, `ultrafine` (default: standard) |
 | `units` | string | No | Target units: `mm`, `cm`, `in`, `m`, `ft` |
 | `repair` | boolean | No | Enable mesh repair |
 | `binary` | boolean | No | Binary output for STL/PLY (default: true) |
 
-**Returns**: success, inputPath, outputPath, format.
+Unlike the CLI (which takes numeric deflection values), the MCP tool accepts keyword presets that map to these deflection values:
+
+| Preset | Linear deflection | Angular deflection (°) |
+|--------|------------------|------------------------|
+| `draft` | 1.0 | 5.0 |
+| `standard` | 0.1 | 0.5 |
+| `fine` | 0.01 | 0.1 |
+| `ultrafine` | 0.001 | 0.05 |
+
+**Returns**: success, input, output, format, durationMs.
 
 ---
 
@@ -77,5 +88,6 @@ List all supported 3D file formats with import/export capabilities. No parameter
 
 | Category | Formats |
 |----------|---------|
-| **Parametric** | STEP (.step, .stp), IGES (.iges, .igs), BREP (.brep, .brp) |
-| **Mesh** | STL, OBJ, PLY, VRML, 3MF, glTF, GLB, FBX, Collada (DAE), AMF, X3D, OFF, DXF |
+| **Parametric** | STEP (.step, .stp), IGES (.iges, .igs), BREP (.brep) — all import + export |
+| **Mesh — import + export** | STL, OBJ, PLY, FBX, Collada (.dae), 3MF, glTF (.gltf), GLB (.glb), VRML (.wrl), X3D, OFF |
+| **Mesh — import only** | AMF, DWG, DXF, USD, USDZ |

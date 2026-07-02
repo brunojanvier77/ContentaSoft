@@ -6,27 +6,35 @@ allowed-tools: Bash
 
 # Contenta CAD Converter
 
-You have access to the `cadconvert` CLI for 3D file conversion. Use `--json` where available for structured output.
+You have access to the `cadconvert` CLI for 3D file conversion (default install: `C:\Program Files\ContentaSoft\3D CAD Converter\cadconvert.exe`). The CLI has no `--json` flag — for structured output, use the MCP server (`cadconvert serve`).
 
 ## Commands
 
 ### Convert a single file
 ```bash
-cadconvert convert -i <input> -o <output> --format <fmt> --tessellation <value> --angular <value> --units <unit> --repair --binary
+cadconvert convert -i <input> -o <output> [-f <fmt>] [--tessellation <value>] [--angular <degrees>] [--units <unit>] [--repair] [--binary <true|false>]
 ```
 
-Formats: stl, obj, ply, gltf, glb, 3mf, dae, step, iges, vrml, off
+`-i` and `-o` are required. `-f/--format` is optional — inferred from the output extension.
 
-Tessellation controls mesh quality when converting from parametric (STEP/IGES) to mesh:
+Example: `cadconvert convert -i model.step -o model.stl --tessellation 0.01`
+
+Export formats: stl, obj, ply, gltf, glb, 3mf, dae, fbx, vrml, off, x3d, step, iges, brep
+Import-only: amf, dwg, dxf, usd, usdz
+
+Tessellation controls mesh quality when converting from parametric (STEP/IGES/BREP) to mesh. It is **numeric** (linear deflection — no keyword presets):
 - `--tessellation 0.5` — draft quality (fast, coarse mesh)
 - `--tessellation 0.1` — standard quality (default)
 - `--tessellation 0.01` — fine quality (slow, smooth mesh)
 - `--tessellation 0.001` — ultra fine quality (very slow, maximum detail)
 
+`--angular` sets angular deflection in degrees (default: 0.5).
+
 ### Batch convert
 ```bash
-cadconvert batch -i <dir> -o <dir> --format <fmt> --recursive --workers <n>
+cadconvert batch -i <dir> -o <dir> -f <fmt> [--recursive] [--workers <n>]
 ```
+`-f` defaults to stl, `--recursive` defaults to true, `--workers` defaults to 24.
 
 ### Inspect a 3D file
 ```bash
@@ -41,8 +49,12 @@ cadconvert formats
 
 ### Watch folder for auto-conversion
 ```bash
-cadconvert watch -i <dir> -o <dir> --format <fmt>
+cadconvert watch -i <dir> -o <dir> -f <fmt>
 ```
+
+## Exit Codes
+
+`0` Success · `1` Error · `2` Invalid arguments · `3` File not found · `4` Conversion failed · `5` License required
 
 ## Format Routing
 
@@ -80,4 +92,4 @@ Add `--repair` to fix common mesh issues:
 - Use `--binary` (default: true) for STL and PLY to get smaller files. Use `--binary false` for ASCII output when human-readability matters.
 - Run `cadconvert info <file>` first to understand what you're working with before converting.
 - glTF (`.gltf`) is JSON-based, GLB (`.glb`) is the binary equivalent. Prefer GLB for distribution.
-- Trial users can convert freely for 30 days.
+- Trial: 30 days from install, watermark after 10 files per session; conversion is blocked after the trial expires (exit code 5).

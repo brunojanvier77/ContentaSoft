@@ -6,16 +6,16 @@ Set up ContentaSoft tools as MCP servers in your AI client.
 
 | Server | Command | Tools | Documentation |
 |--------|---------|-------|---------------|
-| Contenta Converter | `contenta serve` | 11 image tools | [Docs](../contenta-converter/mcp-server.md) |
+| Contenta Converter | `contenta serve` | 10 image tools | [Docs](../contenta-converter/mcp-server.md) |
 | VideoRecompress | `videorecompress serve` | 5 video tools | [Docs](../videorecompress/mcp-server.md) |
 | CAD Converter | `cadconvert serve` | 4 3D tools | [Docs](../cad-converter/mcp-server.md) |
 | AI Video Enhancer | `aivideoenhancer serve` | 4 AI tools | [Docs](../ai-video-enhancer/mcp-server.md) |
 
 ## Prerequisites
 
-1. **Install** the product(s) you want to use
-2. **Register** your license (each product requires its own key)
-3. Verify the CLI works (e.g., `contenta status`, `videorecompress status`)
+1. **Install** the product(s) you want to use — the 30-day free trial works with MCP, no registration needed
+2. Verify the CLI works (e.g., `contenta status`, `videorecompress status`)
+3. If a CLI is not on `PATH`, use the full exe path as the `command` in your MCP config (default install dirs are under `C:\Program Files\ContentaSoft\`)
 
 ## Claude Desktop
 
@@ -115,14 +115,14 @@ To enable the `ai_transform` tool, add your Google Gemini API key:
 
 | Issue | Fix |
 |-------|-----|
-| `contenta` not found | Reinstall Contenta Converter — the installer adds it to PATH. Or provide the full path: `C:\Program Files\ContentaSoft\Contenta Converter PREMIUM 2026\contenta.exe` |
-| "Registration required" | Run `contenta register --key YOUR-KEY` or start a free trial |
+| `contenta` not found | Provide the full path in the MCP config: `C:\Program Files\ContentaSoft\Contenta Converter PREMIUM\contenta.exe`, or add the install dir to PATH |
+| "License required" (trial expired) | Register: `contenta register your@email.com XXXXX-XXXXX-XXXXX-XXXXX-XXXXX` (VideoRecompress registers in the desktop app) |
 | Tools not appearing | Restart your AI client after saving the config |
 | ai_transform fails | Set `GEMINI_API_KEY` env var or pass `api_key` parameter |
 
 ## Available Tools
 
-The MCP server exposes 11 tools. See the [full tool reference](../contenta-converter/mcp-server.md) for parameters and examples.
+The Contenta Converter MCP server exposes 10 tools. See the [full tool reference](../contenta-converter/mcp-server.md) for parameters and examples.
 
 | Tool | What it does |
 |------|-------------|
@@ -130,9 +130,8 @@ The MCP server exposes 11 tools. See the [full tool reference](../contenta-conve
 | `batch_convert` | Process multiple images at once |
 | `detect_format` | Identify image format (RAW, HEIC, PSD, etc.) |
 | `read_metadata` | Extract EXIF/IPTC/XMP metadata |
-| `list_effects` | Get available effects (23 effects) |
+| `list_effects` | Get available effects (32 effects) |
 | `upscale_image` | AI upscale 2x or 4x with Real-ESRGAN |
-| `apply_workflow` | E-Commerce, Social, Real Estate, Wedding workflows |
 | `create_pdf_album` | Build PDF photo albums |
 | `write_metadata` | Embed EXIF/IPTC metadata and GPS |
 | `create_slideshow` | Create video slideshows for social platforms |

@@ -1,19 +1,19 @@
 # Contenta Converter — MCP Server
 
-Contenta Converter exposes 11 image processing tools via the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP). This enables AI agents (Claude Desktop, Cursor, Windsurf, Claude Code, etc.) to convert, resize, upscale, and manipulate images on your local machine.
+Contenta Converter exposes 10 image processing tools via the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP). This enables AI agents (Claude Desktop, Cursor, Windsurf, Claude Code, etc.) to convert, resize, upscale, and manipulate images on your local machine.
 
 ## Getting Started
 
 ### 1. Install Contenta Converter
 
-Download from [contenta-converter.com](https://contenta-converter.com). The `contenta` CLI is added to your PATH during installation.
+Download from [contenta-converter.com](https://contenta-converter.com). The `contenta` CLI ships in the same installer, at `C:\Program Files\ContentaSoft\Contenta Converter PREMIUM\`. If `contenta` is not recognized in your terminal, add that directory to `PATH` or use the full exe path in your MCP config.
 
-### 2. Register (required for MCP)
+### 2. Trial or register
 
-The MCP server requires a registered license. A 30-day free trial is available.
+The MCP server works during the 30-day free trial — no registration needed to try it. On trial, the first 5 images convert clean; after that, output gets a small watermark. Registering removes all limits:
 
 ```bash
-contenta register --key YOUR-LICENSE-KEY
+contenta register your@email.com XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
 ```
 
 ### 3. Configure Your AI Client
@@ -123,13 +123,15 @@ Read EXIF, IPTC, and XMP metadata from an image file.
 
 List all available image effects with their parameters. No parameters required.
 
-**Returns**: 23 effects across 4 categories:
+**Returns**: 32 effects across 6 categories:
 
 | Category | Effects |
 |----------|---------|
-| Color | brightness, contrast, lighten, darken, saturation, huesaturation, colortemp, colorbalance, autocolorlevel, histogramequalization, invert |
+| Color | brightness, contrast, lighten, darken, saturation, huesaturation, colortemp, colorbalance, colorlevel, colortone, colorbrightnesscontrast, autocolorlevel, saturationequalization, histogramequalization, invert |
 | Artistic | sepia, blackwhite, splash |
 | Spatial | blur, sharpen, emboss, despeckle, deskew |
+| Enhance | autoenhance, clarity, dehaze, aidenoise |
+| Correction | perspective |
 | Transform | crop, flip, rotate, watermark |
 
 ---
@@ -145,27 +147,6 @@ AI upscale an image using Real-ESRGAN (2x or 4x).
 | `scale_factor` | integer | No | Scale factor: `2` or `4` (default: 2) |
 | `model` | string | No | `realesrgan-x4plus` or `realesrgan-x4plus-anime` (default: realesrgan-x4plus) |
 | `force_cpu` | boolean | No | Force CPU mode, no GPU (default: false) |
-
----
-
-### apply_workflow
-
-Apply a professional workflow (E-Commerce, Social, Real Estate, Wedding) to images. Each workflow generates platform-specific output variants.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `workflow_id` | string | Yes | `builtin.ecommerce`, `builtin.social`, `builtin.realestate`, `builtin.wedding` |
-| `platforms` | string[] | No | Platform IDs to enable (e.g., `amazon`, `etsy`, `instagram`). Default: all platforms in workflow |
-| `input_paths` | string[] | Yes | Absolute paths to source images |
-| `output_dir` | string | Yes | Output directory |
-| `workers` | integer | No | Parallel workers (default: CPU count) |
-
-**Workflow platforms**:
-
-- **E-Commerce**: `amazon` (2000x2000), `etsy`, `shopify`, `ebay`, `walmart`
-- **Social Media**: `instagram`, `tiktok`, `youtube`, `pinterest`, `facebook`, `twitter`
-- **Real Estate**: `mls` (1024x768), `zillow` (3000x2000), `website-hero` (1920x1080), `print-brochure`, `email`
-- **Wedding**: `lab-prints`, `gallery`, `watermarked-proofs`, `social-media`
 
 ---
 
@@ -237,7 +218,7 @@ AI-powered image transformation via Google Gemini (edit, remove background, enha
 | `prompt` | string | Yes | Transformation prompt (e.g., "Remove the background", "Make it brighter") |
 | `api_key` | string | No | Google Gemini API key (or set `GEMINI_API_KEY` env var) |
 | `output_path` | string | No | Output file path (default: `{name}_ai.{ext}` next to input) |
-| `model` | string | No | Gemini model ID (default: `gemini-2.5-flash-image`) |
+| `model` | string | No | Gemini model ID (default: `gemini-3-pro-image-preview`; `gemini-2.5-flash-image` for faster/cheaper edits) |
 | `transparent_background` | boolean | No | Request transparent background (PNG output) |
 
 ## Example Conversations
@@ -246,11 +227,12 @@ AI-powered image transformation via Google Gemini (edit, remove background, enha
 
 > **User**: I have 50 product photos in C:\Photos\products. Resize them all to 2000x2000 for Amazon.
 >
-> **Agent** calls `apply_workflow` with:
-> - `workflow_id`: `builtin.ecommerce`
-> - `platforms`: `["amazon"]`
-> - `input_paths`: [list of 50 files]
+> **Agent** calls `batch_convert` with:
+> - `input_dir`: `C:\Photos\products`
 > - `output_dir`: `C:\Photos\amazon-ready`
+> - `format`: `jpg`
+> - `resize_width`: `2000`
+> - `resize_height`: `2000`
 
 ### Read and update photo metadata
 

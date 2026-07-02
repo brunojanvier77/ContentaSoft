@@ -1,8 +1,10 @@
-# RAW Express
+# RAW Express (coming soon)
+
+> **Status: not yet released.** RAW Express is in development — the command reference below describes the planned CLI and may change before launch. Sign up for the launch notification at [contenta-software.com/rawexpress](https://www.contenta-software.com/rawexpress/).
+>
+> **Need batch RAW conversion today?** [Contenta Converter PREMIUM](../contenta-converter/README.md) already converts 600+ camera RAW formats with white balance, denoising, and AI upscaling — via GUI, CLI, and MCP.
 
 Batch RAW photo converter for Windows. Convert RAW files from 600+ camera models to JPG, PNG, WebP, TIFF, or AVIF with full control over white balance, exposure, and denoising.
-
-[Download Free Trial](https://contenta-software.com/rawexpress/)
 
 ## Features
 
@@ -29,7 +31,7 @@ Batch RAW photo converter for Windows. Convert RAW files from 600+ camera models
 | `formats` | List supported RAW formats |
 | `upscale` | AI upscale output with Real-ESRGAN |
 | `watch` | Watch folder for auto-conversion |
-| `profile` | Show user/license info |
+| `profile` | Save, load, or validate conversion profiles |
 | `register` | Register a license key |
 | `serve` | Start the MCP server |
 
@@ -44,7 +46,7 @@ rawexpress convert photo.cr2 --format webp --quality 90 --white-balance camera
 ### Batch convert a wedding shoot
 
 ```bash
-rawexpress batch --input ./raw-photos --output ./converted --format jpg --quality 95
+rawexpress batch ./raw-photos --output ./converted --format jpg --quality 95
 ```
 
 ### Convert with manual white balance and denoising
