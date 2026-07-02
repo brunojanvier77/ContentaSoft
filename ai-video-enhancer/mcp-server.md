@@ -45,20 +45,21 @@ Analyze a video file and return codec, resolution, duration, bitrate, frame rate
 
 ### enhance_video
 
-Enhance a video using AI upscaling, stabilization, and denoising.
+Enhance a video using AI upscaling, frame interpolation, stabilization, and denoising.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `input_path` | string | Yes | Absolute path to the source video |
 | `output_path` | string | No | Output **directory** (default: same directory as input) |
-| `preset` | string | No | Preset ID (see list below) |
+| `preset` | string | No | Preset ID: `old_video_restoration`, `surveillance_enhancement`, `content_creation`, `drone_action_cam`, `animation_anime`, `video_archival`, `enhance_cleanup`, `smooth_motion` |
 | `upscale` | string | No | `off`, `enhance` (same-resolution cleanup), `x2`, `x3`, `x4` (default: off) |
 | `denoise` | string | No | `off`, `light`, `medium`, `strong` (default: off) |
 | `stabilize` | string | No | `off`, `light`, `medium`, `strong` (default: off) |
+| `interpolate` | string | No | RIFE frame interpolation: `off`, `x2`, `x4` (default: off) |
 | `codec` | string | No | Output codec: `h264`, `h265`, `av1` (default: h265) |
 | `crf` | integer | No | Quality 0-51 (lower = better, default: 18) |
 
-Individual parameters override preset values when both are provided. There is no direct `interpolate` parameter — to get RIFE frame interpolation via MCP, use a preset that includes it (`content_creation`, `drone_action_cam`, `smooth_motion`), or use the CLI `--interpolate` flag.
+Individual parameters override preset values when both are provided. You can enable interpolation directly with `interpolate` (for example `x2` to double the frame rate) without choosing a preset that includes it.
 
 **Returns**: success, inputPath, outputPaths, errors.
 
