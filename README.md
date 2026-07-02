@@ -162,7 +162,7 @@ After installing, try: *"Resize all photos in D:\Products for Amazon and Etsy"* 
 | **Duration** | 30 days from install | Permanent |
 | **Credit card** | Not required | One-time purchase |
 
-*Free-file allowance per product: Contenta Converter — first 5 images; AI Video Enhancer — first 5 videos (then watermark + 720p cap); VideoRecompress — first 3 videos (then watermark + 10-minute duration cap); 3D CAD Converter — 10 files per session.
+*Free-file allowance per product: Contenta Converter — first 5 images; AI Video Enhancer — first 5 videos (then watermark + 720p cap); VideoRecompress — first 3 videos (then watermark + 10-minute duration cap); 3D CAD Converter — 10 lifetime conversions, then blocked until purchase.
 
 All licenses are **one-time purchases** — no subscriptions, no renewals. Buy once, use forever including all minor updates.
 

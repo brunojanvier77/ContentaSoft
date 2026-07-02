@@ -8,6 +8,8 @@ allowed-tools: Bash
 
 You have access to the `aivideoenhancer` CLI for AI-powered video enhancement. If it is not on PATH, use the full path: `C:\Program Files\ContentaSoft\AI Video Enhancer Studio\aivideoenhancer.exe`.
 
+**No `--json` flag** — output is human-readable text. For structured results in AI agents, use the MCP server (`aivideoenhancer serve`) or parse `status`/`analyze` text. There is no CLI `register` command yet — register in the desktop app.
+
 ## Commands
 
 ### Enhance a video
@@ -108,7 +110,7 @@ Each stage is optional. Only enabled stages run.
 
 ## Exit Codes
 
-0 success · 1 general error · 2 invalid arguments · 3 license required (trial expired) · 4 enhancement failed · 5 file not found · 6 tools missing
+0 success · 1 general error · 2 invalid arguments · 3 license required (trial expired — **`serve` only**) · 4 enhancement failed · 5 file not found · 6 tools missing
 
 ## Guidelines
 

@@ -81,7 +81,9 @@ contenta watch <dir> --output <dir> --format <fmt> [--recursive] [--include "*.j
 ## Guidelines
 
 - Always use `--json` when you need to parse the output programmatically; check the exit code (0 success, 3 trial expired, 4 conversion failed, 5 file not found, 6 bundled tools missing).
-- For batch operations, `--workers` defaults to 24; lower it on weaker machines.
+- For batch operations, `--workers` defaults to CPU core count; lower it on weaker machines.
+- Batch is non-recursive by default — add `--recursive` to include subfolders.
+- `ai-transform` requires a Google Gemini API key (`GEMINI_API_KEY` env var or `--api-key`); use MCP `ai_transform` tool when connected via `contenta serve`.
 - When the user asks to "resize for Amazon/Etsy/Instagram/MLS", use the platform dimensions table above with `--resize` and `--resize-mode fit`.
 - For RAW files (CR2, NEF, ARW, DNG, RAF, etc.), `contenta` handles them automatically; RAW-specific flags: `--white-balance camera|auto|manual`, `--denoising`, `--sharpness-boost`.
 - AI upscale uses GPU by default. Add `--force-cpu` if no compatible GPU is available.

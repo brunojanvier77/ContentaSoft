@@ -83,7 +83,7 @@ cadconvert watch -i ./incoming -o ./converted -f stl
 | `-o, --output` | Output directory (**required**) |
 | `-f, --format` | Target format (default: `stl`) |
 | `-r, --recursive` | Include subdirectories (default: `true`) |
-| `-w, --workers` | Parallel workers (default: `24`) |
+| `-w, --workers` | Parallel workers (default: CPU core count) |
 
 ### `watch` options
 
@@ -147,7 +147,7 @@ Run `cadconvert formats` for the authoritative list from your installed version.
 
 ## Trial
 
-The free trial runs for **30 days from install** and adds a watermark after **10 files per session**. After the trial expires, conversion is blocked until you [register a license](https://www.contenta-software.com/3dcadconverter/) with `cadconvert register -k <key> -e <email>`.
+The free trial runs for **30 days from install**. The first **10 conversions (lifetime)** run without restriction; after that, conversion is blocked until you [register a license](https://www.contenta-software.com/3dcadconverter/) with `cadconvert register -k <key> -e <email>`.
 
 ## MCP Server
 

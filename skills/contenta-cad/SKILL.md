@@ -34,7 +34,7 @@ Tessellation controls mesh quality when converting from parametric (STEP/IGES/BR
 ```bash
 cadconvert batch -i <dir> -o <dir> -f <fmt> [--recursive] [--workers <n>]
 ```
-`-f` defaults to stl, `--recursive` defaults to true, `--workers` defaults to 24.
+`-f` defaults to stl, `--recursive` defaults to true, `--workers` defaults to CPU core count.
 
 ### Inspect a 3D file
 ```bash
@@ -45,6 +45,11 @@ Returns: format, units, part count, triangle count, vertex count, bounding box, 
 ### List supported formats
 ```bash
 cadconvert formats
+```
+
+### Register a license
+```bash
+cadconvert register -k <key> -e <email>
 ```
 
 ### Watch folder for auto-conversion
@@ -92,4 +97,5 @@ Add `--repair` to fix common mesh issues:
 - Use `--binary` (default: true) for STL and PLY to get smaller files. Use `--binary false` for ASCII output when human-readability matters.
 - Run `cadconvert info <file>` first to understand what you're working with before converting.
 - glTF (`.gltf`) is JSON-based, GLB (`.glb`) is the binary equivalent. Prefer GLB for distribution.
-- Trial: 30 days from install, watermark after 10 files per session; conversion is blocked after the trial expires (exit code 5).
+- Trial: 30 days from install; the first **10 conversions (lifetime)** run clean, then conversion is blocked until purchase (exit code 5). Register with `cadconvert register -k <key> -e <email>`.
+- No `--json` on the CLI — use the MCP server (`cadconvert serve`) for structured output in AI agents.

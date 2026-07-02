@@ -46,7 +46,9 @@ If `aivideoenhancer status` prints your GPU and tool availability, you're ready.
 | `presets` | List available enhancement presets |
 | `status` | Check GPU capabilities, tools, and trial/registration status |
 | `diagnose` | Create a diagnostic bundle for support |
-| `serve` | Start the MCP server (stdio) |
+| `serve` | Start the MCP server (stdio) — blocked after trial expires (exit code 3) |
+
+There is **no `--json` flag** and **no CLI `register` command** — register in the desktop app. For structured output in AI agents, use `aivideoenhancer serve` (MCP).
 
 ### `enhance` options
 
