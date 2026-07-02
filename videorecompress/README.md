@@ -40,7 +40,10 @@ videorecompress recompress video.mp4 --output C:\Compressed
 # 3. Archive-quality H.265 (same settings as the "Wedding / Event Archive" preset)
 videorecompress recompress video.mp4 --codec h265 --crf 18 --output C:\Compressed
 
-# 4. Batch compress a whole folder to AV1 with 4 parallel workers
+# 4. Batch compress using a named preset (same settings as the GUI "Phone Video Archive" tile)
+videorecompress batch C:\Videos --preset-id phone_archive --workers 4 --output C:\Compressed
+
+# 5. Batch compress a whole folder to AV1 with explicit flags and 4 parallel workers
 videorecompress batch C:\Videos --codec av1 --crf 35 --workers 4 --output C:\Compressed
 ```
 
@@ -58,6 +61,7 @@ Note: `--output` takes a **directory**, not a filename. Output files keep the so
 | `recompress <input>` | Recompress a single video file |
 | `batch <input-dir>` | Batch recompress all videos in a directory |
 | `presets` | List available recompression presets (`--preset-id <id>` for details) |
+| `register <email> <key>` | Register a license key |
 | `profile save\|load\|validate <file>` | Save, load, or validate recompression profiles (JSON) |
 | `status` | Show tool availability, license state, and GPU info |
 | `watch` | Monitor a folder and auto-recompress new video files |
@@ -74,6 +78,7 @@ Both commands share the same encoding options:
 | `--quality-mode` | `crf`, `cbr`, `twopass` | `crf` |
 | `--bitrate` | target kbps (for cbr/twopass) | — |
 | `--preset` | **encoder speed**: `ultrafast`..`veryslow` (numeric for AV1) | `medium` |
+| `--preset-id` | **named preset** to use as base settings (e.g. `phone_archive`); explicit flags override | — |
 | `--hw-accel` | `auto`, `nvenc`, `qsv`, `amf`, `software` | `auto` |
 | `--audio-mode` | `copy`, `reencode`, `remove` | `copy` |
 | `--audio-codec` | `aac`, `opus`, `mp3`, `flac`, `ac3`, `eac3` | `aac` |
@@ -99,12 +104,18 @@ Both commands share the same encoding options:
 This trips people up, so read carefully:
 
 - On `recompress` and `batch`, **`--preset` is the encoder speed preset** (`ultrafast`..`veryslow`, or numeric for AV1; default `medium`). It is *not* a named recompression preset — `recompress video.mp4 --preset wedding_archive` will **fail**.
-- The 24 **named presets** below are used by: the GUI preset tiles, `watch --preset <id>`, and the MCP tools (`recompress_video`, `batch_recompress`, `estimate_savings` accept a `preset` ID).
-- To get a named preset's result from `recompress`/`batch`, pass the equivalent flags (e.g. wedding-archive quality = `--codec h265 --crf 18`) or use a saved profile JSON:
+- Use **`--preset-id <id>`** on `recompress`, `batch`, and `profile save` to start from one of the 24 named presets below. Any explicit flags you also pass (e.g. `--crf 20`) override that preset's value for that setting only.
+- `watch` uses **`--preset`** (not `--preset-id`) for the named preset ID — same IDs, different flag name.
+- The MCP tools (`recompress_video`, `batch_recompress`, `estimate_savings`) accept a `preset` parameter with the same IDs.
 
 ```bash
-videorecompress profile validate my-profile.json
-videorecompress recompress video.mp4 --profile my-profile.json --output C:\Compressed
+# Named preset on recompress/batch
+videorecompress recompress video.mp4 --preset-id phone_archive --output C:\Compressed
+videorecompress batch C:\Videos --preset-id wedding_archive --workers 2 --output C:\Compressed
+
+# Or save a preset to a JSON profile for reuse
+videorecompress profile save wedding.json --preset-id wedding_archive
+videorecompress recompress video.mp4 --profile wedding.json --output C:\Compressed
 ```
 
 ## Presets
@@ -195,7 +206,13 @@ videorecompress analyze video.mp4 --json | jq .videoCodec
 
 ## Trial
 
-The free trial lasts 30 days. Your first **3 files (lifetime)** are compressed free with no restrictions; from the 4th file, output gets a watermark and is capped at 600 seconds (10 minutes). After 30 days, `recompress`, `batch`, and `serve` are blocked (exit code 3) until you register — registration is done in the app's GUI. `analyze`, `presets`, `status`, `profile`, and `watch` setup work without a license check.
+The free trial lasts 30 days. Your first **3 files (lifetime)** are compressed free with no restrictions; from the 4th file, output gets a watermark and is capped at 600 seconds (10 minutes). After 30 days, `recompress`, `batch`, and `serve` are blocked (exit code 3) until you register:
+
+```bash
+videorecompress register your@email.com XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
+```
+
+Registration also works in the desktop app's Register page. `analyze`, `presets`, `status`, `profile`, `register`, and `watch` setup work without a license check.
 
 ## MCP Server
 

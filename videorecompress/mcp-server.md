@@ -27,7 +27,7 @@ If the install directory is on your `PATH`, `"command": "videorecompress"` also 
 | Server Name | `videorecompress-studio` |
 | Server Version | `2026.2.4` |
 
-**Licensing**: `serve` requires an active trial or a registered license (trial expired → the server refuses to start, exit code 3). During the trial, the first 3 files (lifetime) are processed without restrictions; after that, `recompress_video`/`batch_recompress` output gets a watermark and a 600-second duration cap.
+**Licensing**: `serve` requires an active trial or a registered license (trial expired → the server refuses to start, exit code 3). Register with `videorecompress register <email> <key>` or in the desktop app. During the trial, the first 3 files (lifetime) are processed without restrictions; after that, `recompress_video`/`batch_recompress` output gets a watermark and a 600-second duration cap.
 
 ## Presets
 

@@ -116,7 +116,7 @@ To enable the `ai_transform` tool, add your Google Gemini API key:
 | Issue | Fix |
 |-------|-----|
 | `contenta` not found | Provide the full path in the MCP config: `C:\Program Files\ContentaSoft\Contenta Converter PREMIUM\contenta.exe`, or add the install dir to PATH |
-| "License required" (trial expired) | Register: `contenta register your@email.com XXXXX-XXXXX-XXXXX-XXXXX-XXXXX` (VideoRecompress registers in the desktop app) |
+| "License required" (trial expired) | Register: `contenta register your@email.com XXXXX-XXXXX-XXXXX-XXXXX-XXXXX` or `videorecompress register your@email.com XXXXX-XXXXX-XXXXX-XXXXX-XXXXX` |
 | Tools not appearing | Restart your AI client after saving the config |
 | ai_transform fails | Set `GEMINI_API_KEY` env var or pass `api_key` parameter |
 
