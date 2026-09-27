@@ -26,7 +26,7 @@ Pass absolute paths to every tool.
 | Transport | stdio |
 | Protocol | JSON-RPC 2.0, MCP `2024-11-05` |
 | Server name | `cad-converter` |
-| Server version | `1.0.23` |
+| Server version | `1.0.24` |
 
 **License**: the server runs during the 30-day trial and for registered copies; after the trial it refuses to start. The trial includes 10 conversions; after that `convert_cad` returns a "Trial limit reached" error until you register.
 
@@ -57,6 +57,8 @@ The tessellation presets set these deflections (angular deflection in radians, t
 
 **Returns**: success, input, output, format, durationMs. Two more fields appear only when they apply: `meshFallback` (a fine mesh took too long and a coarser one was used) and `warning` (a note about the conversion).
 
+`convert_cad` has no up-axis or polygon-reduction parameter. For those, run the CLI (`cadconvert convert ... --up-axis y` or `--decimate 0.25`); see the [CLI reference](README.md#conversion-options).
+
 ---
 
 ### get_file_info
@@ -65,7 +67,9 @@ The tessellation presets set these deflections (angular deflection in radians, t
 |-----------|------|----------|-------------|
 | `path` | string | Yes | Absolute path to the 3D file |
 
-**Returns**: path, fileName, fileSize, format, units, partCount, triangleCount, vertexCount, hasMaterials, hasTextures, boundingBox (minX/minY/minZ, maxX/maxY/maxZ; STEP files).
+**Returns**: path, fileName, fileSize, format, units, boundingBoxUnits, partCount, triangleCount, vertexCount, hasMaterials, hasTextures, boundingBox (minX/minY/minZ, maxX/maxY/maxZ; STEP, IGES and BREP files).
+
+`units` is the unit the file declares: 3MF, STEP and IGES carry one, glTF/GLB is always metres, and a BREP file (which stores none) is read as millimetres. STL, OBJ, PLY and OFF carry no unit. `boundingBoxUnits` is the unit the bounding box is in.
 
 ---
 
