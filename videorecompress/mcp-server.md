@@ -1,139 +1,115 @@
-# VideoRecompress Studio — MCP Server
+# VideoRecompress Studio: MCP server
 
-VideoRecompress Studio exposes 5 video compression tools via the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP).
+`videorecompress serve` exposes 5 video tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Desktop, Claude Code, Cursor, Windsurf and others) can analyze and compress videos on your PC.
 
-## Getting Started
+## Setup
 
 ```json
 {
   "mcpServers": {
     "videorecompress": {
-      "command": "C:\\Program Files\\ContentaSoft\\VideoRecompress Studio\\videorecompress.exe",
+      "command": "videorecompress",
       "args": ["serve"]
     }
   }
 }
 ```
 
-If the install directory is on your `PATH`, `"command": "videorecompress"` also works.
+If your AI client cannot find `videorecompress`, use the full path, for example `"C:\\Users\\<you>\\AppData\\Local\\Programs\\VideoRecompressStudio\\videorecompress.exe"`. See the [MCP config guide](../mcp-config/) for each client.
 
-## Protocol Details
+Pass absolute paths to every tool.
+
+## Protocol
 
 | Property | Value |
 |----------|-------|
-| Transport | stdio (stdin/stdout) |
-| Protocol | JSON-RPC 2.0 |
-| Protocol Version | `2024-11-05` |
-| Server Name | `videorecompress-studio` |
-| Server Version | `2026.2.4` |
+| Transport | stdio |
+| Protocol | JSON-RPC 2.0, MCP `2024-11-05` |
+| Server name | `videorecompress-studio` |
+| Server version | `2026.2.19` |
 
-**Licensing**: `serve` requires an active trial or a registered license (trial expired → the server refuses to start, exit code 3). Register with `videorecompress register <email> <key>` or in the desktop app. During the trial, the first 3 files (lifetime) are processed without restrictions; after that, `recompress_video`/`batch_recompress` output gets a watermark and a 600-second duration cap.
+**License**: the server runs during the 30-day trial and for registered copies. After the trial ends it refuses to start (exit code 3). During the trial the first 10 files are unrestricted; after that, `recompress_video` and `batch_recompress` output carries a watermark and is cut at 10 minutes.
 
 ## Presets
 
-`recompress_video`, `batch_recompress`, and `estimate_savings` accept a `preset` parameter: the **ID** of any of the 24 built-in presets (or a custom preset saved from the GUI). Explicit `codec`/`crf` values override the preset when both are given.
-
-Built-in preset IDs by category:
+`recompress_video`, `batch_recompress` and `estimate_savings` take a `preset` parameter: the ID of a built-in preset or of a custom preset saved in the desktop app. An explicit `codec` or `crf` overrides the preset's value.
 
 - **Compression**: `phone_archive`, `youtube_raw`, `security_archive`, `wedding_archive`, `max_savings`, `av1_max_savings`, `quick_h264`, `web_optimized`, `drone_footage`, `screen_recording`, `4k_to_1080p`, `dashcam_archive`, `gaming_clips`, `old_video_rescue`
-- **Social media**: `whatsapp`, `email_attachment`, `discord_free`, `twitter_x`, `instagram_reels`, `tiktok`
-- **Tools** (no re-encoding): `gif_creator`, `youtube_thumbnails`, `video_contact_sheet`
+- **Social**: `whatsapp`, `email_attachment`, `discord_free`, `twitter_x`, `instagram_reels`, `tiktok`
 - **Conversion**: `iphone_to_mp4`
+- **Desktop-app tools** (not re-encodes): `gif_creator`, `youtube_thumbnails`, `video_contact_sheet`
+
+Codec, CRF and estimated savings for each are in the [CLI README](README.md#presets) and in `list_presets`.
 
 ## Tools
 
 ### analyze_video
 
-Analyze a video file and return codec, resolution, duration, bitrate, and audio information.
-
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `path` | string | Yes | Absolute path to the video file |
+| `path` | string | Yes | Absolute path to the video |
 
-**Returns**: fileName, fileSize, videoCodec, resolution, width, height, frameRate, frameCount, duration, videoBitrate, pixelFormat, totalBitrate, containerFormat, audioCodec, audioChannels, audioBitrate, subtitleStreams.
+**Returns**: path, fileName, fileSize, fileSizeFormatted, duration, durationFormatted, videoCodec, videoCodecLong, width, height, resolution, frameRate, frameCount, videoBitrate, pixelFormat, audioCodec, audioChannels, audioSampleRate, audioBitrate, totalBitrate, containerFormat, creationDate (when the file has one).
 
 ---
 
 ### recompress_video
 
-Recompress a video file with modern codecs (H.265, AV1, VP9) for smaller file size.
-
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `input_path` | string | Yes | Absolute path to the source video |
-| `output_path` | string | No | Output file path (default: auto-generated next to the source) |
-| `preset` | string | No | Built-in preset ID (see [Presets](#presets)), e.g. `phone_archive`, `wedding_archive`, `tiktok` |
-| `codec` | string | No | `h264`, `h265`, `av1`, `vp9` (overrides preset) |
-| `crf` | integer | No | Quality 0-63 (lower = better, overrides preset) |
-| `hw_accel` | string | No | `auto`, `nvenc`, `qsv`, `amf`, `software` (default: auto) |
+| `output_path` | string | No | Output file path (default: generated next to the source) |
+| `preset` | string | No | Preset ID |
+| `codec` | string | No | `h264`, `h265`, `av1`, `vp9` (overrides the preset) |
+| `crf` | integer | No | 0-63, lower = better (overrides the preset) |
+| `hw_accel` | string | No | `auto`, `nvenc`, `qsv`, `amf`, `software` |
 
-**Returns**: success, inputPath, outputPath, inputSize, outputSize, reductionPercent, codec, crf, durationMs, integrityOk, integrityError.
+**Returns**: success, inputPath, outputPath, inputSize, outputSize, reductionPercent, codec, crf, durationMs, integrityOk, audioOnly, keptOriginal; integrityError when the output check fails.
 
 ---
 
 ### list_presets
 
-List available video recompression presets with codec, quality, and estimated savings.
+No parameters.
 
-No parameters required.
-
-**Returns**: all 24 built-in presets plus any custom presets saved from the GUI. Highlights:
-
-| Preset ID | Codec | CRF | Est. Savings |
-|-----------|-------|-----|-------------|
-| `phone_archive` | H.265 | 23 | 40-50% |
-| `youtube_raw` | H.265 | 20 | 30-40% |
-| `security_archive` | H.265 | 28 | 50-60% |
-| `wedding_archive` | H.265 | 18 | 25-35% |
-| `max_savings` | AV1 | 35 | 55-70% |
-| `av1_max_savings` | AV1 | 33 | 60-75% |
-| `quick_h264` | H.264 | 23 | 20-30% |
-| `web_optimized` | VP9 | 30 | 45-55% |
-| `drone_footage` | H.265 | 21 | 50-65% |
-| `screen_recording` | H.265 | 26 | 55-70% |
-| `4k_to_1080p` | H.265 | 22 | 65-80% |
-| `dashcam_archive` | H.265 | 27 | 50-60% |
-| `gaming_clips` | H.265 | 22 | 45-60% |
-| `old_video_rescue` | H.265 | 20 | 40-60% |
-| `whatsapp` | H.264 | 28 | 60-75% |
-| `email_attachment` | H.264 | 28 | 55-70% |
-| `discord_free` | H.264 | 32 | 70-85% |
-| `twitter_x` | H.264 | 23 | 30-45% |
-| `instagram_reels` | H.264 | 23 | 30-45% |
-| `tiktok` | H.264 | 23 | 30-45% |
-| `gif_creator` | Copy | — | N/A |
-| `youtube_thumbnails` | Copy | — | N/A |
-| `video_contact_sheet` | Copy | — | N/A |
-| `iphone_to_mp4` | H.264 | 20 | 10-25% |
+**Returns**: an array of presets with id, name, codec, crf, target, estimatedSavings, isCustom. Includes custom presets saved in the desktop app.
 
 ---
 
 ### estimate_savings
 
-Estimate file size savings for a video with a given recompression profile.
-
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `path` | string | Yes | Absolute path to the video file |
-| `preset` | string | No | Built-in preset ID to estimate with |
-| `codec` | string | No | Target codec (used when no preset specified) |
-| `crf` | integer | No | Target CRF 0-63 (used when no preset specified, default: 23) |
+| `path` | string | Yes | Absolute path to the video |
+| `preset` | string | No | Preset ID |
+| `codec` | string | No | Target codec when no preset is given |
+| `crf` | integer | No | Target CRF 0-63 when no preset is given (default 23) |
 
-**Returns**: currentSize, estimatedOutputSize, estimatedReductionPercent, sourceCodec, targetCodec.
+**Returns**: path, currentSize, currentSizeFormatted, estimatedOutputSize, estimatedOutputSizeFormatted, estimatedReductionPercent, codec, crf.
+
+Example (a 443 KB clip with `phone_archive`): `estimatedOutputSize` 228,718 bytes, `estimatedReductionPercent` 49.6, `codec` "H265", `crf` 23. The actual `recompress_video` result on the same clip was a 45% reduction.
 
 ---
 
 ### batch_recompress
 
-Batch recompress all videos in a directory.
-
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `input_dir` | string | Yes | Directory to scan for videos |
-| `output_dir` | string | Yes | Output directory |
-| `preset` | string | No | Built-in preset ID (see [Presets](#presets)) |
-| `codec` | string | No | Target codec (used when no preset specified) |
-| `crf` | integer | No | Quality 0-63 (used when no preset specified) |
-| `workers` | integer | No | Parallel workers (default: 1 for software encoding, 2 for hardware) |
+| `input_dir` | string | Yes | Folder with the videos |
+| `output_dir` | string | Yes | Output folder |
+| `preset` | string | No | Preset ID |
+| `codec` | string | No | Target codec when no preset is given |
+| `crf` | integer | No | 0-63, when no preset is given |
+| `workers` | integer | No | Parallel files (default 1 for software encoding, 2 for hardware) |
 
-**Returns**: total, success, failed, outputs, errors.
+**Returns**: total, success, failed, inputDir, outputDir, outputs, errors.
+
+## Example requests
+
+> "How much would phone_archive save on C:\Videos\party.mp4?"
+>
+> The agent calls `estimate_savings` with `path` and `preset: "phone_archive"`, then `recompress_video` if you agree.
+
+> "Compress everything in C:\Dashcam for archiving."
+>
+> The agent calls `batch_recompress` with `input_dir: "C:\\Dashcam"`, `output_dir: "C:\\Dashcam\\archived"`, `preset: "dashcam_archive"`.
