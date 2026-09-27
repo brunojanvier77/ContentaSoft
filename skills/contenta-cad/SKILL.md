@@ -1,101 +1,69 @@
 ---
 name: contenta-cad
-description: Convert 3D CAD files using the cadconvert CLI. Use when the user asks to convert STEP, IGES, STL, OBJ, FBX, glTF, 3MF, or other 3D formats, inspect 3D file metadata, or batch convert CAD directories.
+description: Convert 3D CAD and mesh files with the 3D CAD Converter CLI (cadconvert). Use when the user asks to convert STEP, IGES or BREP to STL, OBJ, 3MF, glTF/GLB, FBX, PLY or other formats, convert between mesh formats, change units, control mesh quality for 3D printing, inspect a 3D file, or batch-convert or watch a folder of CAD files.
 allowed-tools: Bash
 ---
 
-# Contenta CAD Converter
+# 3D CAD Converter
 
-You have access to the `cadconvert` CLI for 3D file conversion (default install: `C:\Program Files\ContentaSoft\3D CAD Converter\cadconvert.exe`). The CLI has no `--json` flag — for structured output, use the MCP server (`cadconvert serve`).
+Use the `cadconvert` CLI (3D CAD Converter 1.0.23+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\CadConverter\cadconvert.exe`, on the user PATH. Check with `cadconvert --version`.
+
+No `--json` flag; for structured results use the MCP server (`cadconvert serve`).
 
 ## Commands
 
-### Convert a single file
 ```bash
-cadconvert convert -i <input> -o <output> [-f <fmt>] [--tessellation <value>] [--angular <degrees>] [--units <unit>] [--repair] [--binary <true|false>]
-```
-
-`-i` and `-o` are required. `-f/--format` is optional — inferred from the output extension.
-
-Example: `cadconvert convert -i model.step -o model.stl --tessellation 0.01`
-
-Export formats: stl, obj, ply, gltf, glb, 3mf, dae, fbx, vrml, off, x3d, step, iges, brep
-Import-only: amf, dwg, dxf, usd, usdz
-
-Tessellation controls mesh quality when converting from parametric (STEP/IGES/BREP) to mesh. It is **numeric** (linear deflection — no keyword presets):
-- `--tessellation 0.5` — draft quality (fast, coarse mesh)
-- `--tessellation 0.1` — standard quality (default)
-- `--tessellation 0.01` — fine quality (slow, smooth mesh)
-- `--tessellation 0.001` — ultra fine quality (very slow, maximum detail)
-
-`--angular` sets angular deflection in degrees (default: 0.5).
-
-### Batch convert
-```bash
-cadconvert batch -i <dir> -o <dir> -f <fmt> [--recursive] [--workers <n>]
-```
-`-f` defaults to stl, `--recursive` defaults to true, `--workers` defaults to CPU core count.
-
-### Inspect a 3D file
-```bash
+cadconvert convert -i <input> -o <output> [-f <fmt>] [--tessellation N] [--angular RAD] [--units mm|cm|in|m|ft] [--repair] [--binary true|false]
+cadconvert batch -i <dir> -o <dir> [-f stl] [-r] [-w N]
 cadconvert info <file>
-```
-Returns: format, units, part count, triangle count, vertex count, bounding box, materials, textures.
-
-### List supported formats
-```bash
 cadconvert formats
-```
-
-### Register a license
-```bash
+cadconvert watch -i <dir> -o <dir> [-f stl]        # runs until Ctrl+C
 cadconvert register -k <key> -e <email>
 ```
 
-### Watch folder for auto-conversion
-```bash
-cadconvert watch -i <dir> -o <dir> -f <fmt>
+- `-i` and `-o` are required flags (no positional paths).
+- `-f` is optional on `convert` (taken from the output extension); `batch` and `watch` default to `stl`.
+- `batch` is recursive by default; `-w` defaults to the number of logical processors. It uses the default mesh quality (no `--tessellation` on batch).
+
+## Mesh quality (STEP/IGES/BREP sources only)
+
+`--tessellation` is the linear deflection (number, default 0.1). `--angular` is the angular deflection in **radians** (default 0.5, about 29 degrees).
+
+| Quality | `--tessellation` | `--angular` |
+|---------|------------------|-------------|
+| Draft | 1.0 | 5.0 |
+| Standard (default) | 0.1 | 0.5 |
+| Fine (smooth curves, 3D printing) | 0.01 | 0.1 |
+| Ultra fine | 0.001 | 0.05 |
+
+Finer settings make much larger files: on a small test part, fine produced about 12x the triangles of standard. Mesh-to-mesh conversions ignore both options.
+
+## Formats
+
+Write: stl, obj, ply, fbx, dae, 3mf, gltf, glb, wrl (vrml), x3d, off, step (.step/.stp), iges (.iges/.igs), brep.
+Read only: amf, dwg, dxf, usd, usdz.
+
+## Examples (verified on 1.0.23)
+
+```powershell
+cadconvert convert -i model.step -o model.stl
+cadconvert convert -i model.step -o model_fine.stl --tessellation 0.01 --angular 0.1
+cadconvert convert -i model.step -o model.glb
+cadconvert convert -i model.step -o model_in.obj --units in --repair
+cadconvert convert -i model.stl -o model_ascii.stl --binary false
+cadconvert batch -i .\cad-files -o .\meshes -f obj
+cadconvert info model.step
+cadconvert watch -i .\incoming -o .\converted -f stl
 ```
 
-## Exit Codes
+## Exit codes
 
-`0` Success · `1` Error · `2` Invalid arguments · `3` File not found · `4` Conversion failed · `5` License required
-
-## Format Routing
-
-The converter automatically picks the right engine:
-
-| Source | Target | Engine |
-|--------|--------|--------|
-| STEP/IGES | Any mesh (STL, OBJ, etc.) | OpenCascade (tessellation required) |
-| Any mesh | Any mesh | Assimp (fast, in-process) |
-| Any mesh | STEP/IGES | OpenCascade |
-
-## Unit Conversion
-
-Use `--units` to convert between unit systems:
-- `mm` — millimeters (default for most CAD)
-- `cm` — centimeters
-- `in` — inches
-- `m` — meters
-- `ft` — feet
-
-Example: `cadconvert convert -i part.step -o part.stl --units in` converts to inches.
-
-## Mesh Repair
-
-Add `--repair` to fix common mesh issues:
-- Non-manifold edges
-- Holes in the mesh
-- Degenerate faces
-- Self-intersections
+0 success · 1 error · 2 invalid arguments · 3 file not found · 4 conversion failed · 5 license required (trial limit reached or trial ended).
 
 ## Guidelines
 
-- For STEP/IGES to mesh, tessellation quality matters. Use `0.1` (standard) for most cases. Use `0.01` (fine) for curved surfaces that need to look smooth. Use `0.5` (draft) for quick previews.
-- For mesh-to-mesh (e.g., STL to OBJ), tessellation is ignored — the conversion is direct and fast.
-- Use `--binary` (default: true) for STL and PLY to get smaller files. Use `--binary false` for ASCII output when human-readability matters.
-- Run `cadconvert info <file>` first to understand what you're working with before converting.
-- glTF (`.gltf`) is JSON-based, GLB (`.glb`) is the binary equivalent. Prefer GLB for distribution.
-- Trial: 30 days from install; the first **10 conversions (lifetime)** run clean, then conversion is blocked until purchase (exit code 5). Register with `cadconvert register -k <key> -e <email>`.
-- No `--json` on the CLI — use the MCP server (`cadconvert serve`) for structured output in AI agents.
+- Run `cadconvert info` on STEP files first: it gives units and the bounding box. For mesh files it only gives counts, and in 1.0.23 it misreports IGES files (convert them anyway; conversion works).
+- Use standard quality unless the user needs smooth curves (fine) or a quick preview (draft).
+- STL has no colors or materials; the CLI says so. Use 3MF, OBJ or GLB when color matters.
+- glTF (`.gltf`) is JSON plus side files; GLB (`.glb`) is a single binary file and is easier to share.
+- Trial: 30 days and 10 conversions, then conversion stops (exit 5) until `cadconvert register -k <key> -e <email>`.

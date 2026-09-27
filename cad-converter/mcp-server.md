@@ -1,93 +1,94 @@
-# 3D CAD Converter — MCP Server
+# 3D CAD Converter: MCP server
 
-The CAD Converter exposes 4 tools for 3D file conversion and analysis via the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP).
+`cadconvert serve` exposes 4 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Desktop, Claude Code, Cursor, Windsurf and others) can inspect and convert 3D files on your PC.
 
-## Getting Started
+## Setup
 
 ```json
 {
   "mcpServers": {
     "cad-converter": {
-      "command": "C:\\Program Files\\ContentaSoft\\3D CAD Converter\\cadconvert.exe",
+      "command": "cadconvert",
       "args": ["serve"]
     }
   }
 }
 ```
 
-If the install directory is on your `PATH`, `"command": "cadconvert"` also works.
+If your AI client cannot find `cadconvert`, use the full path, for example `"C:\\Users\\<you>\\AppData\\Local\\Programs\\CadConverter\\cadconvert.exe"`. See the [MCP config guide](../mcp-config/) for each client.
 
-## Protocol Details
+Pass absolute paths to every tool.
+
+## Protocol
 
 | Property | Value |
 |----------|-------|
-| Transport | stdio (stdin/stdout) |
-| Protocol | JSON-RPC 2.0 |
-| Protocol Version | `2024-11-05` |
-| Server Name | `cad-converter` |
-| Server Version | `2026.1.0` |
+| Transport | stdio |
+| Protocol | JSON-RPC 2.0, MCP `2024-11-05` |
+| Server name | `cad-converter` |
+| Server version | `1.0.23` |
+
+**License**: the server runs during the 30-day trial and for registered copies; after the trial it refuses to start. The trial includes 10 conversions; after that `convert_cad` returns a "Trial limit reached" error until you register.
 
 ## Tools
 
 ### convert_cad
 
-Convert a 3D CAD file (STEP, IGES, BREP) to mesh formats (STL, OBJ, PLY, FBX, glTF, 3MF, …) or between mesh formats.
+Convert STEP, IGES or BREP to a mesh format, or convert between mesh formats.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `input_path` | string | Yes | Absolute path to the source 3D file |
-| `output_path` | string | Yes | Output file path |
-| `format` | string | No | Target format: `stl`, `obj`, `ply`, `gltf`, `glb`, `3mf`, `dae`, `step`, `iges`, `fbx`, `vrml`, `off`, `brep`. If omitted, inferred from the output file extension |
-| `tessellation` | string | No | Tessellation preset: `draft`, `standard`, `fine`, `ultrafine` (default: standard) |
-| `units` | string | No | Target units: `mm`, `cm`, `in`, `m`, `ft` |
-| `repair` | boolean | No | Enable mesh repair |
-| `binary` | boolean | No | Binary output for STL/PLY (default: true) |
+| `input_path` | string | Yes | Absolute path to the source file |
+| `output_path` | string | Yes | Absolute path for the output file |
+| `format` | string | No | `stl`, `obj`, `ply`, `gltf`, `glb`, `3mf`, `dae`, `step`, `iges`, `fbx`, `vrml`, `off`, `brep` (default: from the output extension) |
+| `tessellation` | string | No | `draft`, `standard` (default), `fine`, `ultrafine` |
+| `units` | string | No | `mm`, `cm`, `in`, `m`, `ft` |
+| `repair` | boolean | No | Mesh repair |
+| `binary` | boolean | No | Binary STL/PLY (default true) |
 
-Unlike the CLI (which takes numeric deflection values), the MCP tool accepts keyword presets that map to these deflection values:
+The tessellation presets set these deflections (angular deflection in radians, the same unit as the CLI's `--angular`):
 
-| Preset | Linear deflection | Angular deflection (°) |
-|--------|------------------|------------------------|
+| Preset | Linear | Angular |
+|--------|--------|---------|
 | `draft` | 1.0 | 5.0 |
 | `standard` | 0.1 | 0.5 |
 | `fine` | 0.01 | 0.1 |
 | `ultrafine` | 0.001 | 0.05 |
 
-**Returns**: success, input, output, format, durationMs.
+**Returns**: success, input, output, format, durationMs. Two more fields appear only when they apply: `meshFallback` (a fine mesh took too long and a coarser one was used) and `warning` (a note about the conversion).
 
 ---
 
 ### get_file_info
 
-Get metadata about a 3D file including format, parts, triangles, vertices, and bounding box.
-
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `path` | string | Yes | Absolute path to the 3D file |
 
-**Returns**: format, units, partCount, triangleCount, vertexCount, hasMaterials, hasTextures, boundingBox (minX/Y/Z, maxX/Y/Z).
+**Returns**: path, fileName, fileSize, format, units, partCount, triangleCount, vertexCount, hasMaterials, hasTextures, boundingBox (minX/minY/minZ, maxX/maxY/maxZ; STEP files).
 
 ---
 
 ### detect_format
 
-Detect the 3D file format and check if it is supported for import/export.
-
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `path` | string | Yes | Absolute path to the file |
 
-**Returns**: format, extension, displayName, description, canImport, canExport, category (Parametric or Mesh).
+**Returns**: path, supported, format, extension, displayName, description, canImport, canExport, category (`Parametric` or `Mesh`).
 
 ---
 
 ### list_formats
 
-List all supported 3D file formats with import/export capabilities. No parameters required.
+No parameters. **Returns** `formats`: an array with format, extension, displayName, description, canImport, canExport and category for each of the 19 formats.
 
-**Returns**: Array of format info with:
+## Example requests
 
-| Category | Formats |
-|----------|---------|
-| **Parametric** | STEP (.step, .stp), IGES (.iges, .igs), BREP (.brep) — all import + export |
-| **Mesh — import + export** | STL, OBJ, PLY, FBX, Collada (.dae), 3MF, glTF (.gltf), GLB (.glb), VRML (.wrl), X3D, OFF |
-| **Mesh — import only** | AMF, DWG, DXF, USD, USDZ |
+> "Convert C:\Parts\bracket.step to STL for printing, smooth curves please."
+>
+> The agent calls `convert_cad` with `input_path`, `output_path: "C:\\Parts\\bracket.stl"`, `tessellation: "fine"`.
+
+> "How big is this part?"
+>
+> The agent calls `get_file_info` and reads `boundingBox` and `units`.
