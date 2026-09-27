@@ -1,182 +1,123 @@
 # ContentaSoft
 
-Professional desktop image, video, and 3D processing tools with CLI and MCP server support for AI agents.
+Command-line tools and MCP servers for four Windows desktop apps that process images, video and 3D files on your own PC. Conversion, compression and CAD work run locally; your files are not uploaded.
 
-All tools run locally on Windows — no cloud uploads, no subscriptions, no per-image fees. **30-day free trial, MCP included.**
+| Product | CLI | MCP tools | What you get |
+|---------|-----|-----------|--------------|
+| [Contenta Converter](https://www.contenta-converter.com) 9.0.33 | `contenta` | [10](contenta-converter/mcp-server.md) | Batch image conversion (102 input extensions including 30 camera RAW, 28 output), resize, watermark, metadata, effects, icon sets, PDF albums and merges, photo slideshows |
+| [VideoRecompress Studio](https://www.contenta-software.com/videorecompress/) 2026.2.19 | `videorecompress` | [5](videorecompress/mcp-server.md) | Smaller videos with H.265, AV1 or VP9, hardware encoding, 24 presets, batch and watch folders |
+| [AI Video Enhancer Studio](https://www.contenta-software.com/aivideoenhancer/) 2026.7.13 | `aivideoenhancer` | [4](ai-video-enhancer/mcp-server.md) | NVIDIA Video Super Resolution upscaling, RIFE AI interpolation to 30/60 fps, stabilization, denoise, still frames, highlight reels |
+| [3D CAD Converter](https://www.contenta-software.com/3dcadconverter/) 1.0.23 | `cadconvert` | [4](cad-converter/mcp-server.md) | STEP/IGES/BREP to STL, OBJ, 3MF, glTF/GLB, FBX and more; 19 formats read, 14 written |
 
-## Why not ImageMagick / FFmpeg / free tools?
+Each product folder has a README with every command, option and exit code, and examples that were run against the version shown.
 
-Those tools are great for developers who know exactly what flags to pass. ContentaSoft is for when you need **domain-specific intelligence** that free tools don't have:
+## Why a CLI instead of ImageMagick or FFmpeg?
 
-- **"Resize my product photos for Amazon"** — Amazon requires 2000x2000 JPEG. One command: `contenta batch ./photos --output ./ready --format jpg --resize 2000x2000 --resize-mode fit`. Same for Etsy (2700x2025), Shopify (2048x2048), MLS (1024x768), Zillow (3000x2000), Instagram (1080x1080), TikTok (1080x1920), and 20+ other platforms — the dimensions are in the docs and the Claude Code skills, so an AI agent picks them for you.
-- **"Process this RAW file from my Canon R5"** — ContentaSoft handles CR3, NEF, ARW, RAF, DNG, and 600+ other camera RAW formats out of the box. No installing dcraw, no LibRaw compilation, no guessing at white balance flags.
-- **"Upscale this photo 4x"** — Real-ESRGAN is bundled and GPU-accelerated. No Python environment, no downloading models, no CUDA setup.
-- **"Compress these wedding videos for archival"** — One command: `videorecompress batch ./raw-footage --output ./archived --codec h265 --crf 18`. It hardware-accelerates if your GPU supports it and verifies output integrity. The FFmpeg equivalent is 15+ flags.
+Those tools are excellent if you already know the flags. These CLIs package the decisions for common jobs:
 
-**The pattern**: free tools give you primitives, ContentaSoft gives you workflows. An AI agent using ContentaSoft's MCP servers can do in one tool call what would take a chain of FFmpeg/ImageMagick commands with manual dimension lookups.
+- `contenta convert photo.cr2 --format jpg` decodes a Canon RAW file with the bundled decoder; there is nothing else to install.
+- `videorecompress batch C:\Videos --preset-id phone_archive --output C:\Compressed` picks the codec, quality and GPU encoder, then checks every output before reporting success.
+- `cadconvert convert -i part.step -o part.stl --tessellation 0.01 --angular 0.1` meshes a STEP file with OpenCascade at a quality you choose.
+- `aivideoenhancer enhance tape.avi -o .\restored --preset old_video_restoration` stabilizes, denoises and upscales in one pass.
 
-## Products
+An AI agent connected to the MCP servers can do each of these in one tool call.
 
-| Product | CLI | MCP Server | What it does |
-|---------|-----|------------|-------------|
-| [Contenta Converter PREMIUM](https://www.contenta-converter.com) | `contenta` | [10 tools](contenta-converter/mcp-server.md) | Image conversion (50+ formats, 600+ RAW cameras), resize, effects, AI upscale, PDF albums, slideshows, metadata |
-| [VideoRecompress Studio](https://www.contenta-software.com/videorecompress/) | `videorecompress` | [5 tools](videorecompress/mcp-server.md) | Video compression with H.265/AV1/VP9, GPU acceleration, 24 presets, watch folders |
-| [3D CAD Converter](https://www.contenta-software.com/3dcadconverter/) | `cadconvert` | [4 tools](cad-converter/mcp-server.md) | STEP/IGES/BREP to STL/OBJ/FBX/glTF and 19 formats with tessellation control |
-| [AI Video Enhancer Studio](https://www.contenta-software.com/aivideoenhancer/) | `aivideoenhancer` | [4 tools](ai-video-enhancer/mcp-server.md) | AI upscaling (NVIDIA Video Super Resolution), frame interpolation (RIFE), stabilization, denoising |
+## Getting started
 
-## Getting Started
+### 1. Install
 
-### Step 1: Install the software
+Download the product from its website (links above). Each installer contains the desktop app, the CLI and the MCP server. Requirements: Windows 10 or 11, 64-bit. The .NET runtime is included.
 
-Download and install the product you need from its website (see [Products](#products) table above). All products are Windows desktop applications with a standard `.exe` installer.
+A default install is per-user, in `%LOCALAPPDATA%\Programs\<Product>\`, and the installer adds that folder to your user `PATH`:
 
-- **No account required** — just download and run the installer
-- **30-day free trial** starts automatically — no credit card needed
-- **CLI and MCP server are included** in the same installer, no separate download
-- **.NET 9 runtime is bundled** — no prerequisites to install
+| Product | Default folder |
+|---------|----------------|
+| Contenta Converter | `%LOCALAPPDATA%\Programs\ContentaConverter\` |
+| VideoRecompress Studio | `%LOCALAPPDATA%\Programs\VideoRecompressStudio\` |
+| AI Video Enhancer Studio | `%LOCALAPPDATA%\Programs\AIVideoEnhancerStudio\` |
+| 3D CAD Converter | `%LOCALAPPDATA%\Programs\CadConverter\` |
 
-### Step 2: Add the CLI to your PATH
+### 2. Check the CLI
 
-After installation, add the install directory to your system PATH so you can use the CLI from any terminal (or call the exe with its full path):
-
-```
-# Default install locations:
-C:\Program Files\ContentaSoft\Contenta Converter PREMIUM\
-C:\Program Files\ContentaSoft\VideoRecompress Studio\
-C:\Program Files\ContentaSoft\3D CAD Converter\
-C:\Program Files\ContentaSoft\AI Video Enhancer Studio\
-```
-
-Verify it works:
-
-```bash
-contenta status           # license state, bundled tools health, version
-videorecompress status    # tool availability, license state, GPU info
-aivideoenhancer status    # system & GPU info
-cadconvert formats        # lists the 19 supported 3D formats
-```
-
-### Step 3: Use the CLI
-
-```bash
-# Convert a RAW photo to JPEG
-contenta convert photo.cr2 --format jpg --quality 92
-
-# Resize product photos for Amazon (2000x2000 spec)
-contenta batch ./photos --output ./ready --format jpg --resize 2000x2000 --resize-mode fit
-
-# AI upscale a photo 4x with GPU
-contenta upscale photo.jpg --scale 4
-
-# Compress wedding videos for archival (H.265, CRF 18)
-videorecompress batch ./raw-footage --output ./archived --codec h265 --crf 18
-
-# Convert STEP to STL for 3D printing (fine tessellation)
-cadconvert convert -i model.step -o model.stl --tessellation 0.01
-
-# AI upscale an old video and denoise it
-aivideoenhancer enhance old_tape.mp4 --output ./enhanced --upscale x4 --denoise strong
-```
-
-Every CLI documents its exit codes (0 = success, non-zero = specific failure class) — see each product's README for the table.
-
-### Step 4: Connect the MCP server to your AI client
-
-Add the product to your AI client's MCP configuration. The MCP servers work during the free trial.
-
-**Claude Desktop** — edit `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "contenta-converter": {
-      "command": "contenta",
-      "args": ["serve"]
-    },
-    "videorecompress": {
-      "command": "videorecompress",
-      "args": ["serve"]
-    }
-  }
-}
-```
-
-**Claude Code** — edit `.claude/settings.json`:
-
-```json
-{
-  "mcpServers": {
-    "contenta-converter": {
-      "command": "contenta",
-      "args": ["serve"]
-    }
-  }
-}
-```
-
-If the CLI is not on `PATH`, use the full exe path as `command` (e.g. `"C:\\Program Files\\ContentaSoft\\Contenta Converter PREMIUM\\contenta.exe"`).
-
-Add only the products you've installed. See [MCP Config Guide](mcp-config/) for Cursor, Windsurf, and other clients.
-
-| Server | Command | Tools | Full reference |
-|--------|---------|-------|----------------|
-| Contenta Converter | `contenta serve` | 10 image tools | [MCP Docs](contenta-converter/mcp-server.md) |
-| VideoRecompress | `videorecompress serve` | 5 video tools | [MCP Docs](videorecompress/mcp-server.md) |
-| CAD Converter | `cadconvert serve` | 4 3D tools | [MCP Docs](cad-converter/mcp-server.md) |
-| AI Video Enhancer | `aivideoenhancer serve` | 4 AI tools | [MCP Docs](ai-video-enhancer/mcp-server.md) |
-
-### Step 5 (optional): Install Claude Code skills
-
-Skills teach Claude Code about every command, format, preset, and platform dimension — so you can describe what you want in plain English.
-
-```bash
-# Git Bash / macOS / Linux
-git clone https://github.com/brunojanvier77/ContentaSoft.git /tmp/ContentaSoft
-cp -r /tmp/ContentaSoft/skills/* ~/.claude/skills/
-```
+Open a new terminal:
 
 ```powershell
-# Windows PowerShell
+contenta --version
+videorecompress --version
+aivideoenhancer --version
+cadconvert --version
+```
+
+If a command is not found, or prints an older version than the table above, an older copy is earlier on `PATH`: call the exe by its full path, or uninstall the old copy.
+
+### 3. Try it
+
+```powershell
+contenta batch .\products --output .\amazon-ready --format jpg --resize 2000x2000 --resize-mode fit
+videorecompress recompress C:\Videos\video.mp4 --codec h265 --crf 18 --output C:\Archive
+aivideoenhancer enhance .\clip.mp4 -o .\enhanced --upscale x2 --denoise light
+cadconvert convert -i model.step -o model.stl
+```
+
+VideoRecompress Studio 2026.2.19 needs full paths for its inputs and output folder; see its [README](videorecompress/README.md#install-and-path).
+
+### 4. Connect an AI client (optional)
+
+Every CLI has a `serve` command that runs an MCP server over stdio. For Claude Code:
+
+```powershell
+claude mcp add contenta-converter -- contenta serve
+```
+
+For Claude Desktop, add this to `%APPDATA%\Claude\claude_desktop_config.json` and restart it:
+
+```json
+{
+  "mcpServers": {
+    "contenta-converter": { "command": "contenta", "args": ["serve"] },
+    "videorecompress": { "command": "videorecompress", "args": ["serve"] },
+    "ai-video-enhancer": { "command": "aivideoenhancer", "args": ["serve"] },
+    "cad-converter": { "command": "cadconvert", "args": ["serve"] }
+  }
+}
+```
+
+Keep only the products you installed. The [MCP config guide](mcp-config/) covers Claude Code scopes, Cursor, Windsurf, full exe paths and the Gemini key.
+
+### 5. Install the Claude Code skills (optional)
+
+The skills tell Claude Code which commands, options, presets and sizes to use, so you can ask in plain language ("resize the photos in D:\Products for Amazon and Etsy").
+
+```powershell
 git clone https://github.com/brunojanvier77/ContentaSoft.git $env:TEMP\ContentaSoft
+New-Item -ItemType Directory -Force $env:USERPROFILE\.claude\skills | Out-Null
 Copy-Item -Recurse $env:TEMP\ContentaSoft\skills\* $env:USERPROFILE\.claude\skills\
 ```
 
-After installing, try: *"Resize all photos in D:\Products for Amazon and Etsy"* — Claude will pick the right commands, dimensions, and output formats.
+| Skill | Covers |
+|-------|--------|
+| [contenta-image-processing](skills/contenta-image-processing/SKILL.md) | Conversion, marketplace and social sizes, watermark, metadata, icon sets, PDF albums and merges, slideshows |
+| [contenta-video](skills/contenta-video/SKILL.md) | H.265/AV1/VP9 compression, presets, batch, watch folders |
+| [contenta-video-enhancer](skills/contenta-video-enhancer/SKILL.md) | Upscaling, interpolation, stabilization, denoise, still frames, highlight reels |
+| [contenta-cad](skills/contenta-cad/SKILL.md) | STEP/IGES to mesh, mesh quality, units, repair, batch |
 
-| Skill | Slash command | What it teaches Claude Code |
-|-------|-------------|---------------------------|
-| [Image Processing](skills/contenta-image-processing/SKILL.md) | `/contenta-image-processing` | Convert formats, resize for Amazon/Etsy/MLS/Instagram, AI upscale, PDF albums, slideshows, metadata |
-| [Video Compression](skills/contenta-video/SKILL.md) | `/contenta-video` | H.265/AV1 compression, presets, GPU acceleration, batch processing, watch folders |
-| [CAD Conversion](skills/contenta-cad/SKILL.md) | `/contenta-cad` | STEP/IGES to STL/OBJ/glTF, tessellation control, unit conversion, mesh repair |
-| [Video Enhancement](skills/contenta-video-enhancer/SKILL.md) | `/contenta-video-enhancer` | AI upscale, frame interpolation, stabilization, denoising, 8 presets |
+## Trial and licensing
 
-### Trial & Licensing
+Every product has a 30-day trial with no account and no credit card. The CLI and MCP server are included in the trial.
 
-| | Trial (30 days) | Licensed |
-|---|---|---|
-| **Desktop GUI** | Full access | Full access |
-| **CLI** | Full access, watermark after the free-file allowance* | Full access |
-| **MCP Server** | Full access, watermark after the free-file allowance* | Full access |
-| **Agent Skills** | Work with trial CLI | Work with licensed CLI |
-| **Duration** | 30 days from install | Permanent |
-| **Credit card** | Not required | One-time purchase |
+| Product | Free during the trial | After that | Lifetime license |
+|---------|-----------------------|------------|------------------|
+| Contenta Converter | First 10 images without a watermark (PDF albums, merged PDFs and slideshows are always marked) | Watermark; after 30 days the CLI and MCP server stop | $129 |
+| VideoRecompress Studio | First 10 files without restrictions | Watermark and a 10-minute cut; after 30 days the CLI and MCP server stop | $79 |
+| AI Video Enhancer Studio | First 5 files at full resolution without a watermark | Watermark and a 1280x720 cap; after 30 days the MCP server stops | $129 |
+| 3D CAD Converter | 10 conversions | Conversion stops until you register | $179 |
 
-*Free-file allowance per product: Contenta Converter — first 5 images; AI Video Enhancer — first 5 videos (then watermark + 720p cap); VideoRecompress — first 3 videos (then watermark + 10-minute duration cap); 3D CAD Converter — 10 lifetime conversions, then blocked until purchase.
-
-All licenses are **one-time purchases** — no subscriptions, no renewals. Buy once, use forever including all minor updates.
-
-## Platform & Requirements
-
-- **OS**: Windows 10/11 (x64)
-- **Runtime**: .NET 9 (bundled in installer)
-- **GPU**: Optional for most features — NVIDIA/Intel/AMD accelerate video encoding; Real-ESRGAN photo upscaling uses any Vulkan GPU. **Exception**: AI Video Enhancer's video upscaling requires an NVIDIA RTX GPU (NVIDIA Video Super Resolution); its RIFE frame interpolation needs a Vulkan-capable GPU.
-- **Trial**: 30-day free trial, no credit card required. All features including CLI and MCP server work during trial (watermark after the per-product free-file allowance above).
-- **License**: One-time purchase per product. No subscription. Removes all watermarks and trial limits permanently.
+A lifetime license is a one-time payment and removes the trial limits. Each product's buy page also lists a quarterly plan.
 
 ## Links
 
-- [contenta-converter.com](https://www.contenta-converter.com) — Contenta Converter PREMIUM
-- [contenta-software.com/videorecompress](https://www.contenta-software.com/videorecompress/) — VideoRecompress Studio
-- [contenta-software.com/aivideoenhancer](https://www.contenta-software.com/aivideoenhancer/) — AI Video Enhancer Studio
-- [contenta-software.com/3dcadconverter](https://www.contenta-software.com/3dcadconverter/) — 3D CAD Converter
-- [contenta-software.com](https://www.contenta-software.com) — Full product suite
+- [contenta-converter.com](https://www.contenta-converter.com): Contenta Converter
+- [contenta-software.com/videorecompress](https://www.contenta-software.com/videorecompress/): VideoRecompress Studio
+- [contenta-software.com/aivideoenhancer](https://www.contenta-software.com/aivideoenhancer/): AI Video Enhancer Studio
+- [contenta-software.com/3dcadconverter](https://www.contenta-software.com/3dcadconverter/): 3D CAD Converter
+- [contenta-software.com](https://www.contenta-software.com): all products
