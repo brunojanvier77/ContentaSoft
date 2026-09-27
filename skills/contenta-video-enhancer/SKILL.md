@@ -1,125 +1,86 @@
 ---
 name: contenta-video-enhancer
-description: Enhance videos using the aivideoenhancer CLI with AI upscaling (NVIDIA Video Super Resolution), frame interpolation (RIFE), stabilization, and denoising. Use when the user asks to upscale video resolution, increase frame rate, fix shaky footage, remove noise, restore old video, or improve video quality.
+description: Enhance videos with the AI Video Enhancer Studio CLI (aivideoenhancer) - NVIDIA Video Super Resolution upscaling, RIFE frame interpolation to 30/60 fps, stabilization, rolling-shutter correction, denoise, deinterlace, sharpen, before/after comparison videos, still-frame extraction and highlight-reel remixes. Use when the user asks to upscale or restore a video, fix shaky or noisy footage, raise the frame rate, grab stills or thumbnails from a video, or cut a highlight reel.
 allowed-tools: Bash
 ---
 
-# Contenta AI Video Enhancer
+# AI Video Enhancer Studio
 
-You have access to the `aivideoenhancer` CLI for AI-powered video enhancement. If it is not on PATH, use the full path: `C:\Program Files\ContentaSoft\AI Video Enhancer Studio\aivideoenhancer.exe`.
+Use the `aivideoenhancer` CLI (AI Video Enhancer Studio 2026.7.13+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\AIVideoEnhancerStudio\aivideoenhancer.exe`, on the user PATH. Check with `aivideoenhancer --version`.
 
-**No `--json` flag** — output is human-readable text. For structured results in AI agents, use the MCP server (`aivideoenhancer serve`) or parse `status`/`analyze` text. There is no CLI `register` command yet — register in the desktop app.
+Output is human-readable text mixed with informational log lines; only `remix suggest` has `--json`. There is no CLI `register` command (register in the desktop app).
 
-## Commands
+## First steps
 
-### Enhance a video
 ```bash
-aivideoenhancer enhance <input-file-or-dir> --output <directory> --preset <preset_id>
-```
-Note: `--output` is a **directory**, not a filename. The input can be a single file or a folder (batch).
-
-Or with individual settings:
-```bash
-aivideoenhancer enhance <input> --output <directory> --upscale x2 --denoise medium --stabilize light --codec h265 --crf 18
-```
-
-### Analyze a video
-```bash
-aivideoenhancer analyze <input>
-```
-Returns: codec, resolution, frame rate, duration, bitrate, HDR status, interlacing, audio info.
-
-### List presets
-```bash
+aivideoenhancer status          # GPU, VRAM, Vulkan, encoders, license
+aivideoenhancer analyze <file>  # resolution, fps, duration, codec
 aivideoenhancer presets
 ```
 
-### Check system capabilities
-```bash
-aivideoenhancer status
-```
-Returns: GPU name, VRAM, available encoders, VSR upscale/RIFE availability, trial status.
+VSR upscaling needs an NVIDIA RTX GPU (no CPU fallback). Interpolation needs a Vulkan GPU. Stabilize, rolling shutter, denoise, deinterlace and sharpen need no GPU.
 
-### Create a diagnostic bundle
+## enhance
+
 ```bash
-aivideoenhancer diagnose
+aivideoenhancer enhance <file-or-folder> -o <output-folder> [--preset ID] [options]
 ```
 
-## Presets
-
-| Preset ID | What it does | Best for |
-|-----------|-------------|----------|
-| `old_video_restoration` | Stabilize medium + Denoise strong + Upscale 2x + Audio cleanup | VHS tapes, old camcorder footage, family videos |
-| `surveillance_enhancement` | Denoise medium + Upscale 4x | Security camera footage, dash cams |
-| `content_creation` | Upscale 2x + Interpolate x2 | YouTube uploads, social media content |
-| `drone_action_cam` | Stabilize strong + Upscale 2x + Interpolate x2 | GoPro, DJI drone footage, shaky handheld |
-| `animation_anime` | Denoise light + Upscale 4x | Anime, cartoons, animated content |
-| `video_archival` | Stabilize light + Denoise medium + Upscale 2x | Long-term storage of any footage |
-| `enhance_cleanup` | Denoise light + same-resolution cleanup | Compression artifacts, no resolution change |
-| `smooth_motion` | Interpolate x2 only (no upscale) | Making motion fluid at 2x the frame rate |
-
-## Individual Enhancement Options
-
-### Upscaling (NVIDIA Video Super Resolution)
-- `--upscale off` — no upscaling
-- `--upscale enhance` — clean up at the same resolution (no size change)
-- `--upscale x2` / `--upscale x3` / `--upscale x4` — 2x/3x/4x resolution
-
-Requires an **NVIDIA RTX GPU** with a recent driver. No CPU fallback — on non-NVIDIA hardware, upscaling fails gracefully.
-
-### Frame Interpolation (RIFE)
-- `--interpolate off` — no interpolation
-- `--interpolate x2` — double the frame rate (e.g., 30fps to 60fps)
-- `--interpolate x4` — quadruple the frame rate
-
-Requires a Vulkan-capable GPU (NVIDIA or AMD). Interpolation multiplies fps; there is no exact-fps target.
-
-### Stabilization (FFmpeg vidstab)
-- `--stabilize off|light|medium|strong` — strong may crop edges
-
-### Denoising
-- `--denoise off|light|medium|strong`
-- `--denoise-method nlmeans|hqdn3d` (default: hqdn3d)
-
-### Deinterlace & Sharpen
+- `--upscale off|enhance|x2|x3|x4` (`enhance` = same-resolution cleanup)
+- `--interpolate off|30|60` (target fps; never lowers the rate)
+- `--stabilize`, `--rolling-shutter`, `--denoise`, `--sharpen`: `off|light|medium|strong`; `--denoise-method nlmeans|hqdn3d`
 - `--deinterlace off|yadif|yadifbob|bwdif`
-- `--sharpen off|light|medium|strong`
+- `--codec h264|h265|av1|vp9` (default h265), `--crf 1-51`
+- `--skip-existing` (skip videos whose output exists), `--temp-dir <dir>`, `--frame-batch 0` (auto)
+- `--compare [--compare-labels "BEFORE|AFTER"] [--compare-layout horizontal|vertical]`
 
-### Output Codec
-- `--codec h264` — maximum compatibility
-- `--codec h265` — best quality/size balance (default)
-- `--codec av1` — maximum compression (slower encoding)
-- `--codec vp9` — WebM-friendly
-- `--crf 1-51` — quality (lower = better, default 18)
+Output: `<name>_enhanced.mp4` (and `<name>_enhanced_compare.mp4`) in the output folder.
 
-Encoding uses NVIDIA NVENC / Intel QSV / AMD AMF when available, CPU otherwise.
+| Preset | Pipeline | Use for |
+|--------|----------|---------|
+| `old_video_restoration` | stabilize medium, denoise strong, upscale x2, audio cleanup | VHS, DVD, camcorder |
+| `surveillance_enhancement` | denoise medium, upscale x4 | security cameras |
+| `content_creation` | denoise light, upscale x2, 30 fps | social media |
+| `drone_action_cam` | stabilize strong, denoise light, upscale x2, 30 fps | drone, action cam, handheld |
+| `animation_anime` | denoise light, upscale x4 | animation |
+| `video_archival` | stabilize light, denoise medium, upscale x2 | archiving |
+| `enhance_cleanup` | denoise light, same-resolution cleanup | compression artifacts |
+| `smooth_motion` | denoise light, 30 fps | choppy low-fps clips |
 
-## Enhancement Pipeline
+## extract-frames
 
-The stages run in this order:
-1. Deinterlace (if enabled)
-2. Stabilization (if enabled)
-3. Denoising (if enabled)
-4. Frame extraction (if upscale or interpolation enabled)
-5. AI Upscaling via NVIDIA VSR (if enabled)
-6. AI Frame Interpolation via RIFE (if enabled)
-7. Sharpen (if enabled)
-8. Final encode with target codec
+```bash
+aivideoenhancer extract-frames <file-or-folder> -o <dir> [--preset storyboard|thumbnails|social|scenes|custom] [--count N] [--timestamps 2,5,10] [--upscale off|enhance|x2|x3|x4] [--format png|jpg|webp] [--quality 90] [--sharpest]
+```
 
-Each stage is optional. Only enabled stages run.
+## remix
 
-## Exit Codes
+```bash
+aivideoenhancer remix suggest <file> [--duration 30] [--clips N] [--min-clip 3] [--max-clip 6] [--threshold 10] [--audio-weight 0.4] [--json]
+aivideoenhancer remix render <file> --clips "1-4,8-11" -o <reel.mp4> [--aspect original|9:16|1:1|16:9] [--music <file>] [--music-volume 30] [--duck] [--mute] [--max-duration 30]
+```
 
-0 success · 1 general error · 2 invalid arguments · 3 license required (trial expired — **`serve` only**) · 4 enhancement failed · 5 file not found · 6 tools missing
+`remix suggest` prints a ready-to-run `remix render` command. `remix render` writes one H.264 MP4.
+
+## Examples (verified on 2026.7.13)
+
+```powershell
+aivideoenhancer enhance .\clip.mp4 -o .\enhanced --upscale x2 --denoise light --codec h265 --crf 18
+aivideoenhancer enhance .\clip.mp4 -o .\smooth --interpolate 60 --compare
+aivideoenhancer enhance C:\Videos\tapes -o C:\Videos\restored --preset old_video_restoration --skip-existing
+aivideoenhancer extract-frames video.mp4 -o .\frames --preset thumbnails
+aivideoenhancer extract-frames video.mp4 -o .\frames_up --timestamps 2,5,10 --upscale x2
+aivideoenhancer remix suggest video.mp4 --duration 10
+aivideoenhancer remix render video.mp4 --clips "1-4,8-11,14-17" -o .\reel.mp4 --aspect 9:16 --music music.mp3 --duck
+```
+
+## Exit codes
+
+0 success · 1 general error · 2 invalid arguments · 3 trial ended (`serve`) · 4 enhancement failed · 5 file not found · 6 tools missing.
 
 ## Guidelines
 
-- Always run `aivideoenhancer status` first to verify GPU and tool availability, then `analyze <file>` to understand the source video.
-- Upscaling requires an NVIDIA RTX GPU. If `status` shows no VSR support, skip upscaling and use denoise/stabilize/sharpen instead.
-- For old/degraded footage, start with the `old_video_restoration` preset.
-- For shaky action cam/drone footage, use `drone_action_cam`.
-- To clean up compression artifacts without changing resolution, use `enhance_cleanup` or `--upscale enhance`.
-- Upscaling x4 on long videos is very slow — warn the user about processing time.
-- Upscaling works best on clean source material. If the source is noisy, enable denoising too.
-- The `animation_anime` preset uses the same VSR upscaler as the other presets (there is no separate anime model) — it just pairs light denoise with a 4x upscale.
-- Trial: 30 days; the first 5 files (lifetime) are un-branded, then output gets a watermark and a 1280x720 cap until registered.
+- Check `status` before offering upscaling; without an NVIDIA RTX GPU, offer denoise, stabilize, sharpen and interpolation instead.
+- x4 upscaling of long videos takes a long time; say so before starting, and try a short clip first.
+- For interlaced sources (old DVD/camcorder footage; the MCP `analyze_video` tool reports `isInterlaced`), add `--deinterlace bwdif`.
+- Trial: 30 days; the first 5 files are full resolution without a watermark, then output is watermarked and capped at 1280x720. A remix render and an upscaled frame extraction each use one free file.

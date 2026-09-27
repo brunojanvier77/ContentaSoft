@@ -1,8 +1,8 @@
-# AI Video Enhancer Studio — MCP Server
+# AI Video Enhancer Studio: MCP server
 
-AI Video Enhancer Studio exposes 4 tools for AI-powered video enhancement via the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP).
+`aivideoenhancer serve` exposes 4 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Desktop, Claude Code, Cursor, Windsurf and others) can analyze and enhance videos on your PC.
 
-## Getting Started
+## Setup
 
 ```json
 {
@@ -15,88 +15,84 @@ AI Video Enhancer Studio exposes 4 tools for AI-powered video enhancement via th
 }
 ```
 
-If `aivideoenhancer` is not on your `PATH`, use the full path: `C:\Program Files\ContentaSoft\AI Video Enhancer Studio\aivideoenhancer.exe`.
+If your AI client cannot find `aivideoenhancer`, use the full path, for example `"C:\\Users\\<you>\\AppData\\Local\\Programs\\AIVideoEnhancerStudio\\aivideoenhancer.exe"`. See the [MCP config guide](../mcp-config/) for each client.
 
-The server works during an active trial and is blocked once the trial expires (exit code 3, `LicenseRequired`).
+Pass absolute paths to every tool. Remix and frame extraction are CLI-only (`aivideoenhancer remix`, `aivideoenhancer extract-frames`).
 
-## Protocol Details
+## Protocol
 
 | Property | Value |
 |----------|-------|
-| Transport | stdio (stdin/stdout) |
-| Protocol | JSON-RPC 2.0 |
-| Protocol Version | `2024-11-05` |
-| Server Name | `ai-video-enhancer` |
-| Server Version | `2026.3.4` |
+| Transport | stdio |
+| Protocol | JSON-RPC 2.0, MCP `2024-11-05` |
+| Server name | `ai-video-enhancer` |
+| Server version | `2026.7.13` |
+
+**License**: the server runs during the 30-day trial and for registered copies; after the trial it refuses to start (exit code 3). During the trial the first 5 files are full resolution without a watermark; later output carries a watermark and is capped at 1280x720.
 
 ## Tools
 
 ### analyze_video
 
-Analyze a video file and return codec, resolution, duration, bitrate, frame rate, and audio information.
-
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `path` | string | Yes | Absolute path to the video file |
+| `path` | string | Yes | Absolute path to the video |
 
-**Returns**: path, fileName, fileSize, fileSizeFormatted, videoCodec, videoCodecLong, resolution, width, height, frameRate, frameCount, duration (seconds), durationFormatted, videoBitrate, totalBitrate, bitrateFormatted, pixelFormat, containerFormat, isHdr, isInterlaced, audioCodec, audioChannels, audioSampleRate, audioBitrate, subtitleStreams.
+**Returns**: path, fileName, fileSize, fileSizeFormatted, videoCodec, videoCodecLong, resolution, width, height, frameRate, frameCount, duration (seconds), durationFormatted, videoBitrate, totalBitrate, bitrateFormatted, pixelFormat, containerFormat, isHdr, isInterlaced, audioCodec, audioChannels, audioSampleRate, audioBitrate.
 
 ---
 
 ### enhance_video
 
-Enhance a video using AI upscaling, frame interpolation, stabilization, and denoising.
-
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `input_path` | string | Yes | Absolute path to the source video |
-| `output_path` | string | No | Output **directory** (default: same directory as input) |
-| `preset` | string | No | Preset ID: `old_video_restoration`, `surveillance_enhancement`, `content_creation`, `drone_action_cam`, `animation_anime`, `video_archival`, `enhance_cleanup`, `smooth_motion` |
-| `upscale` | string | No | `off`, `enhance` (same-resolution cleanup), `x2`, `x3`, `x4` (default: off) |
-| `denoise` | string | No | `off`, `light`, `medium`, `strong` (default: off) |
-| `stabilize` | string | No | `off`, `light`, `medium`, `strong` (default: off) |
-| `interpolate` | string | No | RIFE frame interpolation: `off`, `x2`, `x4` (default: off) |
-| `codec` | string | No | Output codec: `h264`, `h265`, `av1` (default: h265) |
-| `crf` | integer | No | Quality 0-51 (lower = better, default: 18) |
+| `input_path` | string | Yes | Absolute path to the video |
+| `output_path` | string | No | Output file or folder (default: the input's folder) |
+| `preset` | string | No | `old_video_restoration`, `surveillance_enhancement`, `content_creation`, `drone_action_cam`, `animation_anime`, `video_archival`, `enhance_cleanup`, `smooth_motion` |
+| `upscale` | string | No | `off`, `enhance` (same resolution), `x2`, `x3`, `x4` |
+| `denoise` | string | No | `off`, `light`, `medium`, `strong` |
+| `stabilize` | string | No | `off`, `light`, `medium`, `strong` |
+| `deinterlace` | string | No | `off`, `yadif`, `yadifbob`, `bwdif` |
+| `sharpen` | string | No | `off`, `light`, `medium`, `strong` |
+| `rolling_shutter` | string | No | Jello correction: `off`, `light`, `medium`, `strong` |
+| `interpolate` | string | No | Target frame rate: `off`, `30`, `60`. Only raises the rate |
+| `codec` | string | No | `h264`, `h265`, `av1` |
+| `crf` | integer | No | 0-51, lower = better (default 18) |
+| `skip_existing` | boolean | No | Leave the video alone if its output already exists; a skipped video uses no free trial file |
 
-Individual parameters override preset values when both are provided. You can enable interpolation directly with `interpolate` (for example `x2` to double the frame rate) without choosing a preset that includes it.
+Explicit parameters override the preset. Upscaling needs an NVIDIA RTX GPU; interpolation needs a Vulkan GPU (check with `get_status`).
 
-**Returns**: success, inputPath, outputPaths, errors.
+**Returns**: success, inputPath, outputPaths; errors when something failed. The output file is `<name>_enhanced.mp4`.
 
 ---
 
 ### list_presets
 
-List available video enhancement presets. No parameters required.
+No parameters.
 
-**Returns** (per preset): id, name, description, features, codec, crf.
-
-| Preset ID | Focus | Best For |
-|----|-------|----------|
-| `old_video_restoration` | Stabilize medium + Denoise strong + Upscale 2x + Audio cleanup | Old VHS/DVD/analog footage |
-| `surveillance_enhancement` | Denoise medium + Upscale 4x | Security cameras |
-| `content_creation` | Denoise light + Upscale 2x + Interpolate x2 | YouTube/social |
-| `drone_action_cam` | Stabilize strong + Upscale 2x + Interpolate x2 | Action/drone footage |
-| `animation_anime` | Denoise light + Upscale 4x | Animated content |
-| `video_archival` | Stabilize light + Denoise medium + Upscale 2x | Long-term storage |
-| `enhance_cleanup` | Denoise light + same-resolution VSR cleanup | Artifact cleanup, no resolution change |
-| `smooth_motion` | Denoise light + Interpolate x2 (no upscale) | Fluid motion at 2x the frame rate |
-
-All presets use the same NVIDIA VSR upscaler — there is no separate anime model. Interpolation multiplies the source frame rate (x2); no preset targets an exact fps.
+**Returns**: an array of presets with id, name, description, features, codec, crf. The `features` list shows the stabilize, denoise and upscale steps; the interpolation step of `content_creation`, `drone_action_cam` and `smooth_motion` (to 30 fps) and the audio cleanup of the first two presets are not listed there. `aivideoenhancer presets` on the CLI shows the full pipeline.
 
 ---
 
 ### get_status
 
-Get system status including GPU capabilities, available tools, and license state.
-
-No parameters required.
+No parameters.
 
 **Returns**:
 
 | Field | Contents |
 |-------|----------|
 | `system` | os, processors |
-| `gpu` | name, vendor, vramMb, vulkan, summary, recommendedTileSize, hwEncoders (h264/h265/av1/vp9, or null if no hardware encoder) |
-| `tools` | vsrUpscale (whether the NVIDIA VSR upscale helper is available) |
-| `license` | registered, email, trialDaysRemaining (null when registered) |
+| `gpu` | name, vendor, vramMb, vulkan, summary, recommendedTileSize, hwEncoders (h264/h265/av1/vp9) |
+| `tools` | vsrUpscale: whether NVIDIA upscaling is available |
+| `license` | registered, email; trialDaysRemaining while in trial |
+
+## Example requests
+
+> "Can my PC upscale video?"
+>
+> The agent calls `get_status` and checks `tools.vsrUpscale` and `gpu.vulkan`.
+
+> "Restore C:\Videos\wedding-1998.avi."
+>
+> The agent calls `analyze_video`, then `enhance_video` with `preset: "old_video_restoration"` (add `deinterlace: "bwdif"` if `isInterlaced` is true).
