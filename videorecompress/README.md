@@ -4,7 +4,7 @@ Shrink phone, camera, drone and screen-recording videos by re-encoding them to H
 
 [Download the free trial](https://www.contenta-software.com/videorecompress/) | [MCP server reference](mcp-server.md)
 
-Documented version: **2026.2.19**.
+Documented version: **2026.2.20**.
 
 ## What it does
 
@@ -20,13 +20,13 @@ Documented version: **2026.2.19**.
 The CLI is installed with the desktop app. A default install is per-user, in `%LOCALAPPDATA%\Programs\VideoRecompressStudio\`, and the installer adds that folder to your user `PATH`. Open a new terminal after installing, then check:
 
 ```powershell
-videorecompress --version    # 2026.2.19 or later
+videorecompress --version    # 2026.2.20 or later
 videorecompress status       # license, bundled tools, GPU encoders
 ```
 
 If `videorecompress` is not found, or `--version` prints an older number, call the exe by its full path or remove the older copy that comes first on `PATH`.
 
-**Use full paths in 2026.2.19.** This version resolves relative input and output paths against its bundled tools folder, so `videorecompress analyze clip.mp4` reports an empty 0x0 file and `recompress` fails with exit code 4. Give full paths (`C:\Videos\clip.mp4`, or `"$PWD\clip.mp4"` in PowerShell) as in the examples below. The MCP server is not affected because its tools already take absolute paths.
+Inputs, `--output`, `--profile` and watermark images can be relative or full paths.
 
 ## Commands
 
@@ -46,41 +46,47 @@ Options available on every command: `--json` (JSON on stdout; logs go to stderr)
 
 ## Examples
 
-Each of these was run against 2026.2.19 with full paths.
+Each of these was run against 2026.2.20 in PowerShell.
 
 ```powershell
 # What is in the file?
-videorecompress analyze C:\Videos\video.mp4
-videorecompress analyze C:\Videos\video.mp4 --json
+videorecompress analyze video.mp4
+videorecompress analyze video.mp4 --json
 
 # Defaults: H.265, CRF 23, output keeps the source name
-videorecompress recompress C:\Videos\video.mp4 --output C:\Compressed
+videorecompress recompress video.mp4 --output .\compressed
 
 # Archive quality: H.265 CRF 18 with the slower encoder preset
-videorecompress recompress C:\Videos\video.mp4 --codec h265 --crf 18 --encoder-preset slow --output C:\Archive
+videorecompress recompress video.mp4 --codec h265 --crf 18 --encoder-preset slow --output .\archive
 
 # Start from a named preset
-videorecompress recompress C:\Videos\video.mp4 --preset-id phone_archive --output C:\Compressed
+videorecompress recompress video.mp4 --preset-id phone_archive --output .\phone
 
 # A whole folder with a named preset, 2 files at a time
-videorecompress batch C:\Videos --preset-id phone_archive --workers 2 --output C:\Compressed
+videorecompress batch .\videos --preset-id phone_archive --workers 2 --output .\compressed
 
 # A whole folder to AV1, JSON progress for scripts
-videorecompress batch C:\Videos --codec av1 --crf 35 --output C:\Compressed --json
+videorecompress batch .\videos --codec av1 --crf 35 --output .\av1 --json
 
 # Text watermark in the top-right corner
-videorecompress recompress C:\Videos\video.mp4 --watermark-text "Draft" --watermark-position TopRight --output C:\Review
+videorecompress recompress video.mp4 --watermark-text "Draft" --watermark-position TopRight --output .\review
+
+# Keep only the first 10 seconds
+videorecompress recompress video.mp4 --trim-mode keep-first --trim-duration 10 --output .\first10
+
+# Keep 0:05 to 0:12 of the source
+videorecompress recompress video.mp4 --trim-mode custom --trim-start 5 --trim-end 12 --output .\clip
 
 # Save a preset plus your own audio settings, then reuse it
-videorecompress profile save C:\Profiles\wedding.json --preset-id wedding_archive --audio-mode reencode --audio-codec aac --audio-bitrate 192
-videorecompress profile validate C:\Profiles\wedding.json
-videorecompress recompress C:\Videos\video.mp4 --profile C:\Profiles\wedding.json --output C:\Archive
+videorecompress profile save wedding.json --preset-id wedding_archive --audio-mode reencode --audio-codec aac --audio-bitrate 192
+videorecompress profile validate wedding.json
+videorecompress recompress video.mp4 --profile wedding.json --output .\wedding
 
 # See one preset's settings
 videorecompress presets --preset-id wedding_archive
 
 # Compress new files dropped into a folder (Ctrl+C to stop)
-videorecompress watch --folder C:\Incoming --preset phone_archive --output C:\Compressed
+videorecompress watch --folder .\incoming --preset phone_archive --output .\compressed
 ```
 
 `--output` is a folder, not a file name. Outputs keep the source file name.
@@ -107,13 +113,13 @@ videorecompress watch --folder C:\Incoming --preset phone_archive --output C:\Co
 | `--audio-codec` | `aac`, `opus`, `mp3`, `flac`, `ac3`, `eac3` | `aac` |
 | `--audio-bitrate` | kbps | `128` |
 | `--container` | `mp4`, `mkv`, `webm` | `mp4` |
-| `--width` / `--height` | pixels, 0 = keep | `0` |
+| `--width` / `--height` | maximum size in pixels, 0 = keep; smaller videos are not enlarged | `0` |
 | `--denoise` | `off`, `light`, `medium`, `strong` | `off` |
 | `--deinterlace` | `off`, `yadif`, `yadif-bob` | `off` |
 | `--watermark-text` / `--watermark-image` | text, or a PNG/JPG path | |
 | `--watermark-position` | `TopLeft`, `TopCenter`, `TopRight`, `CenterLeft`, `Center`, `CenterRight`, `BottomLeft`, `BottomCenter`, `BottomRight` | `BottomRight` |
 | `--watermark-opacity` / `--watermark-scale` | 0-100 / 5-100 % of the video width | `70` / `25` |
-| `--trim-mode` + `--trim-start` / `--trim-end` / `--trim-duration` | `none`, `skip-start`, `skip-end`, `keep-first`, `custom`; seconds | `none` |
+| `--trim-mode` + `--trim-start` / `--trim-end` / `--trim-duration` | `none`, `skip-start`, `skip-end`, `keep-first`, `custom`; seconds of the source | `none` |
 | `--fps` / `--fps-mode` | target frame rate / `auto`, `cfr`, `vfr` | / `auto` |
 | `--overwrite` | replace an existing output | off |
 | `--profile` | load settings from a JSON profile | |
@@ -121,11 +127,11 @@ videorecompress watch --folder C:\Incoming --preset phone_archive --output C:\Co
 
 `batch` adds `--include` / `--exclude` (glob, e.g. `"*.mp4"`), `-r/--recursive` (default on) and `-w/--workers` (default 2).
 
-`--trim-mode` fails the output check in 2026.2.19 (the check compares against the untrimmed length and exits with code 4), so trim in the desktop app for now.
+Trim times are measured on the source video. `keep-first` keeps the first `--trim-duration` seconds, `skip-start` and `skip-end` drop that many seconds from the start or the end, and `custom` keeps `--trim-start` to `--trim-end`. The output check compares the result with the trimmed length.
 
 ## Presets
 
-`videorecompress presets` lists them; the savings column is the app's own estimate, and real results depend on the source. A file that is already well compressed can come out larger; the CLI says so when it happens. Presets with a fixed output height (for example `whatsapp`) also enlarge videos that are smaller than that height, so check the result on small or old clips.
+`videorecompress presets` lists them; the savings column is the app's own estimate, and real results depend on the source. If re-encoding would make a file bigger, the original video is kept and the CLI says so. Presets with a fixed output size (for example `whatsapp` or `4k_to_1080p`) treat that size as a maximum: a smaller video keeps its resolution.
 
 | ID | Codec | CRF | Est. savings |
 |----|-------|-----|--------------|

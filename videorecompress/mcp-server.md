@@ -17,7 +17,7 @@
 
 If your AI client cannot find `videorecompress`, use the full path, for example `"C:\\Users\\<you>\\AppData\\Local\\Programs\\VideoRecompressStudio\\videorecompress.exe"`. See the [MCP config guide](../mcp-config/) for each client.
 
-Pass absolute paths to every tool.
+Paths can be absolute or relative. A relative path is resolved against the server's working folder, which is the folder your AI client started it in; use absolute paths when you do not know that folder.
 
 ## Protocol
 
@@ -26,7 +26,7 @@ Pass absolute paths to every tool.
 | Transport | stdio |
 | Protocol | JSON-RPC 2.0, MCP `2024-11-05` |
 | Server name | `videorecompress-studio` |
-| Server version | `2026.2.19` |
+| Server version | `2026.2.20` |
 
 **License**: the server runs during the 30-day trial and for registered copies. After the trial ends it refuses to start (exit code 3). During the trial the first 10 files are unrestricted; after that, `recompress_video` and `batch_recompress` output carries a watermark and is cut at 10 minutes.
 
@@ -47,7 +47,7 @@ Codec, CRF and estimated savings for each are in the [CLI README](README.md#pres
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `path` | string | Yes | Absolute path to the video |
+| `path` | string | Yes | Path to the video |
 
 **Returns**: path, fileName, fileSize, fileSizeFormatted, duration, durationFormatted, videoCodec, videoCodecLong, width, height, resolution, frameRate, frameCount, videoBitrate, pixelFormat, audioCodec, audioChannels, audioSampleRate, audioBitrate, totalBitrate, containerFormat, creationDate (when the file has one).
 
@@ -57,14 +57,14 @@ Codec, CRF and estimated savings for each are in the [CLI README](README.md#pres
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `input_path` | string | Yes | Absolute path to the source video |
+| `input_path` | string | Yes | Path to the source video |
 | `output_path` | string | No | Output file path (default: generated next to the source) |
 | `preset` | string | No | Preset ID |
 | `codec` | string | No | `h264`, `h265`, `av1`, `vp9` (overrides the preset) |
 | `crf` | integer | No | 0-63, lower = better (overrides the preset) |
 | `hw_accel` | string | No | `auto`, `nvenc`, `qsv`, `amf`, `software` |
 
-**Returns**: success, inputPath, outputPath, inputSize, outputSize, reductionPercent, codec, crf, durationMs, integrityOk, audioOnly, keptOriginal; integrityError when the output check fails.
+**Returns**: success, inputPath, outputPath, inputSize, outputSize, reductionPercent, codec, crf, durationMs, integrityOk, audioOnly, keptOriginal; integrityError when the output check fails. `keptOriginal` is true when re-encoding would have made the file bigger and the original video was kept. Presets with a fixed output size never enlarge a smaller video.
 
 ---
 
@@ -72,7 +72,7 @@ Codec, CRF and estimated savings for each are in the [CLI README](README.md#pres
 
 No parameters.
 
-**Returns**: an array of presets with id, name, codec, crf, target, estimatedSavings, isCustom. Includes custom presets saved in the desktop app.
+**Returns**: an array of presets with id, name, description, targetSegment, estimatedSavingsRange, codec, crf, encoderPreset, isCustom. Includes custom presets saved in the desktop app.
 
 ---
 
@@ -80,14 +80,14 @@ No parameters.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `path` | string | Yes | Absolute path to the video |
+| `path` | string | Yes | Path to the video |
 | `preset` | string | No | Preset ID |
 | `codec` | string | No | Target codec when no preset is given |
 | `crf` | integer | No | Target CRF 0-63 when no preset is given (default 23) |
 
 **Returns**: path, currentSize, currentSizeFormatted, estimatedOutputSize, estimatedOutputSizeFormatted, estimatedReductionPercent, codec, crf.
 
-Example (a 443 KB clip with `phone_archive`): `estimatedOutputSize` 228,718 bytes, `estimatedReductionPercent` 49.6, `codec` "H265", `crf` 23. The actual `recompress_video` result on the same clip was a 45% reduction.
+Example (a 6.8 MB 720p H.264 clip with `phone_archive`): `estimatedOutputSize` 4,922,636 bytes, `estimatedReductionPercent` 30.7, `codec` "H265", `crf` 23. The actual `recompress_video` result on the same clip was a 20% reduction. The estimate is a guide; the result depends on how the source was encoded.
 
 ---
 

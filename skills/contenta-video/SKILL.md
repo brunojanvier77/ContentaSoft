@@ -6,17 +6,17 @@ allowed-tools: Bash
 
 # VideoRecompress Studio (video compression)
 
-Use the `videorecompress` CLI (VideoRecompress Studio 2026.2.19+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\VideoRecompressStudio\videorecompress.exe`, on the user PATH. Check with `videorecompress --version`.
+Use the `videorecompress` CLI (VideoRecompress Studio 2026.2.20+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\VideoRecompressStudio\videorecompress.exe`, on the user PATH. Check with `videorecompress --version`.
 
-**Always pass full paths** for inputs and `--output`. Version 2026.2.19 resolves relative paths against its tools folder: `analyze clip.mp4` then reports 0x0 and `recompress` exits with 4.
+Relative and full paths both work for inputs, `--output`, `--profile` and watermark images.
 
 Every command accepts `--json` (JSON on stdout, logs on stderr), `--quiet`, `-v`.
 
 ## Commands
 
 ```bash
-videorecompress analyze <full-path> [--json]
-videorecompress recompress <full-path> --output <dir> [--preset-id ID | --codec C --crf N] [options]
+videorecompress analyze <file> [--json]
+videorecompress recompress <file> --output <dir> [--preset-id ID | --codec C --crf N] [options]
 videorecompress batch <dir> --output <dir> [--preset-id ID | --codec C --crf N] [--workers 2] [--include "*.mp4"]
 videorecompress presets [--json] [--preset-id ID]
 videorecompress profile save|load|validate <file.json>
@@ -50,19 +50,21 @@ Full list: `videorecompress presets --json` (24 presets).
 
 ## Other options (recompress and batch)
 
-`--quality-mode crf|cbr|twopass` + `--bitrate kbps` · `--hw-accel auto|nvenc|qsv|amf|software` · `--audio-mode copy|reencode|remove` · `--audio-codec aac|opus|mp3|flac|ac3|eac3` · `--audio-bitrate` · `--container mp4|mkv|webm` · `--width/--height` · `--denoise off|light|medium|strong` · `--deinterlace off|yadif|yadif-bob` · `--watermark-text/--watermark-image` + `--watermark-position TopLeft..BottomRight` · `--fps/--fps-mode` · `--overwrite` · `--profile file.json` · `--measure-quality` (SSIM/VMAF). batch: `-r/--recursive` (default on), `-w/--workers` (default 2), `--include/--exclude`.
+`--quality-mode crf|cbr|twopass` + `--bitrate kbps` · `--hw-accel auto|nvenc|qsv|amf|software` · `--audio-mode copy|reencode|remove` · `--audio-codec aac|opus|mp3|flac|ac3|eac3` · `--audio-bitrate` · `--container mp4|mkv|webm` · `--width/--height` (a maximum; smaller videos are not enlarged) · `--trim-mode skip-start|skip-end|keep-first|custom` + `--trim-duration`/`--trim-start`/`--trim-end` (seconds of the source) · `--denoise off|light|medium|strong` · `--deinterlace off|yadif|yadif-bob` · `--watermark-text/--watermark-image` + `--watermark-position TopLeft..BottomRight` · `--fps/--fps-mode` · `--overwrite` · `--profile file.json` · `--measure-quality` (SSIM/VMAF). batch: `-r/--recursive` (default on), `-w/--workers` (default 2), `--include/--exclude`.
 
-Do not use `--trim-mode` in 2026.2.19: the output check compares against the untrimmed length and the command exits with 4.
+Trim examples: `--trim-mode keep-first --trim-duration 10` keeps the first 10 s; `--trim-mode custom --trim-start 5 --trim-end 12` keeps 0:05-0:12 of the source.
 
-## Examples (verified on 2026.2.19)
+## Examples (verified on 2026.2.20)
 
 ```powershell
-videorecompress analyze C:\Videos\video.mp4 --json
-videorecompress recompress C:\Videos\video.mp4 --output C:\Compressed
-videorecompress recompress C:\Videos\video.mp4 --codec h265 --crf 18 --encoder-preset slow --output C:\Archive
-videorecompress batch C:\Videos --preset-id phone_archive --workers 2 --output C:\Compressed
-videorecompress batch C:\Videos --codec av1 --crf 35 --output C:\Compressed --json
-videorecompress watch --folder C:\Incoming --preset phone_archive --output C:\Compressed
+videorecompress analyze video.mp4 --json
+videorecompress recompress video.mp4 --output .\compressed
+videorecompress recompress video.mp4 --codec h265 --crf 18 --encoder-preset slow --output .\archive
+videorecompress recompress video.mp4 --trim-mode keep-first --trim-duration 10 --output .\first10
+videorecompress recompress small.3gp --preset-id whatsapp --output .\whatsapp
+videorecompress batch .\videos --preset-id phone_archive --workers 2 --output .\compressed
+videorecompress batch .\videos --codec av1 --crf 35 --output .\av1 --json
+videorecompress watch --folder .\incoming --preset phone_archive --output .\compressed
 ```
 
 `batch --json` prints one JSON object per line: `{"type":"progress",...}` objects, then a summary `{"success":true,"cancelled":false,"totalFiles":N,"processed":N,"failed":0,"skipped":0,"durationMs":...,"errors":[]}`.
@@ -74,6 +76,6 @@ videorecompress watch --folder C:\Incoming --preset phone_archive --output C:\Co
 ## Guidelines
 
 - Run `analyze` first; report size before and after.
-- A source that is already small or low-resolution can come out larger (the CLI prints "This file came out larger than the original"). Social presets with a fixed height can enlarge small videos; for those, compare sizes before replacing anything.
+- If re-encoding would make a file bigger, the original video is kept and the CLI says "This video was already well compressed". Presets with a fixed size (e.g. `whatsapp`, `4k_to_1080p`) never enlarge a smaller video.
 - Hardware encoding is automatic; `--hw-accel software` forces the CPU.
 - Trial: 30 days; the first 10 files are unrestricted, then output is watermarked and cut at 10 minutes. After 30 days `recompress`, `batch` and `serve` exit with code 3 until `videorecompress register <email> <key>`.
