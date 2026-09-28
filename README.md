@@ -4,9 +4,9 @@ Command-line tools and MCP servers for four Windows desktop apps that process im
 
 | Product | CLI | MCP tools | What you get |
 |---------|-----|-----------|--------------|
-| [Contenta Converter](https://www.contenta-converter.com) 9.0.33 | `contenta` | [10](contenta-converter/mcp-server.md) | Batch image conversion (102 input extensions including 30 camera RAW, 28 output), resize, watermark, metadata, effects, icon sets, PDF albums and merges, photo slideshows |
-| [VideoRecompress Studio](https://www.contenta-software.com/videorecompress/) 2026.2.19 | `videorecompress` | [5](videorecompress/mcp-server.md) | Smaller videos with H.265, AV1 or VP9, hardware encoding, 24 presets, batch and watch folders |
-| [AI Video Enhancer Studio](https://www.contenta-software.com/aivideoenhancer/) 2026.7.13 | `aivideoenhancer` | [4](ai-video-enhancer/mcp-server.md) | NVIDIA Video Super Resolution upscaling, RIFE AI interpolation to 30/60 fps, stabilization, denoise, still frames, highlight reels |
+| [Contenta Converter](https://www.contenta-converter.com) 9.0.34 | `contenta` | [10](contenta-converter/mcp-server.md) | Batch image conversion (102 input extensions including 30 camera RAW, 28 output), resize, watermark, metadata, effects, batch rename and ZIP, icon sets, PDF albums and merges, photo slideshows |
+| [VideoRecompress Studio](https://www.contenta-software.com/videorecompress/) 2026.2.20 | `videorecompress` | [5](videorecompress/mcp-server.md) | Smaller videos with H.265, AV1 or VP9, hardware encoding, 24 presets, batch and watch folders |
+| [AI Video Enhancer Studio](https://www.contenta-software.com/aivideoenhancer/) 2026.7.14 | `aivideoenhancer` | [4](ai-video-enhancer/mcp-server.md) | NVIDIA Video Super Resolution upscaling, RIFE AI interpolation to 30/60 fps, stabilization, denoise, still frames, highlight reels |
 | [3D CAD Converter](https://www.contenta-software.com/3dcadconverter/) 1.0.25 | `cadconvert` | [4](cad-converter/mcp-server.md) | STEP/IGES/BREP to STL, OBJ, 3MF, glTF/GLB, FBX and more; 19 formats read, 14 written |
 
 Each product folder has a README with every command, option and exit code, and examples that were run against the version shown.
@@ -16,7 +16,7 @@ Each product folder has a README with every command, option and exit code, and e
 Those tools are excellent if you already know the flags. These CLIs package the decisions for common jobs:
 
 - `contenta convert photo.cr2 --format jpg` decodes a Canon RAW file with the bundled decoder; there is nothing else to install.
-- `videorecompress batch C:\Videos --preset-id phone_archive --output C:\Compressed` picks the codec, quality and GPU encoder, then checks every output before reporting success.
+- `videorecompress batch .\videos --preset-id phone_archive --output .\compressed` picks the codec, quality and GPU encoder, then checks every output before reporting success.
 - `cadconvert convert -i part.step -o part.stl --tessellation 0.01 --angular 0.1` meshes a STEP file with OpenCascade at a quality you choose.
 - `aivideoenhancer enhance tape.avi -o .\restored --preset old_video_restoration` stabilizes, denoises and upscales in one pass.
 
@@ -54,12 +54,12 @@ If a command is not found, or prints an older version than the table above, an o
 
 ```powershell
 contenta batch .\products --output .\amazon-ready --format jpg --resize 2000x2000 --resize-mode fit
-videorecompress recompress C:\Videos\video.mp4 --codec h265 --crf 18 --output C:\Archive
+videorecompress recompress video.mp4 --codec h265 --crf 18 --output .\archive
 aivideoenhancer enhance .\clip.mp4 -o .\enhanced --upscale x2 --denoise light
 cadconvert convert -i model.step -o model.stl
 ```
 
-VideoRecompress Studio 2026.2.19 needs full paths for its inputs and output folder; see its [README](videorecompress/README.md#install-and-path).
+Relative and full paths both work in every CLI.
 
 ### 4. Connect an AI client (optional)
 

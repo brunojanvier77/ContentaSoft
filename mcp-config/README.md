@@ -108,4 +108,4 @@ Or pass it per call with the tool's `api_key` parameter. Google bills the calls 
 | Server exits with "Trial has expired" | The 30-day trial has ended. Register with `contenta register <email> <key>`, `videorecompress register <email> <key>`, `cadconvert register -k <key> -e <email>`, or in the desktop app (AI Video Enhancer Studio registers in the app only) |
 | Tools do not appear | Restart the client; check the JSON is valid |
 | `ai_transform` fails with "Gemini API key required" | Set `GEMINI_API_KEY` in `env` or pass `api_key` |
-| A tool cannot find a file | Pass absolute paths |
+| A tool cannot find a file | Pass absolute paths. A relative path is resolved against the folder the client started the server in, which is often not your project folder |
