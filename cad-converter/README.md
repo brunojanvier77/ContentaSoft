@@ -4,25 +4,42 @@ Turn STEP and IGES files into STL, OBJ, 3MF, glTF/GLB, FBX and other mesh format
 
 [Download the free trial](https://www.contenta-software.com/3dcadconverter/) | [MCP server reference](mcp-server.md)
 
-Documented version: **1.0.24**.
+Documented version: **1.0.25**.
 
 ## What it does
 
 - **CAD to mesh**: STEP, IGES and BREP tessellated with OpenCascade; you pick a quality preset or set the linear and angular deflection.
-- **Mesh to mesh**: STL, OBJ, PLY, FBX, Collada, 3MF, glTF/GLB, VRML, X3D, OFF.
+- **Mesh to mesh**: STL, OBJ, PLY, FBX, Collada, 3MF, glTF/GLB, VRML, X3D, OFF; USD and USDZ (text or binary) are read.
 - **19 formats read, 14 written** (table below).
-- **Units**: convert to mm, cm, in, m or ft.
-- **Up axis**: rotate the output to Y-up (game engines, glTF, three.js) or Z-up (CAD, 3D printing).
+- **Units**: files that declare a unit come in at their true size; the output is in mm, or in cm, in, m or ft.
+- **Up axis**: rotate the output to Y-up (game engines, glTF, three.js) or Z-up (CAD, 3D printing), starting from the up axis the source declares.
 - **Polygon reduction** for mesh sources, from the CLI.
-- **Mesh repair** on request.
+- **Surface repair** for STEP, IGES and BREP before meshing, on request.
 - **Batch** a folder with parallel workers; **watch** a folder and convert new files.
+
+## Changes in 1.0.25
+
+Source units are now read, so some outputs have a different size than in 1.0.24:
+
+- glTF/GLB to STL (or OBJ, 3MF, PLY) is 1000x larger: glTF is in metres, and the output is now its true size in mm.
+- Any file converted to glTF/GLB opens at its true size in metres in a glTF viewer.
+- A Blender FBX in centimetres (Blender's default) comes in 10x larger, at its true size.
+
+Also in 1.0.25:
+
+- Binary USD (`.usdc`) and USDZ convert; in 1.0.24 every binary USD failed. USD prim transforms and `metersPerUnit` are applied, and `info` on a USD file reports its real format, parts, unit and bounding box.
+- `--up-axis` reads the up axis the source declares (USD, Collada, FBX, glTF).
+- glTF, FBX and Collada outputs declare their unit and up axis.
+- `--repair` is described for what it does: STEP/IGES/BREP surface repair. It has no effect on mesh sources.
+- A batch of files from different drives writes every output inside the output folder.
+- Desktop app: the "From" unit is ignored for files that declare their own unit.
 
 ## Install and PATH
 
 The CLI is installed with the desktop app. A default install is per-user, in `%LOCALAPPDATA%\Programs\CadConverter\`, and the installer adds that folder to your user `PATH`. Open a new terminal after installing, then check:
 
 ```powershell
-cadconvert --version    # 1.0.24 or later
+cadconvert --version    # 1.0.25 or later
 cadconvert formats
 ```
 
@@ -49,7 +66,7 @@ The CLI has no `--json` flag; for structured output use the [MCP server](mcp-ser
 
 ## Examples
 
-Each of these was run against 1.0.24.
+Each of these was run against 1.0.25.
 
 ```powershell
 # STEP to STL at the default (standard) quality
@@ -68,8 +85,19 @@ cadconvert convert model.step -o model_fine.stl --tessellation 0.01 --angular 0.
 # Y-up GLB for game engines and three.js
 cadconvert convert model.step -o model_y.glb --up-axis y
 
-# STEP to OBJ in inches, with mesh repair
+# STEP to OBJ in inches, repairing the STEP surfaces before meshing
 cadconvert convert -i model.step -o model_in.obj --units in --repair
+
+# glTF (metres) to STL at its true size in mm, and in inches
+cadconvert convert tower.glb tower.stl
+cadconvert convert tower.glb tower_in.stl --units in
+
+# A Blender FBX in centimetres to STL in mm
+cadconvert convert tower_cm.fbx tower_fbx.stl
+
+# USDZ (binary USD) to GLB; a Y-up USD stage to Z-up STL for 3D printing
+cadconvert convert scene.usdz scene.glb
+cadconvert convert tower_yup.usda tower_z.stl --up-axis z
 
 # Keep about a quarter of a mesh's triangles (mesh sources only)
 cadconvert convert scan.stl -o scan_light.glb --decimate 0.25
@@ -85,8 +113,9 @@ cadconvert convert part.brep part.step
 cadconvert batch -i .\cad-files -o .\meshes -f obj --quality fine
 cadconvert batch .\cad-files
 
-# Inspect a file
+# Inspect a file: format, declared unit, size
 cadconvert info model.step
+cadconvert info scene.usdz
 
 # Convert new files dropped into a folder to Y-up GLB in .\incoming_converted (Ctrl+C to stop)
 cadconvert watch .\incoming -f glb --up-axis y
@@ -105,10 +134,10 @@ The output format comes from `-f`, or from the output file extension when `-f` i
 | `-f, --format` | Target format. `convert`: from the output extension; `batch` and `watch`: `stl` |
 | `--tessellation`, `--quality` | Mesh quality for STEP, IGES and BREP sources: a preset (`draft`, `standard`, `fine`, `ultrafine`; `ultra` also works) or a linear deflection in mm. Default `standard` |
 | `--angular` | Angular deflection in **radians** (0.5 is about 29 degrees). Default: the preset's value; `0.5` with a numeric `--tessellation` |
-| `--up-axis` | `y`, `z` or `unchanged` (default). A STEP, IGES or BREP re-export cannot be rotated; the CLI prints a note and writes it unrotated |
+| `--up-axis` | `y`, `z` or `unchanged` (default). The rotation starts from the up axis the source declares (USD, Collada, FBX and glTF declare one). A STEP, IGES or BREP re-export cannot be rotated; the CLI prints a note and writes it unrotated |
 | `--decimate` | Share of triangles to keep, as `0.25` or `25%`. Mesh sources only (see below) |
-| `--repair` | Mesh repair |
-| `--units` | `mm`, `cm`, `in`, `m`, `ft` |
+| `--repair` | Repairs STEP, IGES and BREP surfaces before meshing: fixes broken edges and faces and closes small gaps. No effect on mesh sources (STL, OBJ, PLY ...) |
+| `--units` | Target unit: `mm` (default), `cm`, `in`, `m`, `ft`. See [Units](#units) |
 | `--binary` | Binary STL/PLY (default `true`); `--binary false` writes ASCII |
 
 The presets set these deflections:
@@ -132,6 +161,25 @@ The presets set these deflections:
 - A mesh over 2,000,000 triangles is written unreduced, and so is one where the reduction would leave less than half the triangles you asked for; the CLI prints a note.
 - The desktop app has no reduction control; this is a CLI option.
 
+## Units
+
+A file that declares its unit is read at its true size, converted to millimetres, then written in `--units` (millimetres when left out):
+
+| Source | Unit read from |
+|--------|----------------|
+| STEP, IGES | the file's own unit |
+| 3MF | the model's `unit` attribute |
+| glTF, GLB | always metres (glTF specification) |
+| FBX | `UnitScaleFactor` |
+| Collada | `<unit>` (metres when absent) |
+| USD, USDZ | `metersPerUnit` (centimetres when absent, the USD default) |
+| BREP | stores no unit; read as millimetres |
+| STL, OBJ, PLY, OFF, VRML, X3D, AMF, DXF, DWG | carry no unit; the numbers are taken as millimetres |
+
+The CLI has no option to set the unit of a source. glTF, FBX and Collada outputs declare the unit and up axis they are written in, so a glTF output opens at its true size in metres.
+
+In the desktop app, the wizard's "From" unit applies only to files that carry no unit (STL, OBJ, PLY ...); a file that declares its unit ignores it.
+
 ## BREP input
 
 OpenCascade native `.brep` and `.brp` files convert to every mesh format, re-export to STEP, IGES or BREP, and work with `info`, the desktop preview and thumbnails. Limits:
@@ -142,7 +190,7 @@ OpenCascade native `.brep` and `.brp` files convert to every mesh format, re-exp
 
 ## info
 
-`info` prints the format, the unit the file declares, part count, triangle and vertex counts, materials/textures and, for STEP, IGES and BREP files, the bounding box. 3MF, STEP and IGES files declare their unit and glTF/GLB is always metres; STL, OBJ, PLY and OFF carry no unit and show `Unknown`.
+`info` prints the format, the unit the file declares, part count, triangle and vertex counts, materials/textures and, for STEP, IGES, BREP and USD files, the bounding box in mm. The unit is read as described in [Units](#units); STL, OBJ, PLY and OFF carry no unit and show `Unknown`. A USD or USDZ file shows its own format (`Usd`, `Usdz`), its parts and its unit.
 
 ## Supported formats
 
@@ -165,7 +213,7 @@ OpenCascade native `.brep` and `.brp` files convert to every mesh format, re-exp
 | AMF | `.amf` | Yes | No | Mesh |
 | DWG | `.dwg` | Yes | No | Mesh |
 | DXF | `.dxf` | Yes | No | Mesh |
-| USD | `.usd` | Yes | No | Mesh |
+| USD | `.usd`, `.usda`, `.usdc` | Yes | No | Mesh |
 | USDZ | `.usdz` | Yes | No | Mesh |
 
 `cadconvert formats` prints the list for your installed version.

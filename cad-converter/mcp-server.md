@@ -26,7 +26,7 @@ Pass absolute paths to every tool.
 | Transport | stdio |
 | Protocol | JSON-RPC 2.0, MCP `2024-11-05` |
 | Server name | `cad-converter` |
-| Server version | `1.0.24` |
+| Server version | `1.0.25` |
 
 **License**: the server runs during the 30-day trial and for registered copies; after the trial it refuses to start. The trial includes 10 conversions; after that `convert_cad` returns a "Trial limit reached" error until you register.
 
@@ -42,8 +42,8 @@ Convert STEP, IGES or BREP to a mesh format, or convert between mesh formats.
 | `output_path` | string | Yes | Absolute path for the output file |
 | `format` | string | No | `stl`, `obj`, `ply`, `gltf`, `glb`, `3mf`, `dae`, `step`, `iges`, `fbx`, `vrml`, `off`, `brep` (default: from the output extension) |
 | `tessellation` | string | No | `draft`, `standard` (default), `fine`, `ultrafine` |
-| `units` | string | No | `mm`, `cm`, `in`, `m`, `ft` |
-| `repair` | boolean | No | Mesh repair |
+| `units` | string | No | Target unit: `mm` (default), `cm`, `in`, `m`, `ft`. The source is read in the unit it declares; see [Units](README.md#units) |
+| `repair` | boolean | No | Repairs STEP, IGES and BREP surfaces before meshing (fixes broken edges and faces, closes small gaps). No effect on mesh sources such as STL or OBJ |
 | `binary` | boolean | No | Binary STL/PLY (default true) |
 
 The tessellation presets set these deflections (angular deflection in radians, the same unit as the CLI's `--angular`):
@@ -67,9 +67,9 @@ The tessellation presets set these deflections (angular deflection in radians, t
 |-----------|------|----------|-------------|
 | `path` | string | Yes | Absolute path to the 3D file |
 
-**Returns**: path, fileName, fileSize, format, units, boundingBoxUnits, partCount, triangleCount, vertexCount, hasMaterials, hasTextures, boundingBox (minX/minY/minZ, maxX/maxY/maxZ; STEP, IGES and BREP files).
+**Returns**: path, fileName, fileSize, format, units, boundingBoxUnits, partCount, triangleCount, vertexCount, hasMaterials, hasTextures, boundingBox (minX/minY/minZ, maxX/maxY/maxZ; STEP, IGES, BREP and USD files).
 
-`units` is the unit the file declares: 3MF, STEP and IGES carry one, glTF/GLB is always metres, and a BREP file (which stores none) is read as millimetres. STL, OBJ, PLY and OFF carry no unit. `boundingBoxUnits` is the unit the bounding box is in.
+`units` is the unit the file declares: STEP, IGES and 3MF carry one, glTF/GLB is always metres, FBX has `UnitScaleFactor`, Collada `<unit>` and USD `metersPerUnit` (centimetres when absent). A BREP file (which stores none) is read as millimetres. STL, OBJ, PLY and OFF carry no unit. `boundingBoxUnits` is the unit the bounding box is in.
 
 ---
 

@@ -7,7 +7,7 @@ Command-line tools and MCP servers for four Windows desktop apps that process im
 | [Contenta Converter](https://www.contenta-converter.com) 9.0.33 | `contenta` | [10](contenta-converter/mcp-server.md) | Batch image conversion (102 input extensions including 30 camera RAW, 28 output), resize, watermark, metadata, effects, icon sets, PDF albums and merges, photo slideshows |
 | [VideoRecompress Studio](https://www.contenta-software.com/videorecompress/) 2026.2.19 | `videorecompress` | [5](videorecompress/mcp-server.md) | Smaller videos with H.265, AV1 or VP9, hardware encoding, 24 presets, batch and watch folders |
 | [AI Video Enhancer Studio](https://www.contenta-software.com/aivideoenhancer/) 2026.7.13 | `aivideoenhancer` | [4](ai-video-enhancer/mcp-server.md) | NVIDIA Video Super Resolution upscaling, RIFE AI interpolation to 30/60 fps, stabilization, denoise, still frames, highlight reels |
-| [3D CAD Converter](https://www.contenta-software.com/3dcadconverter/) 1.0.24 | `cadconvert` | [4](cad-converter/mcp-server.md) | STEP/IGES/BREP to STL, OBJ, 3MF, glTF/GLB, FBX and more; 19 formats read, 14 written |
+| [3D CAD Converter](https://www.contenta-software.com/3dcadconverter/) 1.0.25 | `cadconvert` | [4](cad-converter/mcp-server.md) | STEP/IGES/BREP to STL, OBJ, 3MF, glTF/GLB, FBX and more; 19 formats read, 14 written |
 
 Each product folder has a README with every command, option and exit code, and examples that were run against the version shown.
 
