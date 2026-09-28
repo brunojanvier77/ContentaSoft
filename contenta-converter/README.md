@@ -4,15 +4,15 @@ Convert, resize, watermark and tag thousands of photos from the command line on 
 
 [Download the free trial](https://www.contenta-converter.com) | [MCP server reference](mcp-server.md)
 
-Documented version: **9.0.33**.
+Documented version: **9.0.34**.
 
 ## What it does
 
 - **Reads 102 file extensions, writes 28.** Input includes JPG, PNG, WebP, HEIC/HEIF, AVIF, JPEG XL, TIFF, PSD/PSB, PDF, SVG, EPS, DjVu, JPEG 2000 and 30 camera RAW extensions (CR2, CR3, NEF, ARW, RAF, DNG, ORF, RW2 and more). Run `contenta formats` for the full list.
-- **Batch conversion** of whole folders with parallel workers, resize by size or percentage, and output filename patterns.
+- **Batch conversion** of whole folders with parallel workers, resize by size or percentage, output filename patterns, batch rename and ZIP packaging.
 - **51 effects in 7 categories** (color, enhance, blur/sharpen, artistic, distortion, correction, transforms). Run `contenta effects`.
 - **Text watermark** with position and opacity.
-- **Metadata**: copyright, creator, keywords, GPS, date and more, written during conversion.
+- **Metadata**: copyright, creator, keywords, creator email and URL, GPS, date and more, written during conversion. WebP, HEIC and AVIF outputs keep it too (as XMP).
 - **Multi-size export**: icon and srcset sets in one command (`--sizes`, `--size-preset`).
 - **PDF photo albums** and **PDF merge** (page-level, no re-rendering).
 - **Video slideshows** from photos, sized for TikTok, Shorts, Reels, YouTube, Instagram and others.
@@ -24,8 +24,8 @@ Documented version: **9.0.33**.
 The CLI is installed with the desktop app. A default install is per-user, in `%LOCALAPPDATA%\Programs\ContentaConverter\`, and the installer adds that folder to your user `PATH`. Open a new terminal after installing, then check:
 
 ```powershell
-contenta --version    # 9.0.33 or later
-contenta status       # license state and bundled tools
+contenta --version    # 9.0.34 or later
+contenta status       # version, license state and bundled tools
 ```
 
 If `contenta` is not found, or `--version` prints an older number, call the exe by its full path (`& "$env:LOCALAPPDATA\Programs\ContentaConverter\contenta.exe"`) or remove the older copy that comes first on `PATH`.
@@ -38,7 +38,7 @@ Options available on every command: `--json` (machine-readable output), `--quiet
 |---------|--------------|
 | `convert <input>` | Convert one image |
 | `batch <input-dir>` | Convert every image in a folder |
-| `info <file>` | Format detection and metadata |
+| `info <file>` | Format, pixel size, DPI, copyright, creator and the full metadata |
 | `effects` | List the effects and their parameters |
 | `formats` | List input and output formats (`--input` / `--output` to filter) |
 | `pdf-album <files>...` | Lay photos out as a PDF album |
@@ -51,11 +51,11 @@ Options available on every command: `--json` (machine-readable output), `--quiet
 | `status` | License state, bundled tools, version |
 | `serve` | Start the MCP server (stdio) |
 
-Inputs are positional arguments; there is no `--input` flag. Run `contenta <command> --help` for every option.
+Inputs are positional arguments; there is no `--input` flag. Relative paths work everywhere (inputs, `--output`, `--audio`, `--profile`, background images). Run `contenta <command> --help` for every option.
 
 ## Examples
 
-Each of these was run against 9.0.33 in PowerShell.
+Each of these was run against 9.0.34 in PowerShell.
 
 ```powershell
 # One file to WebP
@@ -73,22 +73,38 @@ contenta batch .\products --output .\amazon-ready --format jpg --resize 2000x200
 # Watermarked proofs: 1200x800, text bottom-right at 60% opacity
 contenta convert photo.jpg --output .\proofs --resize 1200x800 --watermark "(c) Studio Name" --watermark-position 8 --watermark-opacity 60
 
-# Effects: separate several with spaces, parameters after a colon
+# Effects: names separated by spaces or commas, parameters after a colon
 contenta convert photo.jpg --effects sepia sharpen --output .\fx
+contenta convert photo.jpg --effects "sepia,sharpen:window=5" --output .\fx
 contenta convert photo.jpg --effects "colorbrightnesscontrast:brightness=20,contrast=10" --output .\fx
+contenta convert photo.jpg --effects blackwhite --output .\bw
+contenta convert photo.jpg --effects "flip:direction=vertical" "crop:x=100,y=100,width=800,height=600" --output .\cropped
 
-# Keywords and GPS written while converting
-contenta convert photo.jpg --format avif --quality 70 --keywords "beach,summer" --gps "43.2965,5.3698" --output .\tagged
+# Metadata written while converting (kept in AVIF, WebP and HEIC too)
+contenta convert photo.jpg --format avif --quality 70 --keywords "beach,summer" --gps "43.2965,5.3698" --copyright "(c) 2026 Studio Name" --creator "Studio Name" --creator-email "studio@example.com" --creator-url "https://example.com" --output .\tagged
 
 # Icon sizes: one file per size (logo-16.ico, logo-32.ico, ...)
 contenta convert logo.png --sizes 16,32,48,64 --format ico --output .\icons
 contenta convert logo.png --size-preset favicon --output .\favicon
 
-# Metadata as JSON
+# Format, pixel size, DPI and metadata as JSON
 contenta info photo.jpg --json
+
+# Keep each file's format: batch without --format
+contenta batch .\products --output .\web --resize 1600x1600 --resize-mode fit --quality 85
+
+# Rename the outputs with Batch Rename tokens: shop_001_1338x2000.jpg, ...
+contenta batch .\products --output .\renamed --format jpg --resize 2000x2000 --resize-mode fit --rename-pattern "shop_{seq:3}_{w}x{h}"
+contenta batch .\photos --output .\by-date --format jpg --rename-pattern "{date:yyyy-MM-dd}_{camera}_{seq}"
+
+# Also pack the outputs into ZIP files of at most 25 MB each
+contenta batch .\products --output .\upload --format jpg --resize 2000x2000 --resize-mode fit --zip-output --zip-split-size 25
 
 # PDF album, 6 photos per A4 page
 contenta pdf-album .\photos\img1.jpg .\photos\img2.jpg .\photos\img3.jpg --output album.pdf --photos-per-page 6 --page-size A4
+
+# PDF album on a tiled background image
+contenta pdf-album .\photos\img1.jpg .\photos\img2.jpg --output album-bg.pdf --photos-per-page 2 --background-image paper.png --background-mode tile
 
 # Merge PDFs in this order
 contenta pdf-merge album.pdf invoice.pdf --output merged.pdf
@@ -101,6 +117,14 @@ contenta batch .\products --profile etsy.json --output .\etsy-ready
 contenta watch .\incoming --output .\processed --format webp --quality 80
 ```
 
+An unknown effect name or parameter stops the command with exit code 2 and lists the valid ones, so a typo never converts anything. Parameters you leave out take the desktop app's defaults (`blackwhite` alone uses r=30, g=59, b=11). `flip` takes `direction=horizontal|vertical`; `crop` takes `x`, `y`, `width` and `height` in pixels from the top-left corner.
+
+`--rename-pattern` runs after the batch and uses the desktop app's Batch Rename tokens: `{name}` `{ext}` `{date}` `{date:FORMAT}` `{time}` `{year}` `{month}` `{camera}` `{make}` `{lens}` `{iso}` `{aperture}` `{focal}` `{w}` `{h}` `{gps}` `{seq}` `{seq:N}` `{folder}`. The extension is kept, and a name that is already taken gets `_1`, `_2` and so on.
+
+`--zip-output` writes `contenta-converter-images.zip` in the output folder and leaves the converted files in place. With `--zip-split-size N` the files are spread over several archives (`contenta-converter-images_part2.zip`, `_part3`...) of at most N MB each (default 25); each archive opens on its own.
+
+`info` does not read AVIF files yet in 9.0.34 (it reports `QuickTime` with no size or metadata); the metadata written to AVIF outputs is in the file.
+
 ### Passing many files in PowerShell
 
 Windows shells do not expand `*.jpg` for you, and `contenta` does not expand it either, so `contenta pdf-album .\photos\*.jpg` fails with exit code 5. In PowerShell, pass the file list explicitly:
@@ -111,12 +135,10 @@ contenta pdf-album (Get-ChildItem .\photos\*.jpg).FullName --output album.pdf --
 
 Git Bash expands `./photos/*.jpg` itself, so the glob form works there.
 
-### Slideshows: use full paths
-
-In 9.0.33, `slideshow` needs full paths for `--output` and `--audio`. A bare file name like `--output reel.mp4` fails.
+### Slideshows
 
 ```powershell
-contenta slideshow (Get-ChildItem .\photos\*.jpg).FullName --output "$PWD\reel.mp4" --template tiktok --audio "$PWD\music.mp3" --duration 2000
+contenta slideshow (Get-ChildItem .\photos\*.jpg).FullName --output reel.mp4 --template tiktok --audio music.mp3 --duration 2000
 ```
 
 Templates: `tiktok`, `shorts`, `facebook-reels`, `snapchat` (9:16), `youtube`, `linkedin`, `twitter` (16:9), `instagram` (1:1), `pinterest` (2:3). Ken Burns modes: `zoom-in`, `zoom-out`, `pan-left`, `pan-right`, `pan-up`, `pan-down`, `alternating`, `off`.
@@ -127,7 +149,7 @@ Templates: `tiktok`, `shorts`, `facebook-reels`, `snapchat` (9:16), `youtube`, `
 
 ```powershell
 $env:GEMINI_API_KEY = "<your key>"
-contenta ai-transform photo.jpg --prompt "Replace the background with plain white" --output "$PWD\photo_white.png"
+contenta ai-transform photo.jpg --prompt "Replace the background with plain white" --output photo_white.png
 ```
 
 `--prompt` is required on every call, including with `--remove-background`.
@@ -139,11 +161,11 @@ contenta ai-transform photo.jpg --prompt "Replace the background with plain whit
 | `-f, --format` | `jpg`, `png`, `webp`, `tiff`, `bmp`, `gif`, `jxl`, `heic`, `avif`, `svg`, `pdf`, `ico` (plus the other extensions `contenta formats --output` lists) |
 | `-q, --quality` | 1-100, default 90 |
 | `--resize WxH` + `--resize-mode` | `fit`, `fill`, `stretch`, `longest-edge`, `shortest-edge` |
-| `--resize-percent` | 1-100 |
+| `--resize-percent` | 1-100. In 9.0.34 it squashes portrait images; use `--resize WxH --resize-mode fit` for those |
 | `--dont-enlarge` | Leave smaller images at their size |
-| `--effects` | Effect names separated by spaces; parameters as `name:key=value,key=value` |
+| `--effects` | Effect names separated by spaces or commas; parameters as `name:key=value,key=value`. Unknown names or parameters exit 2 |
 | `--watermark`, `--watermark-position`, `--watermark-opacity` | White text watermark; position 0-8 (8 = bottom-right, the default); opacity 0-100 (default 70) |
-| `--copyright`, `--creator`, `--title`, `--description`, `--keywords`, `--rights`, `--gps`, `--datetime` | Metadata written into the output |
+| `--copyright`, `--creator`, `--title`, `--description`, `--keywords`, `--rights`, `--creator-city`, `--creator-country`, `--creator-email`, `--creator-url`, `--gps`, `--datetime` | Metadata written into the output (EXIF, IPTC and XMP; XMP only where the format has no IPTC block) |
 | `--sizes`, `--size-preset`, `--base-size` | Multi-size export: pixel sizes (`16,32,48`), scale factors (`1x,2x,3x`), or `favicon` / `appicon` / `srcset` |
 | `--filename-pattern` | Default `{originalname}` |
 | `--overwrite` | Replace existing outputs (default: write a renamed copy) |
@@ -152,8 +174,11 @@ contenta ai-transform photo.jpg --prompt "Replace the background with plain whit
 | `--pdf-page` | Page index (0-based) for multi-page PDF/TIFF input |
 | `--profile` | Load settings saved with `profile save` |
 | batch: `--include`, `--exclude`, `--recursive`, `-w/--workers` | Filters; subfolders are not included unless you add `--recursive`; workers default to automatic |
+| batch: `--rename-pattern` | Rename the outputs with Batch Rename tokens after the batch |
+| batch: `--zip-output`, `--zip-split-size` | Also pack the outputs into ZIP archives, split at N MB (default 25) |
 | pdf-album: `--photos-per-page` | 1, 2, 4, 6, 8, 10, 12, 16, 24 or 48 (default 4) |
 | pdf-album: `--embed-quality` | JPEG quality for non-JPEG inputs (default 85); JPEG inputs are embedded unchanged |
+| pdf-album: `--background`, `--background-image`, `--background-mode` | Page color (hex) or an image drawn behind the photos: `stretch`, `center` or `tile` |
 
 ## Size cheat sheet
 

@@ -34,7 +34,7 @@ For `ai_transform`, give the server your Google Gemini API key:
 }
 ```
 
-Pass absolute paths to every tool.
+Paths can be absolute or relative. A relative path is resolved against the server's working folder, which is the folder your AI client started it in; use absolute paths when you do not know that folder.
 
 ## Protocol
 
@@ -43,7 +43,7 @@ Pass absolute paths to every tool.
 | Transport | stdio |
 | Protocol | JSON-RPC 2.0, MCP `2024-11-05` |
 | Server name | `contenta-converter` |
-| Server version | `9.0.33` |
+| Server version | `9.0.34` |
 
 **License**: the server runs during the 30-day trial and for registered copies; after the trial it refuses to start (exit code 3). During the trial the first 10 images are clean and later output carries a watermark. PDF albums, merged PDFs and slideshows are always marked during the trial. Register with `contenta register <email> <key>`.
 
@@ -55,13 +55,14 @@ Convert one image, with optional resize and metadata.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `input_path` | string | Yes | Absolute path to the source image |
+| `input_path` | string | Yes | Path to the source image |
 | `output_dir` | string | No | Output folder (default: next to the input) |
 | `format` | string | No | `jpg`, `png`, `webp`, `tiff`, `bmp`, `gif`, `jxl`, `heic`, `avif`, `svg`, `pdf` |
 | `quality` | integer | No | 1-100 (default 90) |
 | `resize_width` | integer | No | Target width in pixels |
 | `resize_height` | integer | No | Target height in pixels |
 | `resize_mode` | string | No | `fit`, `fill`, `stretch`, `longest-edge`, `shortest-edge` |
+| `effects` | string[] | No | Effects applied in order, each `name` or `name:key=value,...`, e.g. `["sepia", "sharpen:window=5"]` |
 | `copyright` | string | No | Copyright metadata |
 | `creator` | string | No | Creator metadata |
 | `preserve_metadata` | boolean | No | Keep the original metadata (default true) |
@@ -76,16 +77,19 @@ Convert a list of files or a whole folder.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `input_paths` | string[] | No | Absolute file paths |
+| `input_paths` | string[] | No | File paths |
 | `input_dir` | string | No | Folder to scan (instead of `input_paths`) |
 | `output_dir` | string | No | Output folder |
 | `format` | string | No | Output format |
 | `quality` | integer | No | 1-100 |
 | `resize_width` | integer | No | Target width |
 | `resize_height` | integer | No | Target height |
+| `effects` | string[] | No | Effects applied to every file, same syntax as `convert_image` |
 | `workers` | integer | No | Parallel workers (default: automatic, based on your CPU and the job) |
 
 **Returns**: total, success, skipped, failed, outputs, errors.
+
+**Effects**: names and parameters come from `list_effects`. A comma list in one string (`"sepia,sharpen"`) also works. An unknown effect name or parameter fails the call before anything is converted, and the error lists the valid names. Parameters you leave out take the desktop app's defaults, so `"blackwhite"` alone works. `flip` takes `direction=horizontal|vertical`; `crop` takes `x`, `y`, `width` and `height` in pixels.
 
 ---
 
@@ -93,7 +97,7 @@ Convert a list of files or a whole folder.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `path` | string | Yes | Absolute path to the file |
+| `path` | string | Yes | Path to the file |
 
 **Returns**: path, format (the decoder that will read it, e.g. `RawLibRaw`), extension, size, and the flags isRaw, isHeic, isJxl, isPsd, isPdf, isSvg.
 
@@ -103,9 +107,11 @@ Convert a list of files or a whole folder.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `path` | string | Yes | Absolute path to the image |
+| `path` | string | Yes | Path to the image |
 
-**Returns**: path, fileName, size, width, height, lastModified, and a metadata object (dates, EXIF camera fields, IPTC fields such as copyright, creator and keywords).
+**Returns**: path, fileName, format (e.g. `JPEG`, `WebP`, `HEIC`), decoder, extension, size, width, height, dpiX, dpiY, copyright, creator, lastModified, and a metadata object with the dates and the EXIF (camera, exposure, GPS, orientation), IPTC and XMP fields, including keywords and the creator's email and URL. Fields the file does not have are left out.
+
+In 9.0.34, `read_metadata` does not read AVIF files yet: it reports format `QuickTime` with no size or fields. Metadata written to AVIF is in the file, and other readers such as ExifTool show it.
 
 ---
 
@@ -115,19 +121,21 @@ Write metadata into an existing image without converting it.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `path` | string | Yes | Absolute path to the image |
+| `path` | string | Yes | Path to the image |
 | `copyright`, `creator`, `title`, `description`, `keywords`, `rights` | string | No | Text fields (`keywords` comma-separated) |
 | `creator_city`, `creator_country`, `creator_email`, `creator_url` | string | No | Creator contact fields |
 | `latitude`, `longitude`, `altitude` | string | No | GPS, decimal degrees and meters |
 | `datetime` | string | No | Date/time override (ISO 8601) |
 
-**Returns**: success, path, fieldsWritten.
+The file is read back after writing. Every field also goes to XMP, so WebP, HEIC and AVIF files, which have no IPTC block, keep keywords, city, country, email and URL.
+
+**Returns**: success, path, fieldsWritten, `written` (the fields now in the file), `dropped` (fields that did not stick, with the reason), `notes` (e.g. that a WebP file got XMP instead of IPTC) and `verified`.
 
 ---
 
 ### list_effects
 
-No parameters. **Returns** an array of 51 effects, each with name, category, description and parameters. Categories: Color (19), Enhance (4), Blur / Sharpen (7), Artistic (8), Distortion (8), Correction (1), Transforms (4).
+No parameters. **Returns** an array of 51 effects, each with name, category, description and parameters (ranges and defaults). Categories: Color (19), Enhance (4), Blur / Sharpen (7), Artistic (8), Distortion (8), Correction (1), Transforms (4).
 
 ---
 
@@ -135,7 +143,7 @@ No parameters. **Returns** an array of 51 effects, each with name, category, des
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `paths` | string[] | Yes | Absolute image paths |
+| `paths` | string[] | Yes | Image paths |
 | `output_path` | string | Yes | Output PDF path |
 | `photos_per_page` | integer | No | 1, 2, 4, 6, 8, 10, 12, 16, 24 or 48 (default 4) |
 | `page_size` | string | No | `A4`, `Letter`, `Legal` (default A4) |
@@ -152,7 +160,7 @@ Append PDF files into one PDF, in list order. Pages are copied, not re-rendered.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `paths` | string[] | Yes | Absolute PDF paths, in the order to append |
+| `paths` | string[] | Yes | PDF paths, in the order to append |
 | `output_path` | string | Yes | Output PDF path |
 
 **Returns**: success, outputPath, files.
@@ -184,7 +192,7 @@ Edit an image with a Google Gemini prompt. Needs a Gemini API key (`api_key`, or
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `input_path` | string | Yes | Absolute path to the source image |
+| `input_path` | string | Yes | Path to the source image |
 | `prompt` | string | Yes | What to do, e.g. "Remove the background" |
 | `api_key` | string | No | Gemini API key |
 | `output_path` | string | No | Output path (default `{name}_ai.{ext}` next to the input) |
@@ -201,7 +209,11 @@ If the model answers without an image, the tool returns an error saying so.
 
 > "Add my copyright to sunset.jpg."
 >
-> The agent calls `write_metadata` with `path`, `copyright: "(c) 2026 Your Name"`, `creator: "Your Name"`, then `read_metadata` to confirm.
+> The agent calls `write_metadata` with `path`, `copyright: "(c) 2026 Your Name"`, `creator: "Your Name"`. The reply lists `written: ["copyright", "creator"]` and `verified: true`.
+
+> "Make black-and-white 1000 px versions of the photos in C:\Photos\shoot."
+>
+> The agent calls `batch_convert` with `input_dir`, `output_dir`, `resize_width: 1000`, `resize_height: 1000`, `effects: ["blackwhite"]`.
 
 > "Put the three scanned invoices into one PDF."
 >
