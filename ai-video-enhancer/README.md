@@ -4,7 +4,7 @@ Upscale, stabilize, denoise and smooth old or low-quality videos on Windows, and
 
 [Download the free trial](https://www.contenta-software.com/aivideoenhancer/) | [MCP server reference](mcp-server.md)
 
-Documented version: **2026.7.13**.
+Documented version: **2026.7.14**.
 
 ## What it does
 
@@ -32,13 +32,13 @@ Documented version: **2026.7.13**.
 The CLI is installed with the desktop app. A default install is per-user, in `%LOCALAPPDATA%\Programs\AIVideoEnhancerStudio\`, and the installer adds that folder to your user `PATH`. Open a new terminal after installing, then check:
 
 ```powershell
-aivideoenhancer --version    # 2026.7.13 or later
+aivideoenhancer --version    # 2026.7.14 or later
 aivideoenhancer status
 ```
 
 If `aivideoenhancer` is not found, or `--version` prints an older number, call the exe by its full path or remove the older copy that comes first on `PATH`.
 
-The CLI prints informational log lines (GPU detection, progress details) along with its normal output. There is no `--json` flag except on `remix suggest`; for structured results use the MCP server.
+Results go to stdout and log lines (GPU detection, stage timings) go to stderr, so `2>$null` in PowerShell leaves only the results. There is no `--json` flag except on `remix suggest`; for structured results use the MCP server. Relative and full paths both work.
 
 ## Commands
 
@@ -58,7 +58,7 @@ There is no `register` command in the CLI; register in the desktop app.
 
 ## Examples
 
-Each of these was run against 2026.7.13.
+Each of these was run against 2026.7.14 in PowerShell.
 
 ```powershell
 # 2x upscale with light denoise, H.265 at CRF 18
@@ -67,11 +67,14 @@ aivideoenhancer enhance .\clip.mp4 -o .\enhanced --upscale x2 --denoise light --
 # Smooth motion to 60 fps, plus a side-by-side before/after video
 aivideoenhancer enhance .\clip.mp4 -o .\smooth --interpolate 60 --compare
 
-# A whole folder of old tapes with a preset
-aivideoenhancer enhance C:\Videos\tapes -o C:\Videos\restored --preset old_video_restoration
+# A whole folder of old tapes with a preset (interlaced DV/DVD sources are deinterlaced automatically)
+aivideoenhancer enhance .\tapes -o .\restored --preset old_video_restoration
 
 # Run it again later: skip videos that already have an output
-aivideoenhancer enhance C:\Videos\tapes -o C:\Videos\restored --preset old_video_restoration --skip-existing
+aivideoenhancer enhance .\tapes -o .\restored --preset old_video_restoration --skip-existing
+
+# A preset without the automatic deinterlace
+aivideoenhancer enhance .\tapes\tape1.dv -o .\cleanup --preset enhance_cleanup --deinterlace off
 
 # 5 thumbnail candidates as PNG
 aivideoenhancer extract-frames video.mp4 -o .\frames --preset thumbnails
@@ -82,6 +85,9 @@ aivideoenhancer extract-frames video.mp4 -o .\frames6 --count 6 --format jpg --q
 # Frames at 2 s, 5 s and 10 s, upscaled 2x
 aivideoenhancer extract-frames video.mp4 -o .\frames_up --timestamps 2,5,10 --upscale x2
 
+# 3 frames from every video in a folder, one subfolder per video
+aivideoenhancer extract-frames .\tapes -o .\tape-frames --count 3 --format jpg
+
 # Suggest highlight clips (text, or --json)
 aivideoenhancer remix suggest video.mp4 --duration 10
 aivideoenhancer remix suggest video.mp4 --duration 10 --json
@@ -90,7 +96,9 @@ aivideoenhancer remix suggest video.mp4 --duration 10 --json
 aivideoenhancer remix render video.mp4 --clips "1-4,8-11,14-17" -o .\reel.mp4 --aspect 9:16 --music music.mp3 --duck
 ```
 
-`enhance` writes `<name>_enhanced.mp4` into the output folder (`-o` is a folder), and `<name>_enhanced_compare.mp4` with `--compare`. `remix suggest` ends with a ready-to-run `remix render` command.
+`enhance` writes `<name>_enhanced.mp4` into the output folder (`-o` is a folder), and `<name>_enhanced_compare.mp4` with `--compare`. `extract-frames` always writes into a subfolder per video, `<output>\<name>_frames\`, numbered `00000001.png` and up. `remix suggest` ends with a ready-to-run `remix render` command.
+
+With `--preset`, an interlaced source (DV, DVD, TV capture) gets `--deinterlace yadif` and the CLI says so; pass `--deinterlace off` (or another mode) to choose yourself. Raw DV files (`.dv`) are read at their real frame rate (25 fps PAL, 29.97 fps NTSC).
 
 ## enhance options
 
@@ -103,7 +111,7 @@ aivideoenhancer remix render video.mp4 --clips "1-4,8-11,14-17" -o .\reel.mp4 --
 | `--denoise-method` | `nlmeans`, `hqdn3d` (default `hqdn3d`) |
 | `--stabilize` | `off`, `light`, `medium`, `strong` |
 | `--rolling-shutter` | `off`, `light`, `medium`, `strong` |
-| `--deinterlace` | `off`, `yadif`, `yadifbob`, `bwdif` |
+| `--deinterlace` | `off`, `yadif`, `yadifbob`, `bwdif`. With `--preset` and no value, interlaced sources get `yadif` |
 | `--sharpen` | `off`, `light`, `medium`, `strong` |
 | `--interpolate` | `off`, `30`, `60`: target frame rate. Only raises it; a clip already at or above the target is left as is |
 | `--codec` | `h264`, `h265`, `av1`, `vp9` (default `h265`) |
@@ -120,7 +128,7 @@ aivideoenhancer remix render video.mp4 --clips "1-4,8-11,14-17" -o .\reel.mp4 --
 
 | Option | Values |
 |--------|--------|
-| `-o, --output` | Output folder (required). A `--preset` run writes into `<output>\<name>_frames\` |
+| `-o, --output` | Output folder (required). Frames go into `<output>\<name>_frames\` in every mode |
 | `--preset` | `storyboard`, `thumbnails`, `social`, `scenes` (one frame per scene change), `custom` |
 | `--count` | Number of evenly spaced frames; with `--preset scenes`, the top N scenes |
 | `--timestamps` | Comma-separated seconds |
