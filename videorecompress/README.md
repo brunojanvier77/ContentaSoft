@@ -4,7 +4,7 @@ Shrink phone, camera, drone and screen-recording videos by re-encoding them to H
 
 [Download the free trial](https://www.contenta-software.com/videorecompress/) | [MCP server reference](mcp-server.md)
 
-Documented version: **2026.2.20**.
+Documented version: **2026.2.22**.
 
 ## What it does
 
@@ -20,8 +20,8 @@ Documented version: **2026.2.20**.
 The CLI is installed with the desktop app. A default install is per-user, in `%LOCALAPPDATA%\Programs\VideoRecompressStudio\`, and the installer adds that folder to your user `PATH`. Open a new terminal after installing, then check:
 
 ```powershell
-videorecompress --version    # 2026.2.20 or later
-videorecompress status       # license, bundled tools, GPU encoders
+videorecompress --version    # 2026.2.22 or later (prints the build id after a +)
+videorecompress status       # license, clean files left, bundled tools, GPU encoders
 ```
 
 If `videorecompress` is not found, or `--version` prints an older number, call the exe by its full path or remove the older copy that comes first on `PATH`.
@@ -46,7 +46,7 @@ Options available on every command: `--json` (JSON on stdout; logs go to stderr)
 
 ## Examples
 
-Each of these was run against 2026.2.20 in PowerShell.
+Each of these was run against 2026.2.22.
 
 ```powershell
 # What is in the file?
@@ -127,6 +127,18 @@ videorecompress watch --folder .\incoming --preset phone_archive --output .\comp
 
 `batch` adds `--include` / `--exclude` (glob, e.g. `"*.mp4"`), `-r/--recursive` (default on) and `-w/--workers` (default 2).
 
+### Option checks
+
+Since 2026.2.22 a value the CLI does not know is refused with exit code 2 and a sentence that names the option and the valid values. Before that, `--codec h264x` quietly encoded H.265 and exited 0.
+
+- Unknown `--codec`, `--hw-accel`, `--container`, `--quality-mode`, `--audio-mode`, `--audio-codec`, `--denoise`, `--deinterlace`, `--trim-mode`, `--fps-mode` and `--watermark-position` values exit 2. `hevc` is accepted as `h265` and `sw` as `software`.
+- `--crf` must be 0-63. `--quality-mode cbr` or `twopass` needs `--bitrate`.
+- H.264 or H.265 into `--container webm` is refused; WebM takes VP9 or AV1.
+- `--fps` alone sets a constant frame rate. A `--fps-mode` that would ignore it is an error.
+- A trim with no length (`keep-first`, `skip-start`, `skip-end` without `--trim-duration`), an end before the start, or a trim that removes the whole video is refused before encoding starts.
+- `--preset-id gif_creator`, `youtube_thumbnails` and `video_contact_sheet` produce several files, so only `batch` accepts them (MCP: `batch_recompress`). `recompress` refuses them.
+- A broken profile JSON and an output folder that cannot be created exit 2; a profile path that cannot be written exits 1. Each gives a message, not a stack trace.
+
 Trim times are measured on the source video. `keep-first` keeps the first `--trim-duration` seconds, `skip-start` and `skip-end` drop that many seconds from the start or the end, and `custom` keeps `--trim-start` to `--trim-end`. The output check compares the result with the trimmed length.
 
 ## Presets
@@ -166,7 +178,9 @@ The last three are desktop-app tools (GIF, thumbnails, contact sheet) rather tha
 
 With `--json`, stdout carries only JSON; logs go to stderr, so piping is safe.
 
-`batch --json` writes one JSON object per line: progress objects while it runs, then a summary.
+`recompress --json` prints one object: `success`, `input`, `output`, `inputSize`, `outputSize`, `reductionPercent`, `keptOriginal`, `durationMs`, `integrityOk`.
+
+`batch --json` always prints, even when there is nothing to do: one JSON object per line, progress objects while it runs, then a summary. An empty folder or a folder of videos that already use the target codec still ends with a summary line, with a `message` such as `No video files found matching criteria.` or `All files skipped (same codec as target).`.
 
 ```
 {"type":"progress","file":"clip1.mp4","completed":0,"total":2,"percent":23,"status":"Encoding..."}
@@ -185,18 +199,21 @@ With `--json`, stdout carries only JSON; logs go to stderr, so piping is safe.
 | 0 | Success |
 | 1 | General error |
 | 2 | Invalid arguments |
-| 3 | License required: the trial has ended (`recompress`, `batch`, `serve`) |
-| 4 | Recompression failed |
-| 5 | File not found |
+| 3 | Reserved. Versions before 2026.2.22 used it for an ended trial; nothing returns it now |
+| 4 | Recompression failed (also `analyze` or `recompress` on a file with no audio or video stream, and a `batch` where a file failed) |
+| 5 | File or folder not found (also `watch` on a missing folder) |
 | 6 | ffmpeg/ffprobe missing |
+
+A `watch` that cannot start (missing folder, unknown preset, bad watermark option) exits non-zero, so a service wrapper can tell it from a clean stop.
 
 ## Trial and license
 
-- The trial lasts 30 days. The first **10 files** are free of restrictions; after that, output carries a watermark and is cut at 10 minutes.
-- After 30 days, `recompress`, `batch` and the MCP server stop with exit code 3 until you register.
+- **No end date, no account, no card.** The trial converts every video you give it. Each computer gets **10 files without restrictions for life** (plus 10 more after you confirm the newsletter in the app); every later file carries a watermark and is cut at 10 minutes. The count is per computer, never per batch.
+- The CLI, `watch` and the MCP server all spend the same allowance, and nothing stops working when it runs out: output is watermarked and capped.
+- `videorecompress status` shows how many clean files are left (`freeFilesRemaining` in `--json`). Registering removes the watermark and the cap.
 - License: **$79 one-time** for a lifetime license; the [buy page](https://www.contenta-software.com/videorecompress/buy.php) also lists higher tiers and a quarterly plan.
 - Register from the CLI with `videorecompress register <email> <key>`, or in the desktop app.
 
 ## MCP server
 
-`videorecompress serve` starts an MCP server with 5 tools: `analyze_video`, `recompress_video`, `list_presets`, `estimate_savings`, `batch_recompress`. See the [MCP reference](mcp-server.md).
+`videorecompress serve` starts an MCP server with 5 tools: `analyze_video`, `recompress_video`, `list_presets`, `estimate_savings`, `batch_recompress`, each with a title and read-only, destructive and network hints. See the [MCP reference](mcp-server.md).
