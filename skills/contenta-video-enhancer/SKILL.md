@@ -6,19 +6,19 @@ allowed-tools: Bash
 
 # AI Video Enhancer Studio
 
-Use the `aivideoenhancer` CLI (AI Video Enhancer Studio 2026.7.14+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\AIVideoEnhancerStudio\aivideoenhancer.exe`, on the user PATH. Check with `aivideoenhancer --version`.
+Use the `aivideoenhancer` CLI (AI Video Enhancer Studio 2026.7.16+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\AIVideoEnhancerStudio\aivideoenhancer.exe`, on the user PATH. Check with `aivideoenhancer --version` (it prints the build id after a `+`).
 
-Results are human-readable text on stdout; log lines go to stderr (drop them with `2>/dev/null` or `2>$null`). Only `remix suggest` has `--json`. Relative and full paths both work. There is no CLI `register` command (register in the desktop app).
+Results are human-readable text on stdout; log lines go to stderr (drop them with `2>/dev/null` or `2>$null`). Only `remix suggest` has `--json`. Relative and full paths both work. `aivideoenhancer register <email> <key>` registers a license key.
 
 ## First steps
 
 ```bash
-aivideoenhancer status          # GPU, VRAM, Vulkan, encoders, license
+aivideoenhancer status          # GPU, VRAM, Vulkan, encoders, AI upscale yes/NO/unknown, license
 aivideoenhancer analyze <file>  # resolution, fps, duration, codec
 aivideoenhancer presets
 ```
 
-VSR upscaling needs an NVIDIA RTX GPU (no CPU fallback). Interpolation needs a Vulkan GPU. Stabilize, rolling shutter, denoise, deinterlace and sharpen need no GPU.
+VSR upscaling needs an NVIDIA RTX GPU (no CPU fallback); `status` prints `AI upscale: NO` on a machine without one, and every upscale job would fail there. Interpolation needs a Vulkan GPU. Stabilize, rolling shutter, denoise, deinterlace and sharpen need no GPU.
 
 ## enhance
 
@@ -30,9 +30,10 @@ aivideoenhancer enhance <file-or-folder> -o <output-folder> [--preset ID] [optio
 - `--interpolate off|30|60` (target fps; never lowers the rate)
 - `--stabilize`, `--rolling-shutter`, `--denoise`, `--sharpen`: `off|light|medium|strong`; `--denoise-method nlmeans|hqdn3d`
 - `--deinterlace off|yadif|yadifbob|bwdif`. With `--preset`, interlaced sources (DV, DVD, TV capture) get `yadif` automatically; `--deinterlace off` keeps it off
-- `--codec h264|h265|av1|vp9` (default h265), `--crf 1-51`
+- `--codec h264|h265|av1|vp9` (default h265), `--crf 1-51` (anything else exits 2)
 - `--skip-existing` (skip videos whose output exists), `--temp-dir <dir>`, `--frame-batch 0` (auto)
 - `--compare [--compare-labels "BEFORE|AFTER"] [--compare-layout horizontal|vertical]`
+- `--clip <start>` (seconds or `m:ss`): one 10-second segment of ONE video, clean and full resolution, named `<name>-clip`. On the trial it does not use a free export (max 30 s of one video per day)
 
 Output: `<name>_enhanced.mp4` (and `<name>_enhanced_compare.mp4`) in the output folder.
 
@@ -64,13 +65,14 @@ aivideoenhancer remix render <file> --clips "1-4,8-11" -o <reel.mp4> [--aspect o
 
 `remix suggest` prints a ready-to-run `remix render` command. `remix render` writes one H.264 MP4.
 
-## Examples (verified on 2026.7.14)
+## Examples (verified on 2026.7.16)
 
 ```powershell
 aivideoenhancer enhance .\clip.mp4 -o .\enhanced --upscale x2 --denoise light --codec h265 --crf 18
 aivideoenhancer enhance .\clip.mp4 -o .\smooth --interpolate 60 --compare
 aivideoenhancer enhance .\tapes -o .\restored --preset old_video_restoration --skip-existing
 aivideoenhancer enhance .\tapes\tape1.dv -o .\cleanup --preset enhance_cleanup --deinterlace off
+aivideoenhancer enhance .\clip.mp4 -o .\clips --upscale x2 --denoise light --clip 0:42
 aivideoenhancer extract-frames video.mp4 -o .\frames --preset thumbnails
 aivideoenhancer extract-frames video.mp4 -o .\frames_up --timestamps 2,5,10 --upscale x2
 aivideoenhancer remix suggest video.mp4 --duration 10
@@ -79,11 +81,11 @@ aivideoenhancer remix render video.mp4 --clips "1-4,8-11,14-17" -o .\reel.mp4 --
 
 ## Exit codes
 
-0 success · 1 general error · 2 invalid arguments · 3 trial ended (`serve`) · 4 enhancement failed · 5 file not found · 6 tools missing.
+0 success · 1 general error (also `analyze` on a file that is not a video) · 2 invalid arguments (including a bad enumerated value, a `--crf` outside 1-51 and a bad `--clip`) · 3 daily `--clip` limit reached for this video · 4 enhancement failed · 5 file not found (also a folder with no videos) · 6 tools missing.
 
 ## Guidelines
 
-- Check `status` before offering upscaling; without an NVIDIA RTX GPU, offer denoise, stabilize, sharpen and interpolation instead.
+- Check `status` before offering upscaling (over MCP: `get_status`, field `upscale.available`); without an NVIDIA RTX GPU, offer denoise, stabilize, sharpen and interpolation instead.
 - x4 upscaling of long videos takes a long time; say so before starting, and try a short clip first.
 - Interlaced sources (old DVD/camcorder footage; the MCP `analyze_video` tool reports `isInterlaced`) are deinterlaced with `yadif` when you use a preset. Without a preset, add `--deinterlace yadif` or `bwdif` yourself.
-- Trial: 30 days; the first 5 files are full resolution without a watermark, then output is watermarked and capped at 1280x720. A remix render and an upscaled frame extraction each use one free file.
+- Trial: no end date. This computer's first 5 full exports (lifetime, plus 10 after the newsletter confirmation in the app) are full resolution without a watermark, then output is watermarked and capped at 1280x720. A remix render and an upscaled frame extraction each use one free file. `--clip` gives free clean 10-second clips. Nothing stops working; `aivideoenhancer register <email> <key>` removes the limits.

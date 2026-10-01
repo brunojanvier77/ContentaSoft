@@ -4,7 +4,7 @@ Upscale, stabilize, denoise and smooth old or low-quality videos on Windows, and
 
 [Download the free trial](https://www.contenta-software.com/aivideoenhancer/) | [MCP server reference](mcp-server.md)
 
-Documented version: **2026.7.14**.
+Documented version: **2026.7.16**.
 
 ## What it does
 
@@ -12,6 +12,7 @@ Documented version: **2026.7.14**.
 - **Frame interpolation** with RIFE up to a target of 30 or 60 fps.
 - **Stabilization**, **rolling-shutter (jello) correction**, **denoise**, **deinterlace**, **sharpen**.
 - **Before/after comparison video** next to each output (`--compare`).
+- **Free 10-second clips** on the trial: `--clip <start>` writes a clean, full-resolution 10-second segment of one video without using a free export.
 - **Still frames**: evenly spaced, at given times, one per scene, optionally upscaled with VSR (`extract-frames`).
 - **Highlight reels**: suggest clips by scene changes and loudness, then render them into one MP4 with optional music (`remix`).
 - **8 presets** for common jobs (old tapes, surveillance, social media, drone footage, animation, archiving).
@@ -32,13 +33,15 @@ Documented version: **2026.7.14**.
 The CLI is installed with the desktop app. A default install is per-user, in `%LOCALAPPDATA%\Programs\AIVideoEnhancerStudio\`, and the installer adds that folder to your user `PATH`. Open a new terminal after installing, then check:
 
 ```powershell
-aivideoenhancer --version    # 2026.7.14 or later
-aivideoenhancer status
+aivideoenhancer --version    # 2026.7.16 or later (prints the build id after a +)
+aivideoenhancer status       # GPU, whether AI upscale can run here, license
 ```
 
 If `aivideoenhancer` is not found, or `--version` prints an older number, call the exe by its full path or remove the older copy that comes first on `PATH`.
 
 Results go to stdout and log lines (GPU detection, stage timings) go to stderr, so `2>$null` in PowerShell leaves only the results. There is no `--json` flag except on `remix suggest`; for structured results use the MCP server. Relative and full paths both work.
+
+`aivideoenhancer status` says whether AI upscale can run on this machine (`AI upscale: yes`, `NO` or `unknown`). Without an NVIDIA RTX GPU it says `NO`, because every upscale job would fail there; denoise, sharpen, stabilize and deinterlace still work.
 
 ## Commands
 
@@ -52,13 +55,14 @@ Results go to stdout and log lines (GPU detection, stage timings) go to stderr, 
 | `presets` | List the enhancement presets |
 | `status` | GPU, encoders, license state |
 | `diagnose` | Write a diagnostic zip for support |
+| `register <email> <key>` | Register a license key |
 | `serve` | Start the MCP server (stdio) |
 
-There is no `register` command in the CLI; register in the desktop app.
+You can also register in the desktop app.
 
 ## Examples
 
-Each of these was run against 2026.7.14 in PowerShell.
+Each of these was run against 2026.7.16 on a short test clip (the folder and `.dv` examples used `.mp4` files of the same names).
 
 ```powershell
 # 2x upscale with light denoise, H.265 at CRF 18
@@ -75,6 +79,9 @@ aivideoenhancer enhance .\tapes -o .\restored --preset old_video_restoration --s
 
 # A preset without the automatic deinterlace
 aivideoenhancer enhance .\tapes\tape1.dv -o .\cleanup --preset enhance_cleanup --deinterlace off
+
+# A free, clean 10-second clip starting at 0:42 (trial: does not use one of the 5 free exports)
+aivideoenhancer enhance .\clip.mp4 -o .\clips --upscale x2 --denoise light --clip 0:42
 
 # 5 thumbnail candidates as PNG
 aivideoenhancer extract-frames video.mp4 -o .\frames --preset thumbnails
@@ -115,7 +122,7 @@ With `--preset`, an interlaced source (DV, DVD, TV capture) gets `--deinterlace 
 | `--sharpen` | `off`, `light`, `medium`, `strong` |
 | `--interpolate` | `off`, `30`, `60`: target frame rate. Only raises it; a clip already at or above the target is left as is |
 | `--codec` | `h264`, `h265`, `av1`, `vp9` (default `h265`) |
-| `--crf` | 1-51, lower = better |
+| `--crf` | 1-51, lower = better. A value outside the range exits 2 |
 | `--frame-batch` | Frames per upscaling pass; 0 = automatic from free VRAM (default) |
 | `--upscale-tile` | Accepted for older scripts; ignored |
 | `--temp-dir` | Scratch folder for extracted frames (default: the app's setting, or the system temp folder) |
@@ -123,6 +130,7 @@ With `--preset`, an interlaced source (DV, DVD, TV capture) gets `--deinterlace 
 | `--compare` | Also write a before/after video |
 | `--compare-labels` | `"FIRST\|SECOND"` (default `"BEFORE\|AFTER"`) |
 | `--compare-layout` | `horizontal` (default, side by side) or `vertical` (stacked) |
+| `--clip` | Export only a 10-second clip starting at this time (seconds, or `m:ss` / `h:mm:ss`) of one input file; the output is named `<name>-clip`. See [Trial and license](#trial-and-license) |
 
 ## extract-frames options
 
@@ -166,18 +174,21 @@ All presets use the same NVIDIA upscaler; there is no separate anime model.
 | 0 | Success |
 | 1 | General error |
 | 2 | Invalid arguments |
-| 3 | License required: the trial has ended (`serve`) |
+| 3 | Trial limit on `--clip`: the clips of this video already cover the 30 seconds a day the trial allows. Nothing else returns it |
 | 4 | Enhancement failed |
-| 5 | File not found |
+| 5 | File not found (also a folder with no videos in it) |
 | 6 | Tools missing |
+
+Option values are checked before any work starts: an unknown value for `--upscale`, `--denoise`, `--codec` and the other enumerated options, a `--crf` outside 1-51, a bad `--count`, a bad `--clip` time and `--clip` on a folder all exit 2 and name the valid values, and an empty input folder exits 5. `analyze` on a file that is not a video prints a message and exits 1.
 
 ## Trial and license
 
-- The trial lasts 30 days. The first **5 files** come out at full resolution without a watermark. After that, or after 30 days, enhanced videos carry a watermark and are capped at 1280x720 until you register.
+- **No end date, no account, no card.** Each computer gets **5 full exports for life** at full resolution without a watermark (plus 10 more after you confirm the newsletter in the app). After that, enhanced videos carry a watermark and are capped at 1280x720 until you register. The count is per computer, never per batch.
+- **Clips stay free.** `enhance --clip <start>` writes a 10-second segment, clean and at full resolution, as often as you like; it never uses one of the 5 exports. To stop a long video being cut up piece by piece, clips of one video can cover at most 30 seconds of it per day; exporting a segment you already exported costs nothing, so you can try different settings on the same 10 seconds. A clip is for one input file, not a folder.
 - A remix render uses one free file (the reel itself is never watermarked). `extract-frames` with upscaling uses one free file per video; once they are used up, stills are still extracted, without the upscale.
-- After 30 days the MCP server refuses to start (exit code 3).
-- License: **$129 one-time** for a lifetime license; the [buy page](https://www.contenta-software.com/aivideoenhancer/buy.php) also lists a quarterly plan. Register in the desktop app.
+- The CLI and the MCP server never stop working when the free exports run out; output is watermarked and capped. `aivideoenhancer status` shows the full exports left.
+- License: **$129 one-time** for a lifetime license; the [buy page](https://www.contenta-software.com/aivideoenhancer/buy.php) also lists a quarterly plan. Register with `aivideoenhancer register <email> <key>` or in the desktop app.
 
 ## MCP server
 
-`aivideoenhancer serve` starts an MCP server with 4 tools: `analyze_video`, `enhance_video`, `list_presets`, `get_status`. See the [MCP reference](mcp-server.md).
+`aivideoenhancer serve` starts an MCP server with 4 tools: `analyze_video`, `enhance_video`, `list_presets`, `get_status`, each with a title and read-only, destructive and network hints. See the [MCP reference](mcp-server.md).
