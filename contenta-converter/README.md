@@ -4,12 +4,13 @@ Convert, resize, watermark and tag thousands of photos from the command line on 
 
 [Download the free trial](https://www.contenta-converter.com) | [MCP server reference](mcp-server.md)
 
-Documented version: **9.0.34**.
+Documented version: **9.0.36**.
 
 ## What it does
 
 - **Reads 102 file extensions, writes 28.** Input includes JPG, PNG, WebP, HEIC/HEIF, AVIF, JPEG XL, TIFF, PSD/PSB, PDF, SVG, EPS, DjVu, JPEG 2000 and 30 camera RAW extensions (CR2, CR3, NEF, ARW, RAF, DNG, ORF, RW2 and more). Run `contenta formats` for the full list.
 - **Batch conversion** of whole folders with parallel workers, resize by size or percentage, output filename patterns, batch rename and ZIP packaging.
+- **Multi-page PDF and TIFF**: every page converts, as one numbered file per page or as one multi-page PDF or TIFF (see [Multi-page PDF and TIFF](#multi-page-pdf-and-tiff)).
 - **51 effects in 7 categories** (color, enhance, blur/sharpen, artistic, distortion, correction, transforms). Run `contenta effects`.
 - **Text watermark** with position and opacity.
 - **Metadata**: copyright, creator, keywords, creator email and URL, GPS, date and more, written during conversion. WebP, HEIC and AVIF outputs keep it too (as XMP).
@@ -24,8 +25,8 @@ Documented version: **9.0.34**.
 The CLI is installed with the desktop app. A default install is per-user, in `%LOCALAPPDATA%\Programs\ContentaConverter\`, and the installer adds that folder to your user `PATH`. Open a new terminal after installing, then check:
 
 ```powershell
-contenta --version    # 9.0.34 or later
-contenta status       # version, license state and bundled tools
+contenta --version    # 9.0.36 or later (prints the build id after a +)
+contenta status       # version, license state, clean outputs left and bundled tools
 ```
 
 If `contenta` is not found, or `--version` prints an older number, call the exe by its full path (`& "$env:LOCALAPPDATA\Programs\ContentaConverter\contenta.exe"`) or remove the older copy that comes first on `PATH`.
@@ -55,7 +56,7 @@ Inputs are positional arguments; there is no `--input` flag. Relative paths work
 
 ## Examples
 
-Each of these was run against 9.0.34 in PowerShell.
+The examples match the 9.0.36 CLI. All of them except the camera RAW and `ai-transform` ones were run against 9.0.36 on 2026-10-01, with the file names adapted.
 
 ```powershell
 # One file to WebP
@@ -123,7 +124,30 @@ An unknown effect name or parameter stops the command with exit code 2 and lists
 
 `--zip-output` writes `contenta-converter-images.zip` in the output folder and leaves the converted files in place. With `--zip-split-size N` the files are spread over several archives (`contenta-converter-images_part2.zip`, `_part3`...) of at most N MB each (default 25); each archive opens on its own.
 
-`info` does not read AVIF files yet in 9.0.34 (it reports `QuickTime` with no size or metadata); the metadata written to AVIF outputs is in the file.
+
+### Multi-page PDF and TIFF
+
+Every page of a multi-page PDF or TIFF is converted, in `convert`, `batch` and `watch` and in the MCP tools `convert_image` and `batch_convert`.
+
+```powershell
+# Every page of a scanned TIFF as a numbered JPEG: scan_page001.jpg, scan_page002.jpg, ...
+contenta convert scan.tif -f jpg -o .\pages
+
+# The same TIFF as one PDF holding every page
+contenta convert scan.tif -f pdf -o .\pdf
+
+# Only the third page (0-based), as PNG
+contenta convert contract.pdf -f png --pdf-page 2 -o .\pages
+```
+
+- **One file per page** for formats such as JPG, PNG, WebP or AVIF, numbered in reading order and padded to the same width (`_page001`; four digits past 999 pages). A document with one page keeps its plain name.
+- **PDF or TIFF out stays one file.** A multi-page PDF or TIFF converted to PDF or TIFF is written as one multi-page file under the plain name. If one page fails, no document is written.
+- **`--pdf-page N`** converts only that page. It is 0-based (0 is the first page) and works for PDF and TIFF input. A page the document does not have is an error that names the page count.
+- **Existing files are not overwritten** unless you pass `--overwrite`; a taken name gets ` (1)` appended, like any other output.
+- **Limit: 2000 pages per conversion.** A longer document is refused with a message (exit code 4) and nothing is written; convert it a page at a time with `--pdf-page`, or split it first.
+- A camera TIFF's thumbnail directory and a pyramid TIFF's reduced-resolution levels are not pages.
+- With `--json`, the result lists every file in `outputs` and the input's page count in `pages`. In the `batch` summary, `inputs` is the number of files you gave and `total` the number of outputs, so `total` can be larger.
+- The trial counts one output page as one output.
 
 ### Passing many files in PowerShell
 
@@ -145,14 +169,17 @@ Templates: `tiktok`, `shorts`, `facebook-reels`, `snapchat` (9:16), `youtube`, `
 
 ### AI transform (needs a Gemini API key)
 
-`ai-transform` sends the image to Google Gemini with your own API key (`--api-key` or the `GEMINI_API_KEY` environment variable). Without a key it stops with exit code 2. This example is illustrative; it was not run for this page:
+`ai-transform` sends the image to Google Gemini with your own API key (`--api-key` or the `GEMINI_API_KEY` environment variable). Google bills that key per image, and its image models have no free tier. Without a key the command stops with exit code 2. The examples are illustrative; they were not run for this page:
 
 ```powershell
 $env:GEMINI_API_KEY = "<your key>"
-contenta ai-transform photo.jpg --prompt "Replace the background with plain white" --output photo_white.png
+contenta ai-transform photo.jpg --prompt "Add warm evening light" --output photo_warm.png
+
+# Background removal needs no prompt: white (default), transparent or a #RRGGBB colour
+contenta ai-transform product.jpg --remove-background --bg-mode transparent --output product-nobg.png
 ```
 
-`--prompt` is required on every call, including with `--remove-background`.
+`--prompt` is required unless you pass `--remove-background`. `--model` takes the tiers `fast` (default), `pro` or `lite`, or an explicit Gemini model ID; `--size` takes `1K` (default), `2K` or `4K` (`lite` makes 1K only). During the trial, the result follows the same watermark rule as every other output (see [Trial and license](#trial-and-license)): once the clean outputs are used up the image carries the trial watermark, and `--json` reports `trialWatermarked: true`.
 
 ## Useful options
 
@@ -160,8 +187,8 @@ contenta ai-transform photo.jpg --prompt "Replace the background with plain whit
 |--------|-------|
 | `-f, --format` | `jpg`, `png`, `webp`, `tiff`, `bmp`, `gif`, `jxl`, `heic`, `avif`, `svg`, `pdf`, `ico` (plus the other extensions `contenta formats --output` lists) |
 | `-q, --quality` | 1-100, default 90 |
-| `--resize WxH` + `--resize-mode` | `fit`, `fill`, `stretch`, `longest-edge`, `shortest-edge` |
-| `--resize-percent` | 1-100. In 9.0.34 it squashes portrait images; use `--resize WxH --resize-mode fit` for those |
+| `--resize WxH` + `--resize-mode` | `fit`, `fill`, `stretch`, `longest-edge`, `shortest-edge`, `fit-with-background`, `crop-to-aspect`. `fill`, `stretch`, `fit-with-background` and `crop-to-aspect` need both sides; `1920x` or `x1080` works with `fit`, `longest-edge` and `shortest-edge` |
+| `--resize-percent` | 1-100 |
 | `--dont-enlarge` | Leave smaller images at their size |
 | `--effects` | Effect names separated by spaces or commas; parameters as `name:key=value,key=value`. Unknown names or parameters exit 2 |
 | `--watermark`, `--watermark-position`, `--watermark-opacity` | White text watermark; position 0-8 (8 = bottom-right, the default); opacity 0-100 (default 70) |
@@ -171,7 +198,7 @@ contenta ai-transform photo.jpg --prompt "Replace the background with plain whit
 | `--overwrite` | Replace existing outputs (default: write a renamed copy) |
 | `--png-compression` | zlib level 0-9, default 2 |
 | `--white-balance`, `--color-temperature`, `--denoising`, `--sharpness-boost`, `--color-boost`, `--contrast-boost` | RAW decoding |
-| `--pdf-page` | Page index (0-based) for multi-page PDF/TIFF input |
+| `--pdf-page` | Convert only this page (0-based) of a multi-page PDF or TIFF; without it every page converts |
 | `--profile` | Load settings saved with `profile save` |
 | batch: `--include`, `--exclude`, `--recursive`, `-w/--workers` | Filters; subfolders are not included unless you add `--recursive`; workers default to automatic |
 | batch: `--rename-pattern` | Rename the outputs with Batch Rename tokens after the batch |
@@ -200,19 +227,24 @@ Use `--resize WxH --resize-mode fit`. These are common listing sizes, not limits
 | 0 | Success |
 | 1 | General error (also missing required options) |
 | 2 | Invalid arguments |
-| 3 | License required: the trial has ended |
-| 4 | Conversion failed |
-| 5 | File not found |
+| 3 | Reserved. Versions before 9.0.36 used it for an ended trial; nothing returns it now |
+| 4 | Conversion failed (also a page number the document does not have, and a document over 2000 pages) |
+| 5 | File or folder not found (also a wildcard such as `*.jpg`, which `contenta` does not expand) |
 | 6 | Bundled tools missing: run `contenta status` |
+| 130 | Cancelled (Ctrl+C) |
+
+Since 9.0.36 a bad option value is a usage error with exit code 2 and one sentence that names the option and what it accepts, instead of a silent default. That covers `--format`, `-q`, `--resize` (not `WxH`), `--resize-mode`, `--color-space`, `--gps`, `--datetime`, `--aspect-ratio`, `--pdf-page`, effect names and effect parameters outside their range, slideshow templates and `--photos-per-page`. A missing `--profile` file exits with 5, a malformed one or a bad `--sizes` list with 2, each with a message instead of a stack trace; add `-v` to see the stack trace. With `--json`, an error prints `{"success":false,"error":"...","exitCode":N}`.
 
 ## Trial and license
 
-- The trial lasts 30 days. The first **10 images** (counted over the life of the install, not per batch) come out clean; after that, output carries a watermark.
-- During the trial, PDF albums, merged PDFs and slideshows are always marked (watermark or end card).
-- After 30 days, conversion commands and the MCP server stop with exit code 3 until you register.
+- **No end date, no account, no card.** The trial converts every file you give it, in full. Each computer gets **10 clean (watermark-free) outputs for life**, plus 10 more after you confirm the newsletter in the desktop app. The count is per computer, never per batch.
+- **Which outputs are clean.** The desktop app marks every result of a batch and lets you pick which ones to keep clean. The CLI, the MCP server and watch folders have no picker: the first outputs they write take the clean outputs that are left, and every later output carries the watermark. All of them spend one shared allowance. A failed or skipped file never uses one, and one output page of a multi-page PDF or TIFF counts as one output.
+- `contenta status` shows how many clean outputs are left (`cleanOutputsLeft` in `--json`).
+- During the trial, PDF albums, merged PDFs and slideshows are always marked (watermark or end card), whatever is left. `ai-transform` results follow the clean-output rule above.
+- Registering removes the watermark from every output. Nothing in the CLI or the MCP server stops working when the trial runs out; output is watermarked.
 - License: **$129 one-time** for a lifetime license; the [buy page](https://www.contenta-converter.com/buy.php) also lists a quarterly plan.
-- Register from the CLI with `contenta register <email> <key>`, or in the desktop app.
+- Register from the CLI with `contenta register <email> <key>` (the key is 25 characters, dashes optional), or in the desktop app.
 
 ## MCP server
 
-`contenta serve` starts an MCP server with 10 tools. See the [MCP reference](mcp-server.md).
+`contenta serve` starts an MCP server with 10 tools, each with a title and read-only, destructive and network hints. See the [MCP reference](mcp-server.md).

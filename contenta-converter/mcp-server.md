@@ -34,18 +34,51 @@ For `ai_transform`, give the server your Google Gemini API key:
 }
 ```
 
+In Claude Code on Windows one command adds it, and nothing else needs installing because the client calls the installed `contenta.exe` directly:
+
+```powershell
+claude mcp add contenta-converter -- contenta serve
+```
+
 Paths can be absolute or relative. A relative path is resolved against the server's working folder, which is the folder your AI client started it in; use absolute paths when you do not know that folder.
 
 ## Protocol
 
 | Property | Value |
 |----------|-------|
-| Transport | stdio |
-| Protocol | JSON-RPC 2.0, MCP `2024-11-05` |
+| Transport | stdio, newline-delimited JSON-RPC 2.0 |
+| Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
+| Capabilities | `tools` only (no resources or prompts) |
 | Server name | `contenta-converter` |
-| Server version | `9.0.34` |
+| Server version | `9.0.36` |
 
-**License**: the server runs during the 30-day trial and for registered copies; after the trial it refuses to start (exit code 3). During the trial the first 10 images are clean and later output carries a watermark. PDF albums, merged PDFs and slideshows are always marked during the trial. Register with `contenta register <email> <key>`.
+All four ContentaSoft servers run on the same host, which behaves like this:
+
+- **stdout carries JSON-RPC only.** Logs and anything else go to stderr, so a client can parse every line it reads.
+- **`ping` is answered while a tool runs**, so a long batch does not look like a hung server.
+- **`notifications/cancelled` cancels a running call.** The call stops and, as the specification says, gets no reply.
+- **Tool calls run one at a time**, in the order they arrive. `ping`, `tools/list` and cancellations are handled in between.
+- **Errors**: an unknown tool or method is a JSON-RPC error (`-32602`, `-32601`); a tool that cannot do its job returns a normal result with `isError: true` and a sentence that names the argument and what it accepts. A call missing a required argument says which one.
+- **Every tool has a `title` and `annotations`** (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`); see the next section.
+
+**Trial**: the server never refuses to start, and the trial has no end date. The first outputs it writes are clean until this computer's lifetime allowance of clean outputs is used up; after that, output carries the trial watermark. See [Trial and license](README.md#trial-and-license). PDF albums, merged PDFs and slideshows are always marked during the trial. Register with `contenta register <email> <key>`.
+
+## Tool annotations
+
+| Tool | Title | Read-only | Destructive | Network |
+|------|-------|:---------:|:-----------:|:-------:|
+| `convert_image` | Convert image | no | no | no |
+| `batch_convert` | Batch convert images | no | no | no |
+| `detect_format` | Detect image format | yes | no | no |
+| `read_metadata` | Read image metadata | yes | no | no |
+| `list_effects` | List effects | yes | no | no |
+| `create_pdf_album` | Create PDF album | no | yes | no |
+| `merge_pdfs` | Merge PDFs | no | yes | no |
+| `write_metadata` | Write image metadata | no | yes | no |
+| `create_slideshow` | Create video slideshow | no | yes | no |
+| `ai_transform` | AI transform image (Gemini) | no | yes | yes |
+
+"Destructive" is the protocol's flag for a tool that can overwrite or modify existing data. "Network" is `openWorldHint`: only `ai_transform` leaves the machine, to Google Gemini. The three read-only tools are also marked idempotent.
 
 ## Tools
 
@@ -59,15 +92,16 @@ Convert one image, with optional resize and metadata.
 | `output_dir` | string | No | Output folder (default: next to the input) |
 | `format` | string | No | `jpg`, `png`, `webp`, `tiff`, `bmp`, `gif`, `jxl`, `heic`, `avif`, `svg`, `pdf` |
 | `quality` | integer | No | 1-100 (default 90) |
-| `resize_width` | integer | No | Target width in pixels |
-| `resize_height` | integer | No | Target height in pixels |
-| `resize_mode` | string | No | `fit`, `fill`, `stretch`, `longest-edge`, `shortest-edge` |
+| `resize_width` | integer | No | Target width in pixels (alone: the height follows the aspect ratio) |
+| `resize_height` | integer | No | Target height in pixels (alone: the width follows the aspect ratio) |
+| `resize_mode` | string | No | `fit` (default), `fill`, `stretch`, `longest-edge`, `shortest-edge`, `fit-with-background`, `crop-to-aspect`. `fill`, `stretch`, `fit-with-background` and `crop-to-aspect` need both `resize_width` and `resize_height` |
 | `effects` | string[] | No | Effects applied in order, each `name` or `name:key=value,...`, e.g. `["sepia", "sharpen:window=5"]` |
 | `copyright` | string | No | Copyright metadata |
 | `creator` | string | No | Creator metadata |
 | `preserve_metadata` | boolean | No | Keep the original metadata (default true) |
+| `pdf_page` | integer | No | Multi-page PDF or TIFF: convert only this page (0-based). Leave it out to convert every page |
 
-**Returns**: success, input, outputPath, outputSize, durationMs.
+**Returns**: success, input, outputPath, outputSize, durationMs; warnings and errors when there are any. A multi-page PDF or TIFF converts every page: one file per page (`name_page001.jpg`, ...), or one multi-page file when `format` is `pdf` or `tiff`. The result then has `pages` (the input's page count), `outputCount` and `outputs` (every file written) instead of `outputPath`. A document over 2000 pages is refused; use `pdf_page`.
 
 ---
 
@@ -82,12 +116,13 @@ Convert a list of files or a whole folder.
 | `output_dir` | string | No | Output folder |
 | `format` | string | No | Output format |
 | `quality` | integer | No | 1-100 |
-| `resize_width` | integer | No | Target width |
-| `resize_height` | integer | No | Target height |
+| `resize_width` | integer | No | Target width (alone: the height follows the aspect ratio) |
+| `resize_height` | integer | No | Target height (alone: the width follows the aspect ratio) |
 | `effects` | string[] | No | Effects applied to every file, same syntax as `convert_image` |
+| `pdf_page` | integer | No | Multi-page PDF or TIFF inputs: convert only this page (0-based) |
 | `workers` | integer | No | Parallel workers (default: automatic, based on your CPU and the job) |
 
-**Returns**: total, success, skipped, failed, outputs, errors.
+**Returns**: inputs (files given), total (outputs written; a multi-page PDF or TIFF is one input and one output per page), success, skipped, failed, outputs, errors.
 
 **Effects**: names and parameters come from `list_effects`. A comma list in one string (`"sepia,sharpen"`) also works. An unknown effect name or parameter fails the call before anything is converted, and the error lists the valid names. Parameters you leave out take the desktop app's defaults, so `"blackwhite"` alone works. `flip` takes `direction=horizontal|vertical`; `crop` takes `x`, `y`, `width` and `height` in pixels.
 
@@ -110,8 +145,6 @@ Convert a list of files or a whole folder.
 | `path` | string | Yes | Path to the image |
 
 **Returns**: path, fileName, format (e.g. `JPEG`, `WebP`, `HEIC`), decoder, extension, size, width, height, dpiX, dpiY, copyright, creator, lastModified, and a metadata object with the dates and the EXIF (camera, exposure, GPS, orientation), IPTC and XMP fields, including keywords and the creator's email and URL. Fields the file does not have are left out.
-
-In 9.0.34, `read_metadata` does not read AVIF files yet: it reports format `QuickTime` with no size or fields. Metadata written to AVIF is in the file, and other readers such as ExifTool show it.
 
 ---
 
@@ -180,26 +213,30 @@ Append PDF files into one PDF, in list order. Pages are copied, not re-rendered.
 | `format` | string | No | `mp4` or `webm` (default mp4) |
 | `quality` | integer | No | CRF 0-51, lower = better (default 23) |
 | `audio_path` | string | No | Background audio file |
-| `add_branding` | boolean | No | End card (default true). Only a registered copy can turn it off |
+| `add_branding` | boolean | No | End card (default true). Only a registered copy can turn it off; during the trial `false` is ignored |
 
-**Returns**: success, outputPath, images, template, format.
+**Returns**: success, outputPath, images, template (as the app names it, for example `YouTubeHorizontal`), format.
 
 ---
 
 ### ai_transform
 
-Edit an image with a Google Gemini prompt. Needs a Gemini API key (`api_key`, or `GEMINI_API_KEY` in the server's environment); each call is billed to that key by Google.
+Edit an image with a Google Gemini prompt, or remove its background. The image is sent to Google. Needs a Gemini API key (`api_key`, or `GEMINI_API_KEY` in the server's environment); Google bills each call to that key, and its image models have no free tier.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `input_path` | string | Yes | Path to the source image |
-| `prompt` | string | Yes | What to do, e.g. "Remove the background" |
+| `prompt` | string | Unless `remove_background` | What to do, e.g. "Add warm evening light" |
 | `api_key` | string | No | Gemini API key |
 | `output_path` | string | No | Output path (default `{name}_ai.{ext}` next to the input) |
-| `model` | string | No | Gemini model ID (default `gemini-3-pro-image-preview`) |
+| `model` | string | No | Tier `fast` (default), `pro` or `lite`, or an explicit Gemini model ID |
+| `size` | string | No | `1K` (default), `2K` or `4K`; `lite` makes 1K only |
 | `transparent_background` | boolean | No | Ask for a transparent background (PNG output) |
+| `remove_background` | boolean | No | Remove the background; no prompt needed |
+| `bg_mode` | string | No | With `remove_background`: `white` (default), `transparent` or `custom` |
+| `bg_color` | string | No | With `bg_mode` `custom`: the colour as `#RRGGBB` |
 
-If the model answers without an image, the tool returns an error saying so.
+**Returns**: success, input, outputPath, outputSize, model, prompt. During the trial, once the clean outputs are used up, the result also has `trialWatermarked: true` and a `trialNotice` with the buy link, and the image carries the trial watermark. If the model answers without an image, or Google's safety filter declines it, the tool returns an error saying so.
 
 ## Example requests
 
