@@ -11,7 +11,7 @@ Connect the ContentaSoft MCP servers to your AI client. Each product's CLI has a
 
 ## Before you start
 
-1. Install the products you want. The MCP servers work during the 30-day trial; no registration is needed to try them.
+1. Install the products you want. The MCP servers work during the free trial, which has no registration step; each product's README describes what the trial includes.
 2. Open a new terminal and check that the CLI answers, e.g. `contenta --version`.
 3. Add only the servers for products you have installed.
 
@@ -43,9 +43,22 @@ Edit `%APPDATA%\Claude\claude_desktop_config.json` (Settings > Developer > Edit 
 
 The same file is in this folder: [claude-desktop-config.json](claude-desktop-config.json).
 
+## What every server does
+
+The four servers run on one shared host, so they behave the same way in any client:
+
+- **Protocol versions:** 2025-11-25, 2025-06-18, 2025-03-26 and 2024-11-05. The server answers with the version your client asks for.
+- **stdout is JSON-RPC only;** logs go to stderr.
+- **`ping` is answered while a tool runs,** and **`notifications/cancelled` stops a running call** (the call then gets no reply, as the specification says).
+- **Tool calls run one at a time,** in the order they arrive.
+- **Every tool has a title and annotations,** so a client can ask before it runs a tool that writes files or calls the network. Only Contenta Converter's `ai_transform` uses the network (Google Gemini).
+- **Tools only:** no resources and no prompts.
+
+Per-tool titles and hints are in each server's reference page ([Contenta Converter](../contenta-converter/mcp-server.md#tool-annotations), [VideoRecompress Studio](../videorecompress/mcp-server.md#tool-annotations), [AI Video Enhancer Studio](../ai-video-enhancer/mcp-server.md#tool-annotations), [3D CAD Converter](../cad-converter/mcp-server.md#tool-annotations)).
+
 ## Claude Code
 
-Add a server from the command line:
+On Windows, add a server from the command line. Nothing else needs installing: Claude Code calls the installed exe directly, so no `npx` or wrapper is involved:
 
 ```powershell
 claude mcp add contenta-converter -- contenta serve
@@ -105,7 +118,7 @@ Or pass it per call with the tool's `api_key` parameter. Google bills the calls 
 | Problem | Fix |
 |---------|-----|
 | Server not found / fails to start | Use the full exe path in `command`; restart the client after editing the config |
-| Server exits with "Trial has expired" | The 30-day trial has ended. Register with `contenta register <email> <key>`, `videorecompress register <email> <key>`, `cadconvert register -k <key> -e <email>`, or in the desktop app (AI Video Enhancer Studio registers in the app only) |
+| Output has a watermark, or a CAD file is draft quality | The free allowance is used up. Nothing stops working; register to remove the limits: `contenta register <email> <key>`, `videorecompress register <email> <key>`, `aivideoenhancer register <email> <key>`, `cadconvert register -k <key> -e <email>`, or in the desktop app |
 | Tools do not appear | Restart the client; check the JSON is valid |
 | `ai_transform` fails with "Gemini API key required" | Set `GEMINI_API_KEY` in `env` or pass `api_key` |
-| A tool cannot find a file | Pass absolute paths. A relative path is resolved against the folder the client started the server in, which is often not your project folder |
+| A tool cannot find a file | Pass absolute paths. A relative path is resolved against the folder the client started the server in, which is often not your project folder. `convert_cad` refuses relative paths outright |
