@@ -50,15 +50,15 @@ contenta status                                 # license, clean outputs left, b
 
 A multi-page PDF or TIFF converts every page. To JPG, PNG, WebP and the like you get one file per page (`scan_page001.jpg`, `scan_page002.jpg`, ...); to PDF or TIFF you get one multi-page file. `--pdf-page N` picks one page (0-based). One conversion writes at most 2000 pages (exit 4 and nothing written beyond that; use `--pdf-page`). With `--json` the result lists `outputs` and `pages`; in a `batch` summary `inputs` counts the files given and `total` the outputs written.
 
-```powershell
-contenta convert scan.tif -f jpg -o .\pages          # scan_page001.jpg, scan_page002.jpg, ...
-contenta convert scan.tif -f pdf -o .\pdf            # one PDF with every page
+```bash
+contenta convert scan.tif -f jpg -o ./pages          # scan_page001.jpg, scan_page002.jpg, ...
+contenta convert scan.tif -f pdf -o ./pdf            # one PDF with every page
 contenta convert contract.pdf -f png --pdf-page 2     # the third page only
 ```
 
 ## Windows specifics
 
-- Windows does not expand `*.jpg`, and `contenta` does not either. In PowerShell pass `(Get-ChildItem .\photos\*.jpg).FullName`; in Git Bash `./photos/*.jpg` works because bash expands it.
+- The examples are for Git Bash, which is what Claude Code's Bash tool runs on Windows: `./photos/*.jpg` expands there. `contenta` does not expand `*.jpg` itself, so in PowerShell pass `(Get-ChildItem .\photos\*.jpg).FullName` and write paths as `.\out`.
 
 ## Platform sizes (use with `--resize-mode fit`)
 
@@ -66,18 +66,18 @@ Amazon 2000x2000 · Etsy 2700x2025 · Shopify 2048x2048 · eBay 1600x1600 · Ins
 
 ## Examples (verified on 9.0.36)
 
-```powershell
-contenta batch .\products --output .\amazon-ready --format jpg --resize 2000x2000 --resize-mode fit
-contenta convert photo.cr2 --format jpg --quality 92 --output .\out
-contenta convert photo.jpg --output .\proofs --resize 1200x800 --watermark "(c) Studio" --watermark-position 8 --watermark-opacity 60
-contenta convert logo.png --sizes 16,32,48,64 --format ico --output .\icons
-contenta pdf-album (Get-ChildItem .\photos\*.jpg).FullName --output album.pdf --photos-per-page 6
+```bash
+contenta batch ./products --output ./amazon-ready --format jpg --resize 2000x2000 --resize-mode fit
+contenta convert photo.cr2 --format jpg --quality 92 --output ./out
+contenta convert photo.jpg --output ./proofs --resize 1200x800 --watermark "(c) Studio" --watermark-position 8 --watermark-opacity 60
+contenta convert logo.png --sizes 16,32,48,64 --format ico --output ./icons
+contenta pdf-album ./photos/*.jpg --output album.pdf --photos-per-page 6
 contenta pdf-merge a.pdf b.pdf --output merged.pdf
-contenta slideshow (Get-ChildItem .\photos\*.jpg).FullName --output reel.mp4 --template tiktok --audio music.mp3
+contenta slideshow ./photos/*.jpg --output reel.mp4 --template tiktok --audio music.mp3
 contenta profile save etsy.json --format jpg --quality 88 --resize 2700x2025 --resize-mode fit
-contenta batch .\products --profile etsy.json --output .\etsy-ready
-contenta convert photo.jpg --effects blackwhite "crop:x=100,y=100,width=800,height=600" --output .\fx
-contenta batch .\products --output .\upload --format jpg --resize 2000x2000 --resize-mode fit --rename-pattern "shop_{seq:3}" --zip-output
+contenta batch ./products --profile etsy.json --output ./etsy-ready
+contenta convert photo.jpg --effects blackwhite "crop:x=100,y=100,width=800,height=600" --output ./fx
+contenta batch ./products --output ./upload --format jpg --resize 2000x2000 --resize-mode fit --rename-pattern "shop_{seq:3}" --zip-output
 contenta info photo.jpg --json
 ```
 
@@ -90,4 +90,4 @@ contenta info photo.jpg --json
 - Ask for or confirm the output folder; never overwrite originals unless the user asks (`--overwrite`).
 - For marketplace or social sizes, use the table above with `--resize-mode fit`.
 - `ai-transform` sends the image to Google and bills the user's own Gemini key; confirm before using it. `--prompt` is required unless `--remove-background` is given.
-- Trial: no end date. Every file converts; this computer's first 10 clean outputs (lifetime, plus 10 after the newsletter confirmation in the app) come out without a watermark, then output carries one, including `ai-transform` results. PDF albums, merged PDFs and slideshows are always marked during the trial. `contenta status` shows how many clean outputs are left. Nothing stops working; `contenta register <email> <key>` removes the watermark.
+- Trial: no end date. Every file converts; this computer's first 10 clean outputs (lifetime, plus 10 after the newsletter confirmation in the app) come out without a watermark, then output carries one, including `ai-transform` results. PDF albums, merged PDFs and slideshows are always marked during the trial. `contenta status --json` shows how many are left (`cleanOutputsLeft`). **A batch spends one clean output per file** (`--sizes` one per size), so before a batch on the trial, read `cleanOutputsLeft` and tell the user how many of the files will come out clean; the CLI and MCP results of 9.0.36 do not say which outputs were marked. Nothing stops working; `contenta register <email> <key>` removes the watermark.

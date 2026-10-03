@@ -58,15 +58,15 @@ Trim examples: `--trim-mode keep-first --trim-duration 10` keeps the first 10 s;
 
 ## Examples (verified on 2026.2.22)
 
-```powershell
+```bash
 videorecompress analyze video.mp4 --json
-videorecompress recompress video.mp4 --output .\compressed
-videorecompress recompress video.mp4 --codec h265 --crf 18 --encoder-preset slow --output .\archive
-videorecompress recompress video.mp4 --trim-mode keep-first --trim-duration 10 --output .\first10
-videorecompress recompress small.3gp --preset-id whatsapp --output .\whatsapp
-videorecompress batch .\videos --preset-id phone_archive --workers 2 --output .\compressed
-videorecompress batch .\videos --codec av1 --crf 35 --output .\av1 --json
-videorecompress watch --folder .\incoming --preset phone_archive --output .\compressed
+videorecompress recompress video.mp4 --output ./compressed
+videorecompress recompress video.mp4 --codec h265 --crf 18 --encoder-preset slow --output ./archive
+videorecompress recompress video.mp4 --trim-mode keep-first --trim-duration 10 --output ./first10
+videorecompress recompress small.3gp --preset-id whatsapp --output ./whatsapp
+videorecompress batch ./videos --preset-id phone_archive --workers 2 --output ./compressed
+videorecompress batch ./videos --codec av1 --crf 35 --output ./av1 --json
+videorecompress watch --folder ./incoming --preset phone_archive --output ./compressed
 ```
 
 `batch --json` always prints, even for an empty folder: one JSON object per line, `{"type":"progress",...}` objects, then a summary `{"success":true,"cancelled":false,"totalFiles":N,"processed":N,"failed":0,"skipped":0,"durationMs":...,"errors":[]}` (with a `message` when nothing was encoded, for example `All files skipped (same codec as target).`).
@@ -80,4 +80,5 @@ videorecompress watch --folder .\incoming --preset phone_archive --output .\comp
 - Run `analyze` first; report size before and after.
 - If re-encoding would make a file bigger, the original video is kept and the CLI says "This video was already well compressed". Presets with a fixed size (e.g. `whatsapp`, `4k_to_1080p`) never enlarge a smaller video.
 - Hardware encoding is automatic; `--hw-accel software` forces the CPU.
-- Trial: no end date. This computer's first 10 files (lifetime, plus 10 after the newsletter confirmation in the app) are unrestricted; every later file is watermarked and cut at 10 minutes. Nothing stops working; `videorecompress register <email> <key>` removes the watermark and the cap.
+- Trial: no end date. This computer's first 10 files (lifetime, plus 10 after the newsletter confirmation in the app) are unrestricted; every later file is watermarked and cut at 10 minutes. `videorecompress status --json` shows how many are left (`freeFilesRemaining`). **A batch spends one free file per video**, so before a batch on the trial, read `freeFilesRemaining` and tell the user how many of the videos will come out clean; the CLI and MCP results of 2026.2.22 do not say which outputs were marked. Nothing stops working; `videorecompress register <email> <key>` removes the watermark and the cap.
+- If a re-encode would be larger than the source, 2026.2.22 silently copies the source video stream instead (the output keeps the source codec and `keptOriginal` stays false); check `outputSize` against `inputSize` and the codec with `analyze` before telling the user the file was converted.
