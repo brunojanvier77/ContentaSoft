@@ -6,7 +6,7 @@ allowed-tools: Bash
 
 # VideoRecompress Studio (video compression)
 
-Use the `videorecompress` CLI (VideoRecompress Studio 2026.2.23+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\VideoRecompressStudio\videorecompress.exe`, on the user PATH. Check with `videorecompress --version` (it prints the build id after a `+`).
+Use the `videorecompress` CLI (VideoRecompress Studio 2026.2.24+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\VideoRecompressStudio\videorecompress.exe`, on the user PATH. Check with `videorecompress --version` (it prints the build id after a `+`).
 
 Relative and full paths both work for inputs, `--output`, `--profile` and watermark images.
 
@@ -56,7 +56,7 @@ Option values are checked: an unknown `--codec`, `--hw-accel`, `--container`, `-
 
 Trim examples: `--trim-mode keep-first --trim-duration 10` keeps the first 10 s; `--trim-mode custom --trim-start 5 --trim-end 12` keeps 0:05-0:12 of the source.
 
-## Examples (verified on 2026.2.23)
+## Examples (verified on 2026.2.24)
 
 ```bash
 videorecompress analyze video.mp4 --json
@@ -69,7 +69,7 @@ videorecompress batch ./videos --codec av1 --crf 35 --output ./av1 --json
 videorecompress watch --folder ./incoming --preset phone_archive --output ./compressed
 ```
 
-`batch --json` always prints, even for an empty folder: one JSON object per line, `{"type":"progress",...}` objects, then a summary `{"success":true,"cancelled":false,"totalFiles":N,"processed":N,"failed":0,"skipped":0,"durationMs":...,"errors":[]}` (with a `message` when nothing was encoded, for example `All files skipped (same codec as target).`).
+`batch --json` always prints, even for an empty folder: one JSON object per line, `{"type":"progress",...}` objects, then a summary `{"success":true,"cancelled":false,"totalFiles":N,"processed":N,"failed":0,"skipped":0,"durationMs":...,"errors":[]}` (with a `message` when nothing was encoded, for example `All files skipped (same codec as target).` or `No video files found matching criteria.`, both exit 0). When any file fails or cannot be read, `success` is `false`, the exit code is 4 and the file is in `errors`; the other files are still written.
 
 ## Exit codes
 
@@ -78,6 +78,7 @@ videorecompress watch --folder ./incoming --preset phone_archive --output ./comp
 ## Guidelines
 
 - Run `analyze` first; report size before and after.
+- The source file is never replaced: an output that would land on the source, or on a file that is in use, is saved under the next free name, and the result says where. Report the path from the result, not the one you asked for.
 - If re-encoding would make a file bigger, the source video stream is copied into the output instead (so the file keeps the source codec), and the result says so: `--json` and the MCP results carry `outputCodec` (what is in the file, e.g. `mpeg4`), `streamCopied`, `keptOriginal` and a `warning` such as "H.265 at CRF 18 would be larger than the source (471 KB vs 443 KB); the source video stream (mpeg4) was copied instead". The human output prints the same sentence and `..., mpeg4 stream copy` on the Output line. An explicit `--codec` does not override this guard; a profile with `Safety.KeepOriginalWhenLarger=false` does. Presets with a fixed size (e.g. `whatsapp`, `4k_to_1080p`) never enlarge a smaller video.
 - Hardware encoding is automatic; `--hw-accel software` forces the CPU.
 - Trial: no end date. This computer's first 10 files (lifetime, plus 10 after the newsletter confirmation in the app) are unrestricted; every later file is watermarked and cut at 10 minutes. `videorecompress status --json` shows how many are left (`freeFilesRemaining`). **A batch spends one free file per video**, so before a batch on the trial, read `freeFilesRemaining` and tell the user how many of the videos will come out clean. Every result says what it did: `recompress --json` and MCP `recompress_video` carry `trialWatermarked`, `trialNotice` (with the buy link) and `freeFilesRemaining`; `batch --json` and `batch_recompress` carry `trialWatermarked` (a count), `trialWatermarkedOf`, `trialNotice` and per-file `files[]` rows with `outputCodec`, `streamCopied`, `keptOriginal`, `trialWatermarked` and `warning`. The human output prints the notice as a yellow line. Registered installs get none of these. Nothing stops working; `videorecompress register <email> <key>` removes the watermark and the cap.

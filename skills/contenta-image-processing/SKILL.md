@@ -6,7 +6,7 @@ allowed-tools: Bash
 
 # Contenta Converter (image processing)
 
-Use the `contenta` CLI (Contenta Converter 9.0.37+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\ContentaConverter\contenta.exe`, on the user PATH. Check with `contenta --version` (it prints the build id after a `+`).
+Use the `contenta` CLI (Contenta Converter 9.0.39+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\ContentaConverter\contenta.exe`, on the user PATH. Check with `contenta --version` (it prints the build id after a `+`).
 
 Every command accepts `--json` (machine-readable stdout), `--quiet` and `-v`. Inputs are positional; there is no `--input` flag. Relative and absolute paths both work. Check the exit code after each call.
 
@@ -64,7 +64,7 @@ contenta convert contract.pdf -f png --pdf-page 2     # the third page only
 
 Amazon 2000x2000 · Etsy 2700x2025 · Shopify 2048x2048 · eBay 1600x1600 · Instagram 1080x1080 · TikTok/Reels 1080x1920 · YouTube thumbnail 1280x720 · Pinterest 1000x1500 · Facebook link 1200x630 · Twitter/X 1600x900 · MLS 1024x768 · website hero 1920x1080. These are common sizes; the platform's current rules win.
 
-## Examples (verified on 9.0.37)
+## Examples (verified on 9.0.39)
 
 ```bash
 contenta batch ./products --output ./amazon-ready --format jpg --resize 2000x2000 --resize-mode fit
@@ -91,4 +91,5 @@ contenta info photo.jpg --json
 - For marketplace or social sizes, use the table above with `--resize-mode fit`.
 - `ai-transform` sends the image to Google and bills the user's own Gemini key; confirm before using it. `--prompt` is required unless `--remove-background` is given.
 - Trial: no end date. Every file converts; this computer's first 10 clean outputs (lifetime, plus 10 after the newsletter confirmation in the app) come out without a watermark, then output carries one, including `ai-transform` results. PDF albums, merged PDFs and slideshows are always marked during the trial. `contenta status --json` shows how many are left (`cleanOutputsLeft`). **A batch spends one clean output per file** (`--sizes` one per size), so before a batch on the trial, read `cleanOutputsLeft` and tell the user how many of the files will come out clean. Every writing command and MCP tool says what it did: `--json` and the MCP results carry `trialWatermarked` (`true`, or for `batch` the number of marked outputs), `trialNotice` (one sentence with the buy link) and `cleanOutputsLeft`; the human output prints the notice as a yellow line. Registered installs get none of these. Nothing stops working; `contenta register <email> <key>` removes the watermark.
+- A `batch` in which any file fails exits 4 and names the file in `errors`; the other files are still converted (MCP `batch_convert` returns an error result in that case, so read its text). A folder with nothing to convert exits 0 with `"noMatchingFiles": true`, and `skippedFolders` lists folders that could not be read. `watch --json` prints `{"type":"watcherRestarted"}` when it has to re-attach to the folder.
 - MCP: `convert_image` and `batch_convert` also take `watermark_text`, `watermark_position` (0-8) and `watermark_opacity` (0-100), the same options as `--watermark*`.
