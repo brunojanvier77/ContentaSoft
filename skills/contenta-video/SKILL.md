@@ -33,9 +33,16 @@ videorecompress status                       # license, clean files left, tools,
 - `--encoder-preset` = encoder speed (`ultrafast`..`veryslow`, or 0-13 for SVT-AV1; default `medium`). There is no `--preset` on recompress/batch: it exits 2 with a hint (2026.2.22 silently took it as the encoder speed).
 - `watch` uses `-p/--preset <id>` for the named preset.
 
-| Goal | `--preset-id` | Codec / CRF |
+Pick the preset by what the footage is:
+
+| Footage | `--preset-id` | Codec / CRF |
 |------|---------------|-------------|
+| Drone and action-cam footage (high-bitrate DJI, GoPro) | `drone_footage` | H.265 / 21 |
 | Phone/home video archive | `phone_archive` | H.265 / 23 |
+| iPhone `.mov` that must play everywhere | `iphone_to_mp4` | H.264 / 20 |
+| Raw footage you will edit later | `youtube_raw` | H.265 / 20 |
+| Old DivX, WMV, MPEG-2 or AVI files | `old_video_rescue` | H.265 / 20 |
+| Gaming recordings | `gaming_clips` | H.265 / 22 |
 | Wedding/event archive (high quality) | `wedding_archive` | H.265 / 18 |
 | Maximum savings | `max_savings` | AV1 / 35 |
 | Surveillance | `security_archive` | H.265 / 28 |
@@ -47,6 +54,8 @@ videorecompress status                       # license, clean files left, tools,
 | WhatsApp / email / Discord | `whatsapp`, `email_attachment`, `discord_free` | H.264 / 28-32 |
 
 Full list: `videorecompress presets --json` (24 presets).
+
+Before a large batch, recompress one typical file with `--measure-quality` and report its size saving and VMAF score; that shows the user what the preset does to their footage. When the user wants the archive as close to the original as possible, choose `wedding_archive` (CRF 18) over `phone_archive` (CRF 23).
 
 ## Other options (recompress and batch)
 

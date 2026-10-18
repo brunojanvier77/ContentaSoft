@@ -60,14 +60,19 @@ contenta convert contract.pdf -f png --pdf-page 2     # the third page only
 
 - The examples are for Git Bash, which is what Claude Code's Bash tool runs on Windows: `./photos/*.jpg` expands there. `contenta` does not expand `*.jpg` itself, so in PowerShell pass `(Get-ChildItem .\photos\*.jpg).FullName` and write paths as `.\out`.
 
-## Platform sizes (use with `--resize-mode fit`)
+## Platform sizes
 
 Amazon 2000x2000 · Etsy 2700x2025 · Shopify 2048x2048 · eBay 1600x1600 · Instagram 1080x1080 · TikTok/Reels 1080x1920 · YouTube thumbnail 1280x720 · Pinterest 1000x1500 · Facebook link 1200x630 · Twitter/X 1600x900 · MLS 1024x768 · website hero 1920x1080. These are common sizes; the platform's current rules win.
 
-## Examples (verified on 9.0.39)
+## Recipes
+
+- **Square product images (Amazon, Shopify, eBay):** `--resize-mode fit-with-background` with the platform's size from the table, for Amazon `--resize 2000x2000`. The whole photo is scaled into the square and the rest is padded with white; nothing is cropped. `fit` keeps the photo's shape (a 4:3 photo comes out 2000x1500), and `fill` crops to fill the square.
+- **Stay under a file size (for example 500 KB per photo):** write JPG or WebP and lower `-q` step by step (90, 80, 70, 60), reading `outputSize` (bytes) from `convert --json` after each try. If 60 is still too big, resize smaller as well. `-q` does not change PNG, which is lossless; switch to JPG or WebP. For a folder, find the quality on one typical file with `convert`, then run the `batch` with it.
+
+## Examples (verified on 9.0.39; the first line on 9.0.41)
 
 ```bash
-contenta batch ./products --output ./amazon-ready --format jpg --resize 2000x2000 --resize-mode fit
+contenta batch ./products --output ./amazon-ready --format jpg --resize 2000x2000 --resize-mode fit-with-background
 contenta convert photo.cr2 --format jpg --quality 92 --output ./out
 contenta convert photo.jpg --output ./proofs --resize 1200x800 --watermark "(c) Studio" --watermark-position 8 --watermark-opacity 60
 contenta convert logo.png --sizes 16,32,48,64 --format ico --output ./icons
@@ -88,7 +93,7 @@ contenta info photo.jpg --json
 ## Guidelines
 
 - Ask for or confirm the output folder; never overwrite originals unless the user asks (`--overwrite`).
-- For marketplace or social sizes, use the table above with `--resize-mode fit`.
+- For marketplace or social sizes, use the table above: `--resize-mode fit-with-background` when the platform wants the exact size (square product images), `fit` when the photo only has to fit inside it.
 - `ai-transform` sends the image to Google and bills the user's own Gemini key; confirm before using it. `--prompt` is required unless `--remove-background` is given.
 - Trial: no end date. Every file converts; this computer's first 10 clean outputs (lifetime, plus 10 after the newsletter confirmation in the app) come out without a watermark, then output carries one, including `ai-transform` results. PDF albums, merged PDFs and slideshows are always marked during the trial. `contenta status --json` shows how many are left (`cleanOutputsLeft`). **A batch spends one clean output per file** (`--sizes` one per size), so before a batch on the trial, read `cleanOutputsLeft` and tell the user how many of the files will come out clean. Every writing command and MCP tool says what it did: `--json` and the MCP results carry `trialWatermarked` (`true`, or for `batch` the number of marked outputs), `trialNotice` (one sentence with the buy link) and `cleanOutputsLeft`; the human output prints the notice as a yellow line. Registered installs get none of these. Nothing stops working; `contenta register <email> <key>` removes the watermark.
 - A `batch` in which any file fails exits 4 and names the file in `errors`; the other files are still converted (MCP `batch_convert` returns an error result in that case, so read its text). A folder with nothing to convert exits 0 with `"noMatchingFiles": true`, and `skippedFolders` lists folders that could not be read. `watch --json` prints `{"type":"watcherRestarted"}` when it has to re-attach to the folder.
