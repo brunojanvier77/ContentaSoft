@@ -134,8 +134,8 @@ contenta batch <input-dir> [options]
 
 | Option | Type | Description |
 |---|---|---|
-| `--include` | string | File glob pattern (e.g., \*.jpg). |
-| `--exclude` | string | Exclude pattern. |
+| `--include` | string[] | Only files matching this pattern (e.g. \*.jpg, or jpg;png); repeat the option or separate patterns with ';' or ','. |
+| `--exclude` | string[] | Leave out files matching this pattern: a glob such as \*.png or thumb\_\*, or text in the path below the folder; repeat the option or separate patterns with ';' or ','. |
 | `--recursive` | boolean | Include subdirectories. |
 | `--workers` | integer | Parallel workers (default: automatic, see WorkerPolicy). |
 | `--report` | string | Write a CSV report to this file: one row per output attempted, with the input, done/skipped/failed, the files written and the error. |
@@ -511,8 +511,8 @@ contenta watch <dir> [options]
 
 | Option | Type | Description |
 |---|---|---|
-| `--include` | string | File extension filter (e.g., \*.jpg). |
-| `--exclude` | string | Leave out files matching this pattern (as batch --exclude: a glob such as \*.png or thumb\_\*, or text in the path below the folder; several separated by ;). |
+| `--include` | string[] | Only files matching this pattern (e.g. \*.jpg, or jpg;png); repeat the option or separate patterns with ';' or ','. |
+| `--exclude` | string[] | Leave out files matching this pattern (as batch --exclude: a glob such as \*.png or thumb\_\*, or text in the path below the folder); repeat the option or separate patterns with ';' or ','. |
 | `--debounce` | integer | Debounce delay in ms. |
 | `--recursive` | boolean | Watch subdirectories. |
 | `--output` | string | Output directory. |

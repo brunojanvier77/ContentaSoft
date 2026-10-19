@@ -105,8 +105,8 @@ videorecompress batch <input-dir> [options]
 
 | Option | Type | Description |
 |---|---|---|
-| `--include` | string | Glob pattern to include (e.g. "\*.mp4"). |
-| `--exclude` | string | Glob pattern to exclude. |
+| `--include` | string[] | Only videos matching this pattern (e.g. "\*.mp4"); repeat the option or separate patterns with ';' or ','. |
+| `--exclude` | string[] | Leave out videos matching this pattern (same forms as --include). |
 | `--recursive` | boolean | Include subdirectories. |
 | `--workers` | integer | Number of parallel workers. |
 | `--report` | string | Write a CSV report, one row per input file (file, status, output, outputCodec, trialWatermarked, error). |
@@ -378,8 +378,8 @@ videorecompress watch <dir> [options]
 | `--preset` | string | Preset ID to use (e.g. security_archive, phone_archive, max_savings; default: phone_archive). |
 | `--output` | string | Output directory for recompressed files (default: same as source). |
 | `--recursive` | boolean | Include subfolders. |
-| `--include` | string | Glob pattern to include (e.g. "\*.mp4"). |
-| `--exclude` | string | Glob pattern to exclude. |
+| `--include` | string[] | Only videos matching this pattern (e.g. "\*.mp4"); repeat the option or separate patterns with ';' or ','. |
+| `--exclude` | string[] | Leave out videos matching this pattern (same forms as --include). |
 | `--watermark-text` | string | Apply a text watermark to all videos. |
 | `--watermark-image` | string | Apply an image/logo watermark from a file (PNG, JPG). |
 | `--watermark-position` | string | Watermark position: TopLeft, TopCenter, TopRight, CenterLeft, Center, CenterRight, BottomLeft, BottomCenter, BottomRight. |

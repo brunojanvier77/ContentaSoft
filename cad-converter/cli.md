@@ -103,8 +103,8 @@ cadconvert batch <input> [options]
 | `--format` | string | Target format. |
 | `--report` | string | Write a CSV report of the batch to this file: one row per input with input and output file, formats, triangles before and after, output size, size budget, within budget yes/no, duration and result or error. |
 | `--output` | string | Output folder. Default: \<input\>\_converted next to the input folder. |
-| `--include` | string | Only files matching this pattern, e.g. \*.step or parts\\\*.stp; several separated by ';'. A pattern with \* or ? is matched against the file name and the path below the folder; other text is part of that path. |
-| `--exclude` | string | Leave out files matching this pattern, e.g. \*\_old.step or archive; several separated by ';'. Same matching as --include. |
+| `--include` | string[] | Only files matching this pattern, e.g. \*.step or parts\\\*.stp; repeat the option or separate patterns with ';' or ','. A pattern with \* or ? is matched against the file name and the path below the folder; other text is part of that path. |
+| `--exclude` | string[] | Leave out files matching this pattern, e.g. \*\_old.step or archive; repeat the option or separate patterns with ';' or ','. Same matching as --include. |
 | `--recursive` | boolean | Include subfolders (the default; -r false converts the folder itself only). |
 | `--workers` | integer | Parallel workers (default: the number of processors). |
 | `--quality` | string | Mesh quality for STEP/IGES/BREP sources: a preset (draft, standard, fine, ultrafine) or a linear deflection in mm (0.1 = standard; lower = finer). Default: standard. |
@@ -238,8 +238,8 @@ cadconvert watch <input> [options]
 | `--format` | string | Target format. |
 | `--report` | string | Keep a CSV report of this watch session in this file, rewritten after every file: one row per input with input and output file, formats, triangles before and after, output size, size budget, within budget yes/no, duration and result or error. |
 | `--output` | string | Output folder. Default: \<input\>\_converted next to the watched folder. |
-| `--include` | string | Only files matching this pattern, e.g. \*.step or parts\\\*.stp; several separated by ';'. A pattern with \* or ? is matched against the file name and the path below the folder; other text is part of that path. |
-| `--exclude` | string | Leave out files matching this pattern, e.g. \*\_old.step or archive; several separated by ';'. Same matching as --include. |
+| `--include` | string[] | Only files matching this pattern, e.g. \*.step or parts\\\*.stp; repeat the option or separate patterns with ';' or ','. A pattern with \* or ? is matched against the file name and the path below the folder; other text is part of that path. |
+| `--exclude` | string[] | Leave out files matching this pattern, e.g. \*\_old.step or archive; repeat the option or separate patterns with ';' or ','. Same matching as --include. |
 | `--recursive` | boolean | Include subfolders (the default; -r false converts the folder itself only). |
 | `--workers` | integer | Parallel workers (default: the number of processors). |
 | `--quality` | string | Mesh quality for STEP/IGES/BREP sources: a preset (draft, standard, fine, ultrafine) or a linear deflection in mm (0.1 = standard; lower = finer). Default: standard. |

@@ -133,8 +133,8 @@ aivideoenhancer batch <input> [options]
 | `--stabilize-keep` | string | With --stabilize (or a preset that stabilizes): keep at least this percent of the picture, 50-100, or auto (default). Stabilizing zooms in to hide the moving edge, by as much as the shake needs; a limit stops the zoom there and leaves the part of the movement it has no room for. 100 = no zoom at all, the edge of the picture then moves. |
 | `--hdr` | string | HDR10 / HLG sources: keep\|sdr (default: keep). keep = the output stays 10-bit HDR when the job has no AI stage, no stabilization, no rolling-shutter correction and no NLMeans denoise, and the codec is h265, av1 or vp9; otherwise the picture is tone-mapped to SDR and a line says so. sdr = always tone-map to SDR (BT.709). |
 | `--upscale-engine` | string | What upscales x2\|x3\|x4: auto\|rtx\|standard. auto (default) = NVIDIA RTX Video Super Resolution where it can run, otherwise the standard upscaler (Lanczos resize + sharpening on the CPU, not AI; any PC). The engine is printed before the job starts. |
-| `--include` | string | Only videos whose name matches (e.g. \*.mp4, or mp4;mov); several patterns separated by ';' or ','. |
-| `--exclude` | string | Leave out videos whose name matches (same pattern forms as --include). |
+| `--include` | string[] | Only videos matching this pattern (e.g. \*.mp4, or mp4;mov); repeat the option or separate patterns with ';' or ','. |
+| `--exclude` | string[] | Leave out videos whose name matches (same pattern forms as --include). |
 | `--recursive` | boolean | Include subfolders (the output folder is never searched when it is inside the input). |
 | `--workers` | integer | Videos enhanced at the same time (default 1; AI stages share one GPU, so more rarely helps). |
 | `--report` | string | Write a CSV report, one row per video (input, status, output, trial_watermarked, error), to this file. |
@@ -396,8 +396,8 @@ aivideoenhancer watch <input> [options]
 | `--stabilize-keep` | string | With --stabilize (or a preset that stabilizes): keep at least this percent of the picture, 50-100, or auto (default). Stabilizing zooms in to hide the moving edge, by as much as the shake needs; a limit stops the zoom there and leaves the part of the movement it has no room for. 100 = no zoom at all, the edge of the picture then moves. |
 | `--hdr` | string | HDR10 / HLG sources: keep\|sdr (default: keep). keep = the output stays 10-bit HDR when the job has no AI stage, no stabilization, no rolling-shutter correction and no NLMeans denoise, and the codec is h265, av1 or vp9; otherwise the picture is tone-mapped to SDR and a line says so. sdr = always tone-map to SDR (BT.709). |
 | `--upscale-engine` | string | What upscales x2\|x3\|x4: auto\|rtx\|standard. auto (default) = NVIDIA RTX Video Super Resolution where it can run, otherwise the standard upscaler (Lanczos resize + sharpening on the CPU, not AI; any PC). The engine is printed before the job starts. |
-| `--include` | string | Only videos whose name matches (e.g. \*.mp4, or mp4;mov); several patterns separated by ';' or ','. |
-| `--exclude` | string | Leave out videos whose name matches (same pattern forms as --include). |
+| `--include` | string[] | Only videos matching this pattern (e.g. \*.mp4, or mp4;mov); repeat the option or separate patterns with ';' or ','. |
+| `--exclude` | string[] | Leave out videos whose name matches (same pattern forms as --include). |
 | `--recursive` | boolean | Watch subfolders too (the output folder is never watched when it is inside the input). |
 | `--interval` | integer | Seconds between two looks at the folder (default 10, at least 2). A new file is taken once it held still for one interval. |
 | `--report` | string | When the watch stops, write a CSV report, one row per video (input, status, output, trial_watermarked, error), to this file. |
