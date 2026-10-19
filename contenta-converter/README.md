@@ -2,9 +2,9 @@
 
 Convert, resize, watermark and tag thousands of photos from the command line on Windows, including camera RAW files. The same install gives you the desktop app, the `contenta` CLI and an MCP server for AI agents.
 
-[Download the free trial](https://www.contenta-converter.com) | [MCP server reference](mcp-server.md)
+[Download the free trial](https://www.contenta-converter.com) | [CLI reference](cli.md) | [MCP server reference](mcp-server.md)
 
-Documented version: **9.0.36**.
+Documented version: **9.0.41**.
 
 ## What it does
 
@@ -25,7 +25,7 @@ Documented version: **9.0.36**.
 The CLI is installed with the desktop app. A default install is per-user, in `%LOCALAPPDATA%\Programs\ContentaConverter\`, and the installer adds that folder to your user `PATH`. Open a new terminal after installing, then check:
 
 ```powershell
-contenta --version    # 9.0.36 or later (prints the build id after a +)
+contenta --version    # 9.0.41 or later (prints the build id after a +)
 contenta status       # version, license state, clean outputs left and bundled tools
 ```
 
@@ -33,7 +33,7 @@ If `contenta` is not found, or `--version` prints an older number, call the exe 
 
 ## Commands
 
-Options available on every command: `--json` (machine-readable output), `--quiet`, `-v`/`--verbose`.
+Options available on every command (except `catalog` and `serve`): `--json` (one JSON object on stdout, see [JSON output](#json-output)), `--plain`, `--quiet`, `-v`/`--verbose` and `--progress`. The [CLI reference](cli.md) lists every option of every command.
 
 | Command | What it does |
 |---------|--------------|
@@ -52,7 +52,7 @@ Options available on every command: `--json` (machine-readable output), `--quiet
 | `status` | License state, bundled tools, version |
 | `serve` | Start the MCP server (stdio) |
 
-Inputs are positional arguments; there is no `--input` flag. Relative paths work everywhere (inputs, `--output`, `--audio`, `--profile`, background images). Run `contenta <command> --help` for every option.
+Input files and folders are positional arguments. Relative paths work everywhere (inputs, `--output`, `--audio`, `--profile`, background images). Run `contenta <command> --help` for every option.
 
 ## Examples
 
@@ -144,14 +144,14 @@ contenta convert contract.pdf -f png --pdf-page 2 -o .\pages
 - **PDF or TIFF out stays one file.** A multi-page PDF or TIFF converted to PDF or TIFF is written as one multi-page file under the plain name. If one page fails, no document is written.
 - **`--pdf-page N`** converts only that page. It is 0-based (0 is the first page) and works for PDF and TIFF input. A page the document does not have is an error that names the page count.
 - **Existing files are not overwritten** unless you pass `--overwrite`; a taken name gets ` (1)` appended, like any other output.
-- **Limit: 2000 pages per conversion.** A longer document is refused with a message (exit code 4) and nothing is written; convert it a page at a time with `--pdf-page`, or split it first.
+- **Limit: 2000 pages per conversion.** A longer document is refused with a message (exit code 5) and nothing is written; convert it a page at a time with `--pdf-page`, or split it first.
 - A camera TIFF's thumbnail directory and a pyramid TIFF's reduced-resolution levels are not pages.
 - With `--json`, the result lists every file in `outputs` and the input's page count in `pages`. In the `batch` summary, `inputs` is the number of files you gave and `total` the number of outputs, so `total` can be larger.
 - The trial counts one output page as one output.
 
 ### Passing many files in PowerShell
 
-Windows shells do not expand `*.jpg` for you, and `contenta` does not expand it either, so `contenta pdf-album .\photos\*.jpg` fails with exit code 5. In PowerShell, pass the file list explicitly:
+Windows shells do not expand `*.jpg` for you, and `contenta` does not expand it either, so `contenta pdf-album .\photos\*.jpg` fails with exit code 3 (input not found). In PowerShell, pass the file list explicitly:
 
 ```powershell
 contenta pdf-album (Get-ChildItem .\photos\*.jpg).FullName --output album.pdf --photos-per-page 10
@@ -196,11 +196,13 @@ contenta ai-transform product.jpg --remove-background --bg-mode transparent --ou
 | `--sizes`, `--size-preset`, `--base-size` | Multi-size export: pixel sizes (`16,32,48`), scale factors (`1x,2x,3x`), or `favicon` / `appicon` / `srcset` |
 | `--filename-pattern` | Default `{originalname}` |
 | `--overwrite` | Replace existing outputs (default: write a renamed copy) |
+| `--skip-existing` | Skip an input whose output already exists, so a re-run only converts what is missing |
 | `--png-compression` | zlib level 0-9, default 2 |
 | `--white-balance`, `--color-temperature`, `--denoising`, `--sharpness-boost`, `--color-boost`, `--contrast-boost` | RAW decoding |
 | `--pdf-page` | Convert only this page (0-based) of a multi-page PDF or TIFF; without it every page converts |
 | `--profile` | Load settings saved with `profile save` |
 | batch: `--include`, `--exclude`, `--recursive`, `-w/--workers` | Filters; subfolders are not included unless you add `--recursive`; workers default to automatic |
+| batch: `--report <file.csv>` | One row per output attempted: the input, done/skipped/failed, the files written and the error |
 | batch: `--rename-pattern` | Rename the outputs with Batch Rename tokens after the batch |
 | batch: `--zip-output`, `--zip-split-size` | Also pack the outputs into ZIP archives, split at N MB (default 25) |
 | pdf-album: `--photos-per-page` | 1, 2, 4, 6, 8, 10, 12, 16, 24 or 48 (default 4) |
@@ -220,26 +222,36 @@ Use `--resize WxH --resize-mode fit`. These are common listing sizes, not limits
 | Real estate (MLS) | 1024x768 | Facebook link image | 1200x630 |
 | Website hero | 1920x1080 | Twitter/X | 1600x900 |
 
+## JSON output
+
+With `--json` every command prints one JSON object on stdout and nothing else; logs go to stderr. Every object has `success`, `exitCode`, `error` (one sentence, or `null`), `warnings[]`, `errors[]` (one entry per failed item) and `outputs[]` (the files written), beside the command's own fields. During the trial it also carries `trialWatermarked`, `trialNotice`, `freeFilesRemaining` and `buyUrl` when they apply.
+
+`batch --json` prints one result object at the end. Add `--progress` to get one line per finished output before it, `{"type":"progress","file":...,"status":"done|skipped|failed","completed":N,"total":T}`; a script that wants only the result skips the lines that start with `{"type":"progress"`.
+
 ## Exit codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error (also missing required options) |
-| 2 | Invalid arguments |
-| 3 | Reserved. Versions before 9.0.36 used it for an ended trial; nothing returns it now |
-| 4 | Conversion failed (also a page number the document does not have, and a document over 2000 pages) |
-| 5 | File or folder not found (also a wildcard such as `*.jpg`, which `contenta` does not expand) |
-| 6 | Bundled tools missing: run `contenta status` |
-| 130 | Cancelled (Ctrl+C) |
+The four ContentaSoft CLIs share one table; `--help` ends with it and the [CLI reference](cli.md#exit-codes) lists it.
 
-Since 9.0.36 a bad option value is a usage error with exit code 2 and one sentence that names the option and what it accepts, instead of a silent default. That covers `--format`, `-q`, `--resize` (not `WxH`), `--resize-mode`, `--color-space`, `--gps`, `--datetime`, `--aspect-ratio`, `--pdf-page`, effect names and effect parameters outside their range, slideshow templates and `--photos-per-page`. A missing `--profile` file exits with 5, a malformed one or a bad `--sizes` list with 2, each with a message instead of a stack trace; add `-v` to see the stack trace. With `--json`, an error prints `{"success":false,"error":"...","exitCode":N}`.
+| Code | Name | Meaning |
+|------|------|---------|
+| 0 | `ok` | Everything asked for was done |
+| 1 | `unexpected_error` | An error with no specific code (a bug or a broken install); see the log |
+| 2 | `invalid_arguments` | Unknown option, missing or malformed value; nothing was done |
+| 3 | `input_not_found` | Input not found or unreadable; nothing was done |
+| 4 | `partial_failure` | Some items succeeded, some failed |
+| 5 | `all_failed` | No item succeeded (a single-file command whose file failed) |
+| 6 | `license_refused` | The license or the trial refused the run (also a key the server rejected in `register`) |
+| 130 | `cancelled` | Cancelled (Ctrl+C) |
+
+A batch with some failed files exits 4 and names them in `errors`; the other files are still converted. A batch that matches no file exits 0.
+
+A bad option value is a usage error with exit code 2 and one sentence that names the option and what it accepts, instead of a silent default. That covers `--format`, `-q`, `--resize` (not `WxH`), `--resize-mode`, `--color-space`, `--gps`, `--datetime`, `--aspect-ratio`, `--pdf-page`, effect names and effect parameters outside their range, slideshow templates, `--photos-per-page`, a malformed `--profile` file and a bad `--sizes` list. A missing input or `--profile` file exits 3. Each prints a message instead of a stack trace; add `-v` to see the stack trace.
 
 ## Trial and license
 
 - **No end date, no account, no card.** The trial converts every file you give it, in full. Each computer gets **10 clean (watermark-free) outputs for life**, plus 10 more after you confirm the newsletter in the desktop app. The count is per computer, never per batch.
 - **Which outputs are clean.** The desktop app marks every result of a batch and lets you pick which ones to keep clean. The CLI, the MCP server and watch folders have no picker: the first outputs they write take the clean outputs that are left, and every later output carries the watermark. All of them spend one shared allowance. A failed or skipped file never uses one, and one output page of a multi-page PDF or TIFF counts as one output.
-- `contenta status` shows how many clean outputs are left (`cleanOutputsLeft` in `--json`).
+- `contenta status` shows how many clean outputs are left. In `contenta status --json` the `license` object has `state` (`Trial` or `Registered`), `freeFilesRemaining`, `nextOutput` (`clean` or `watermark`) and `afterFreeFiles`; the MCP tool `get_license_status` returns the same object.
 - During the trial, PDF albums, merged PDFs and slideshows are always marked (watermark or end card), whatever is left. `ai-transform` results follow the clean-output rule above.
 - Registering removes the watermark from every output. Nothing in the CLI or the MCP server stops working when the trial runs out; output is watermarked.
 - License: **$129 one-time** for a lifetime license; the [buy page](https://www.contenta-converter.com/buy.php) also lists a quarterly plan.
@@ -247,4 +259,4 @@ Since 9.0.36 a bad option value is a usage error with exit code 2 and one senten
 
 ## MCP server
 
-`contenta serve` starts an MCP server with 10 tools, each with a title and read-only, destructive and network hints. See the [MCP reference](mcp-server.md).
+`contenta serve` starts an MCP server with 13 tools, each with a title and read-only, destructive and network hints. See the [MCP reference](mcp-server.md).

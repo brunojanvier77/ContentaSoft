@@ -1,6 +1,8 @@
 # AI Video Enhancer Studio: MCP server
 
-`aivideoenhancer serve` exposes 4 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Desktop, Claude Code, Cursor, Windsurf and others) can analyze and enhance videos on your PC.
+`aivideoenhancer serve` exposes 7 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
+
+Generated from `aivideoenhancer catalog`, version 2026.7.21. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
 ## Setup
 
@@ -15,120 +17,120 @@
 }
 ```
 
-If your AI client cannot find `aivideoenhancer`, use the full path, for example `"C:\\Users\\<you>\\AppData\\Local\\Programs\\AIVideoEnhancerStudio\\aivideoenhancer.exe"`. See the [MCP config guide](../mcp-config/) for each client.
-
-Paths can be absolute or relative. A relative path is resolved against the server's working folder, which is the folder your AI client started it in; use absolute paths when you do not know that folder. Remix, frame extraction and the free clips are CLI-only (`aivideoenhancer remix`, `aivideoenhancer extract-frames`, `aivideoenhancer enhance --clip`).
-
-The server writes only JSON-RPC messages to stdout; its log lines go to stderr.
-
-In Claude Code on Windows one command adds it, and nothing else needs installing because the client calls the installed `aivideoenhancer.exe` directly:
+If your AI client cannot find `aivideoenhancer`, give the full path, for example `"C:\\Users\\<you>\\AppData\\Local\\Programs\\AIVideoEnhancerStudio\\aivideoenhancer.exe"`. The [MCP config guide](../mcp-config/) covers each client. In Claude Code one command adds it:
 
 ```powershell
 claude mcp add ai-video-enhancer -- aivideoenhancer serve
 ```
 
+Pass absolute paths to every tool.
+
 ## Protocol
 
 | Property | Value |
-|----------|-------|
+|---|---|
 | Transport | stdio, newline-delimited JSON-RPC 2.0 |
 | Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
 | Capabilities | `tools` only (no resources or prompts) |
 | Server name | `ai-video-enhancer` |
-| Server version | `2026.7.16` |
+| Server version | `2026.7.21` |
 
 All four ContentaSoft servers run on the same host, which behaves like this:
 
-- **stdout carries JSON-RPC only.** Logs and anything else go to stderr, so a client can parse every line it reads.
-- **`ping` is answered while a tool runs**, so a long enhancement does not look like a hung server.
+- **stdout carries JSON-RPC only.** Logs go to stderr, so a client can parse every line it reads.
+- **`ping` is answered while a tool runs**, so a long job does not look like a hung server.
 - **`notifications/cancelled` cancels a running call.** The call stops and, as the specification says, gets no reply.
-- **Tool calls run one at a time**, in the order they arrive. `ping`, `tools/list` and cancellations are handled in between.
-- **Errors**: an unknown tool or method is a JSON-RPC error (`-32602`, `-32601`); a tool that cannot do its job returns a normal result with `isError: true` and a sentence that names the argument and what it accepts. A call missing a required argument says which one.
-- **Every tool has a `title` and `annotations`** (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`); see the next section.
-
-**Trial**: the server never refuses to start, and the trial has no end date. This computer's first 5 full exports (lifetime, plus 10 after the newsletter confirmation in the app) are full resolution without a watermark; later output carries a watermark and is capped at 1280x720. Register with `aivideoenhancer register <email> <key>`. The free 10-second clips (`--clip`) are a CLI feature; `enhance_video` always writes a full export.
+- **Tool calls run one at a time**, in the order they arrive.
+- **Errors**: an unknown tool or method is a JSON-RPC error; a tool that cannot do its job returns a normal result with `isError: true` and a sentence that names the problem.
+- **Licence first**: `get_license_status` returns the licence and trial state, so an agent can tell the user what a run will produce before it starts one.
 
 ## Tool annotations
 
-| Tool | Title | Read-only | Destructive | Network |
-|------|-------|:---------:|:-----------:|:-------:|
-| `analyze_video` | Analyze video | yes | no | no |
-| `enhance_video` | Enhance video | no | no | no |
-| `list_presets` | List presets | yes | no | no |
-| `get_status` | Get GPU and license status | yes | no | no |
+| Tool | Title | Read-only | Destructive | Idempotent | Network |
+|---|---|---|---|---|---|
+| [`analyze_video`](#analyze_video) | Analyze video | yes | no | yes | no |
+| [`enhance_video`](#enhance_video) | Enhance video | no | no | no | no |
+| [`get_file_info`](#get_file_info) | Get video file info | yes | no | yes | no |
+| [`get_license_status`](#get_license_status) | Get license and trial status | yes | no | yes | no |
+| [`get_status`](#get_status) | Get GPU and license status | yes | no | yes | no |
+| [`list_formats`](#list_formats) | List formats | yes | no | yes | no |
+| [`list_presets`](#list_presets) | List presets | yes | no | yes | no |
 
-`enhance_video` writes a new file (a taken name gets a renamed copy beside it, unless `skip_existing` is set) and never replaces the source. No tool uses the network. The three read-only tools are also marked idempotent.
+Destructive: the tool can replace a file that already exists. Network: the tool uses the internet.
 
 ## Tools
 
 ### analyze_video
 
+**Analyze video.** Old name of get_file_info (same parameters, same answer): a video file's codec, resolution, duration, bitrate, frame rate, audio and HDR. Use get_file_info.
+
 | Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `path` | string | Yes | Path to the video |
-
-**Returns**: path, fileName, fileSize, fileSizeFormatted, videoCodec, videoCodecLong, resolution, width, height, frameRate, frameCount, duration (seconds), durationFormatted, videoBitrate, totalBitrate, bitrateFormatted, pixelFormat, containerFormat, isHdr, isInterlaced, audioCodec, audioChannels, audioSampleRate, audioBitrate.
-
----
+|---|---|---|---|
+| `input_path` | string | no | Absolute path to the video file (required). |
 
 ### enhance_video
 
+**Enhance video.** Enhance a video using AI upscaling, frame interpolation, stabilization, and denoising.
+
 | Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `input_path` | string | Yes | Path to the video |
-| `output_path` | string | No | A file path ending `.mp4`, `.mov` or `.mkv`, or a folder (default: the input's folder). A relative path is resolved from the server's working folder |
-| `preset` | string | No | `old_video_restoration`, `surveillance_enhancement`, `content_creation`, `drone_action_cam`, `animation_anime`, `video_archival`, `enhance_cleanup`, `smooth_motion` |
-| `upscale` | string | No | `off`, `enhance` (same resolution), `x2`, `x3`, `x4` |
-| `denoise` | string | No | `off`, `light`, `medium`, `strong` |
-| `stabilize` | string | No | `off`, `light`, `medium`, `strong` |
-| `deinterlace` | string | No | `off`, `yadif`, `yadifbob`, `bwdif`. With a `preset` and no value, an interlaced source gets `yadif`; pass `off` to keep it off |
-| `sharpen` | string | No | `off`, `light`, `medium`, `strong` |
-| `rolling_shutter` | string | No | Jello correction: `off`, `light`, `medium`, `strong` |
-| `interpolate` | string | No | Target frame rate: `off`, `30`, `60`. Only raises the rate |
-| `codec` | string | No | `h264`, `h265`, `av1`, `vp9` |
-| `crf` | integer | No | 1-51, lower = better (default 18) |
-| `skip_existing` | boolean | No | Leave the video alone if its output already exists; a skipped video uses no free trial file |
+|---|---|---|---|
+| `input_path` | string | yes | Absolute path to the input video file. |
+| `output_path` | string | no | Output file path (ending .mp4, .mov or .mkv) or output directory; a relative path is resolved from the server's working directory (default: same directory as input). |
+| `preset` | string | no | Preset ID: tape_restoration (VHS, Video8, Hi8 and MiniDV captures: full-motion deinterlace to 50p/59.94p, colour noise and hum removal, square-pixel 4:3; CPU only, no graphics card needed), old_video_restoration, surveillance_enhancement, content_creation, drone_action_cam, animation_anime, video_archival, enhance_cleanup, smooth_motion. list_presets says what each one needs from the PC. |
+| `upscale` | string | no | Upscale mode: off, enhance (same-resolution cleanup), x2, x3, x4. One of: `off`, `enhance`, `x2`, `x3`, `x4`. |
+| `upscale_engine` | string | no | What upscales x2, x3, x4: auto (default: NVIDIA RTX Video Super Resolution where it can run, otherwise the standard upscaler), rtx, standard (Lanczos resize + sharpening on the CPU, not AI; any PC). The result carries upscaleEngine. One of: `auto`, `rtx`, `standard`. |
+| `denoise` | string | no | Denoise level: off, light, medium, strong. One of: `off`, `light`, `medium`, `strong`. |
+| `stabilize` | string | no | Stabilization level: off, light, medium, strong. One of: `off`, `light`, `medium`, `strong`. |
+| `stabilize_keep` | integer | no | With stabilize (or a preset that stabilizes): keep at least this percent of the picture, 50-100. Stabilizing zooms in to hide the moving edge, by as much as the shake needs; a limit stops the zoom there and leaves the part of the movement it has no room for. 100 = no zoom at all, the edge of the picture then moves. Leave it out to let the stabilizer choose. Range: 50 to 100. |
+| `deinterlace` | string | no | Deinterlace: off, yadif, yadifbob, bwdif, bwdifbob (full motion: one frame per field, 25i becomes 50p). With a preset and no deinterlace value, an interlaced source (DV, DVD, TV capture) gets yadif automatically; pass off to keep it off. One of: `off`, `yadif`, `yadifbob`, `bwdif`, `bwdifbob`. |
+| `denoise_method` | string | no | Denoise method: hqdn3d (default), nlmeans, chroma (colour noise reduced much harder than luma, for tape). One of: `hqdn3d`, `nlmeans`, `chroma`. |
+| `hum` | string | no | Remove mains hum from the audio: off, auto (50 Hz for a 25/50 fps picture, 60 Hz for 29.97/59.94), 50, 60. Used with a preset or another enhancement; the audio is re-encoded. One of: `off`, `auto`, `50`, `60`. |
+| `crop_bottom` | boolean | no | With preset tape_restoration: crop the head-switching noise band at the bottom of a VHS/Video8/Hi8 capture (12 lines of 576, 8 of 480); the picture keeps its proportions. |
+| `sharpen` | string | no | Sharpen: off, light, medium, strong. One of: `off`, `light`, `medium`, `strong`. |
+| `rolling_shutter` | string | no | Rolling-shutter (jello) correction: off, light, medium, strong. One of: `off`, `light`, `medium`, `strong`. |
+| `interpolate` | string | no | Target frame rate for smoother motion (RIFE): off, 30, 60. Only raises the rate — a clip already at/above the target is left unchanged. One of: `off`, `30`, `60`. |
+| `codec` | string | no | Output codec: h264, h265, av1, vp9. One of: `h264`, `h265`, `av1`, `vp9`. |
+| `hdr` | string | no | HDR10 / HLG sources: keep (default) or sdr. keep = the output stays 10-bit HDR when the job has no AI stage (upscale, interpolate), no stabilize, no rolling_shutter and no nlmeans denoise, and the codec is h265, av1 or vp9; otherwise the picture is tone-mapped to SDR. sdr = always tone-map to SDR (BT.709). hdrNotice in the result says what was done. One of: `keep`, `sdr`. |
+| `crf` | integer | no | Quality (CRF value, 1-51, lower = better quality, default: 18). Range: 1 to 51. |
+| `skip_existing` | boolean | no | Leave the video alone when its output file already exists (default: write a renamed copy beside it). A skipped video is not enhanced and costs no free file. |
+| `overwrite` | boolean | no | Replace the output file when it already exists (default: write a renamed copy beside it). Not with skip_existing. |
+| `clip` | string | no | Export only a 10-second clip starting at this time (seconds such as 42 or 42.5, or m:ss / h:mm:ss such as 1:05) instead of the whole video, named \<name\>-clip; the result carries clipPath. On the trial a clip is clean and full resolution and does not use a free export; clips from one video can cover up to 30 seconds a day. |
+| `compare` | boolean | no | Also write a side-by-side before/after video (source and enhanced, labelled) next to each output as \<name\>\_compare.mp4; the result carries comparePaths. |
+| `compare_labels` | string | no | Custom labels for compare, as "FIRST\|SECOND" (default: "BEFORE\|AFTER"). |
+| `compare_seconds` | number | no | Length of the compare video in seconds, taken a third of the way into the video (default 0: the whole video; 30 gives a short clip to show a customer). Range: 0 to 3600. |
+| `compare_layout` | string | no | Layout for compare: horizontal (default, side by side) or vertical (stacked top/bottom, avoids the very wide 32:9 frame two 16:9 panels make side by side). One of: `horizontal`, `vertical`. |
 
-Explicit parameters override the preset. Upscaling needs an NVIDIA RTX GPU; interpolation needs a Vulkan GPU (check with `get_status`).
+### get_file_info
 
-Arguments are checked before any work starts. A value outside an enumerated list (`upscale: "x9"`, `codec: "foo"`), a `crf` outside 1-51 and a non-integer number are errors that say which argument was wrong and what it accepts; none of them falls back to a default. A file with no video stream is refused with an error.
+**Get video file info.** Get a video file's metadata: codec, resolution, duration, bitrate, frame rate, audio, HDR (and what enhance_video will do with the HDR).
 
-**Returns**: success, inputPath, outputPaths; `skipped: true` when `skip_existing` left the video alone; deinterlaceNotice when a preset switched deinterlacing on; errors when something failed (the result then has `isError: true`). With a file path in `output_path` the output is exactly that file; otherwise it is `<name>_enhanced.mp4` in the folder.
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `input_path` | string | no | Absolute path to the video file (required). |
 
-During the trial, once the free full exports are used up, the output carries the watermark and is capped at 1280x720, and the result also has `trialWatermarked: true`. While the trial lasts, the result has a `trialNotice` that says how many free files are left or that they are used up, with the buy link.
+### get_license_status
 
----
-
-### list_presets
+**Get license and trial status.** Get the license and trial state before enhancing: registered or trial, free full exports left (freeFilesRemaining), and what exports become after the free ones (afterFreeFiles: watermark_720p = a watermark and output capped at 1280x720; 10-second clips are never branded). nextOutput says what the next full export will be: clean or watermark_720p.
 
 No parameters.
-
-**Returns**: an array of presets with id, name, description, features, codec, crf. `features` is the full pipeline in order, for example `["Stabilize:Medium", "Denoise:Strong", "Upscale:X2", "AudioCleanup:Strong"]` for `old_video_restoration` and `["Denoise:Light", "Interpolate:Fps30"]` for `smooth_motion`.
-
----
 
 ### get_status
 
+**Get GPU and license status.** Get system status including GPU capabilities, available tools, and license state.
+
 No parameters.
 
-**Returns**:
+### list_formats
 
-| Field | Contents |
-|-------|----------|
-| `system` | os, processors |
-| `gpu` | name, vendor, vramMb, vulkan, summary, recommendedTileSize, hwEncoders (h264/h265/av1/vp9) |
-| `tools` | vsrUpscale: whether the NVIDIA upscaling helper is installed |
-| `upscale` | Whether an `enhance_video` call with an upscale mode can run on this GPU: `available` (true or false), `state` (`available`, `unavailable` or `unknown`), `reason` and `note` when it cannot (`nvidia_without_rtx`, `non_nvidia_gpu`, `vsr_helper_missing`) |
-| `license` | registered, email; while in trial, freeExportsRemaining and freeExportAllowance (the full exports left, and the total including any newsletter bonus) |
+**List formats.** List the video containers AI Video Enhancer reads and writes, the output codecs (enhance_video codec) and the still formats of frame extraction: format, extensions, canImport, canExport, category.
 
-Read `upscale.available` before offering an upscale: `tools.vsrUpscale` only says the helper file exists, and on a machine without an NVIDIA RTX GPU every upscale job fails. Denoise, sharpen, stabilize and deinterlace still work there. `state: "unknown"` means the GPU could not be identified; upscale is not blocked.
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `input_only` | boolean | no | Only what is read (the CLI's --input). |
+| `output_only` | boolean | no | Only what is written (the CLI's --output). |
 
-## Example requests
+### list_presets
 
-> "Can my PC upscale video?"
->
-> The agent calls `get_status` and checks `upscale.available` (upscaling) and `gpu.vulkan` (interpolation).
+**List presets.** List available video enhancement presets.
 
-> "Restore C:\Videos\wedding-1998.avi."
->
-> The agent calls `analyze_video`, then `enhance_video` with `preset: "old_video_restoration"`. If `isInterlaced` is true the preset deinterlaces with `yadif` on its own; the agent can pass `deinterlace: "bwdif"` to choose another mode.
+No parameters.

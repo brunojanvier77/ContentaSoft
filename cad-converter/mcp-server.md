@@ -1,6 +1,8 @@
 # 3D CAD Converter: MCP server
 
-`cadconvert serve` exposes 4 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Desktop, Claude Code, Cursor, Windsurf and others) can inspect and convert 3D files on your PC.
+`cadconvert serve` exposes 5 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
+
+Generated from `cadconvert catalog`, version 1.0.32. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
 ## Setup
 
@@ -15,115 +17,92 @@
 }
 ```
 
-If your AI client cannot find `cadconvert`, use the full path, for example `"C:\\Users\\<you>\\AppData\\Local\\Programs\\CadConverter\\cadconvert.exe"`. See the [MCP config guide](../mcp-config/) for each client.
-
-In Claude Code on Windows one command adds it, and nothing else needs installing because the client calls the installed `cadconvert.exe` directly:
+If your AI client cannot find `cadconvert`, give the full path, for example `"C:\\Users\\<you>\\AppData\\Local\\Programs\\CadConverter\\cadconvert.exe"`. The [MCP config guide](../mcp-config/) covers each client. In Claude Code one command adds it:
 
 ```powershell
 claude mcp add cad-converter -- cadconvert serve
 ```
 
-Pass absolute paths to every tool. `convert_cad` refuses a relative `input_path` or `output_path` with an error, because a relative path would resolve against a folder the caller cannot see.
+Pass absolute paths to every tool.
 
 ## Protocol
 
 | Property | Value |
-|----------|-------|
+|---|---|
 | Transport | stdio, newline-delimited JSON-RPC 2.0 |
 | Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
 | Capabilities | `tools` only (no resources or prompts) |
 | Server name | `cad-converter` |
-| Server version | `1.0.27` |
+| Server version | `1.0.32` |
 
 All four ContentaSoft servers run on the same host, which behaves like this:
 
-- **stdout carries JSON-RPC only.** Logs and anything else go to stderr, so a client can parse every line it reads.
-- **`ping` is answered while a tool runs**, so a long conversion does not look like a hung server.
+- **stdout carries JSON-RPC only.** Logs go to stderr, so a client can parse every line it reads.
+- **`ping` is answered while a tool runs**, so a long job does not look like a hung server.
 - **`notifications/cancelled` cancels a running call.** The call stops and, as the specification says, gets no reply.
-- **Tool calls run one at a time**, in the order they arrive. `ping`, `tools/list` and cancellations are handled in between.
-- **Errors**: an unknown tool or method is a JSON-RPC error (`-32602`, `-32601`); a tool that cannot do its job returns a normal result with `isError: true` and a sentence that names the argument and what it accepts. A call missing a required argument says which one.
-- **Every tool has a `title` and `annotations`** (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`); see the next section.
-
-**Trial**: the server never refuses to start. The first 10 conversions (within 30 days of the first launch, plus 10 after the newsletter confirmation in the app) are at full quality. After that `convert_cad` still converts, as a trial export: STEP, IGES and BREP to a mesh format is meshed at `draft` whatever `tessellation` says, and a trial note goes into the file where the format has a place for one. The result then has `trialExport: true` and a `buyUrl`. See [Trial and license](README.md#trial-and-license). Register with `cadconvert register -k <key> -e <email>`.
+- **Tool calls run one at a time**, in the order they arrive.
+- **Errors**: an unknown tool or method is a JSON-RPC error; a tool that cannot do its job returns a normal result with `isError: true` and a sentence that names the problem.
+- **Licence first**: `get_license_status` returns the licence and trial state, so an agent can tell the user what a run will produce before it starts one.
 
 ## Tool annotations
 
-| Tool | Title | Read-only | Destructive | Network |
-|------|-------|:---------:|:-----------:|:-------:|
-| `convert_cad` | Convert 3D/CAD file | no | yes | no |
-| `get_file_info` | Get 3D file info | yes | no | no |
-| `detect_format` | Detect 3D format | yes | no | no |
-| `list_formats` | List supported formats | yes | no | no |
+| Tool | Title | Read-only | Destructive | Idempotent | Network |
+|---|---|---|---|---|---|
+| [`convert_cad`](#convert_cad) | Convert 3D/CAD file | no | yes | no | no |
+| [`detect_format`](#detect_format) | Detect 3D format | yes | no | yes | no |
+| [`get_file_info`](#get_file_info) | Get 3D file info | yes | no | yes | no |
+| [`get_license_status`](#get_license_status) | Get license and trial status | yes | no | yes | no |
+| [`list_formats`](#list_formats) | List supported formats | yes | no | yes | no |
 
-`convert_cad` is marked destructive because it writes to the exact `output_path` you give it and can replace a file that is already there (an output that would replace its own source is saved under another name instead). No tool uses the network. The three read-only tools are also marked idempotent.
+Destructive: the tool can replace a file that already exists. Network: the tool uses the internet.
 
 ## Tools
 
 ### convert_cad
 
-Convert STEP, IGES or BREP to a mesh format, or convert between mesh formats, including VRML (`.wrl`, `.vrml`, gzipped `.wrz`). VRML is read in metres and Y-up, as the specification says, so a 1 m cube is 1000 mm.
+**Convert 3D/CAD file.** Convert a 3D CAD file (STEP, IGES) to mesh formats (STL, OBJ, PLY, FBX, glTF, 3MF) or between mesh formats. Mesh sources include VRML (.wrl, .vrml, gzip .wrz): VRML is read in metres (a 1 m cube is 1000 mm) and Y-up, as the specification says. The result's `notes` list what an option could not do on this route (a STEP source is tessellated, not reduced; a STEP re-export cannot be rotated).
 
 | Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `input_path` | string | Yes | Absolute path to the source file |
-| `output_path` | string | Yes | Absolute path for the output file |
-| `format` | string | No | `stl`, `obj`, `ply`, `gltf`, `glb`, `3mf`, `dae`, `step`, `iges`, `fbx`, `vrml`, `off`, `brep` (default: from the output extension). A `format` that contradicts the output extension is an error |
-| `tessellation` | string | No | `draft`, `standard` (default), `fine`, `ultrafine` |
-| `units` | string | No | Target unit: `mm` (default), `cm`, `in`, `m`, `ft`. The source is read in the unit it declares; see [Units](README.md#units) |
-| `repair` | boolean | No | Repairs STEP, IGES and BREP surfaces before meshing (fixes broken edges and faces, closes small gaps). No effect on mesh sources such as STL or OBJ |
-| `binary` | boolean | No | Binary STL/PLY (default true) |
-
-The tessellation presets set these deflections (angular deflection in radians, the same unit as the CLI's `--angular`):
-
-| Preset | Linear | Angular |
-|--------|--------|---------|
-| `draft` | 1.0 | 5.0 |
-| `standard` | 0.1 | 0.5 |
-| `fine` | 0.01 | 0.1 |
-| `ultrafine` | 0.001 | 0.05 |
-
-**Returns**: success, input, output (the file that was written, which can differ from `output_path` when the requested name would have replaced the source), format, durationMs. More fields appear only when they apply: `meshFallback` (a fine mesh took too long and a coarser one was used), `warning` (a note about the conversion), `trialExport` and `buyUrl` (the output is a trial export, see above).
-
-Arguments are checked before anything is converted: a missing or non-string path, a relative path, an unknown `format`, `tessellation` or `units` value and a `format` that does not match the output extension are errors that name the argument.
-
-`convert_cad` has no up-axis or polygon-reduction parameter. For those, run the CLI (`cadconvert convert ... --up-axis y` or `--decimate 0.25`); see the [CLI reference](README.md#conversion-options).
-
----
-
-### get_file_info
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `path` | string | Yes | Absolute path to the 3D file |
-
-**Returns**: path, fileName, fileSize, format, units, boundingBoxUnits, partCount, triangleCount, vertexCount, hasMaterials, hasTextures, boundingBox (minX/minY/minZ, maxX/maxY/maxZ; STEP, IGES, BREP, USD and VRML files).
-
-A file that is missing, is not a 3D format or contains no readable geometry returns an error (`isError: true`) with the reason, not a result of zeros.
-
-`units` is the unit the file declares: STEP, IGES and 3MF carry one, glTF/GLB and VRML are always metres, FBX has `UnitScaleFactor`, Collada `<unit>` and USD `metersPerUnit` (centimetres when absent). A BREP file (which stores none) is read as millimetres. STL, OBJ, PLY and OFF carry no unit. `boundingBoxUnits` is the unit the bounding box is in.
-
----
+|---|---|---|---|
+| `input_path` | string | yes | Absolute path to the source 3D file. |
+| `output_path` | string | no | Absolute path for the converted output file. Give this or output_dir. |
+| `output_dir` | string | no | Absolute path of a folder: the output is written there, named after the input with the format's extension (format is then required). Give this or output_path. |
+| `format` | string | no | Output format: stl, obj, ply, gltf, glb, 3mf, dae, step, iges, fbx, vrml, off, brep. One of: `stl`, `obj`, `ply`, `gltf`, `glb`, `3mf`, `dae`, `step`, `iges`, `fbx`, `vrml`, `off`, `brep`. |
+| `quality` | string | no | Mesh quality for STEP/IGES/BREP sources: a preset (draft, standard, fine, ultrafine) or a linear deflection in mm ("0.1" = standard; lower = finer, e.g. "0.001"). Default: standard. No effect on mesh sources (STL, OBJ ...): they keep their triangles. |
+| `angular` | number or string | no | Angular deflection in radians for STEP/IGES/BREP sources (0.5 = about 29 degrees; lower = smoother curves). Default: the preset's value (0.5 for standard and for a numeric quality). |
+| `units` | string | no | Target units for conversion. One of: `mm`, `cm`, `in`, `m`, `ft`. |
+| `up_axis` | string | no | Rotate the model so this axis points up: y (game engines, glTF, three.js) or z (CAD, 3D printing). Default: unchanged. A STEP/IGES/BREP re-export cannot be rotated and the result's notes say so. One of: `y`, `z`, `unchanged`. |
+| `decimate` | number or string | no | Reduce mesh sources (STL, OBJ, PLY, glTF, FBX, 3MF ...) to this share of their triangles: 0.25 or "25%" keeps about a quarter. STEP/IGES/BREP sources are tessellated, not reduced - use quality instead; the result's notes say so. |
+| `max_size_mb` | number or string | no | glTF/GLB only: the largest file to write, in MB (5, 0.5, 15; 1 MB = 1,000,000 bytes). A file over it is written again with fewer triangles until it fits, down to 5% of its triangles. The result's withinBudget is true when the written file fits and false when it was written at the smallest size reached and is still over; outputBytes, trianglesBefore and trianglesAfter are what was measured. |
+| `repair` | boolean | no | Repair STEP/IGES/BREP surfaces before meshing (fixes broken edges and faces, closes small gaps). No effect on mesh sources such as STL or OBJ. |
+| `binary` | boolean | no | Use binary output for STL/PLY (default: true). |
+| `overwrite` | boolean | no | Replace an output file that already exists (default: write a renamed copy beside it, name_1). |
+| `skip_existing` | boolean | no | Leave the input alone when its output file already exists: nothing is converted and no free conversion is used; the result says skipped: true. |
 
 ### detect_format
 
+**Detect 3D format.** Detect the 3D file format and check if it is supported for import/export.
+
 | Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `path` | string | Yes | Absolute path to the file |
+|---|---|---|---|
+| `input_path` | string | yes | Absolute path to the 3D file. |
 
-**Returns**: path, supported, format, extension, displayName, description, canImport, canExport, category (`Parametric` or `Mesh`). A `.wrz` file reports format `Vrml` with `canExport: false`: gzipped VRML is read-only.
+### get_file_info
 
----
+**Get 3D file info.** Get metadata about a 3D file including format, parts, triangles, vertices, and bounding box.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `input_path` | string | yes | Absolute path to the 3D file. |
+
+### get_license_status
+
+**Get license and trial status.** Get the license and trial state before converting: registered or trial, free conversions left, trial days left, and what exports become after the trial (afterFreeFiles: draft_quality = Draft tessellation and a trial note in the file). nextOutput says what the next export will be: clean or draft_quality.
+
+No parameters.
 
 ### list_formats
 
-No parameters. **Returns** `formats`: an array with format, extension, extensions (every extension of the format), displayName, description, canImport, canExport and category for each of the 19 formats.
+**List supported formats.** List all supported 3D file formats with import/export capabilities.
 
-## Example requests
-
-> "Convert C:\Parts\bracket.step to STL for printing, smooth curves please."
->
-> The agent calls `convert_cad` with `input_path`, `output_path: "C:\\Parts\\bracket.stl"`, `tessellation: "fine"`.
-
-> "How big is this part?"
->
-> The agent calls `get_file_info` and reads `boundingBox` and `units`.
+No parameters.

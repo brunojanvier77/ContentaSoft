@@ -6,9 +6,9 @@ allowed-tools: Bash
 
 # Contenta Converter (image processing)
 
-Use the `contenta` CLI (Contenta Converter 9.0.39+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\ContentaConverter\contenta.exe`, on the user PATH. Check with `contenta --version` (it prints the build id after a `+`).
+Use the `contenta` CLI (Contenta Converter 9.0.41+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\ContentaConverter\contenta.exe`, on the user PATH. Check with `contenta --version` (it prints the build id after a `+`). Full reference: https://github.com/brunojanvier77/ContentaSoft/blob/main/contenta-converter/cli.md
 
-Every command accepts `--json` (machine-readable stdout), `--quiet` and `-v`. Inputs are positional; there is no `--input` flag. Relative and absolute paths both work. Check the exit code after each call.
+Every command accepts `--json`, `--plain`, `--quiet`, `-v/--verbose` and `--progress`. Input files and folders are positional. Relative and absolute paths both work. Check the exit code after each call.
 
 ## Commands
 
@@ -17,7 +17,7 @@ contenta convert <input> [options]              # one image
 contenta batch <input-dir> [options]            # a folder (not recursive unless --recursive); without -f each file keeps its format
 contenta info <file> --json                     # format, width/height, dpi, copyright, creator + full metadata
 contenta effects --json                         # 51 effects with parameters
-contenta formats --json                         # 102 input / 28 output extensions
+contenta formats --json [--input|--output]      # 102 input / 28 output extensions
 contenta pdf-album <files>... --output album.pdf [--photos-per-page N] [--page-size A4|Letter|Legal] [--embed-quality 1-100] [--background-image img --background-mode stretch|center|tile]
 contenta pdf-merge <files>... --output merged.pdf
 contenta slideshow <files>... --output reel.mp4 [--template T] [--audio music.mp3] [--duration ms] [--ken-burns M]
@@ -25,8 +25,8 @@ contenta ai-transform <input> --prompt "..." [--output path]   # needs GEMINI_AP
 contenta ai-transform <input> --remove-background [--bg-mode white|transparent|custom --bg-color #RRGGBB]
 contenta watch <dir> --output <dir> --format <fmt>             # runs until Ctrl+C
 contenta profile save|load|validate <file.json>
+contenta status --json                          # version, license block, bundled tools
 contenta register <email> <key>
-contenta status                                 # license, clean outputs left, bundled tools
 ```
 
 ## Main options (convert and batch)
@@ -34,13 +34,13 @@ contenta status                                 # license, clean outputs left, b
 - `-f/--format`: jpg, png, webp, tiff, bmp, gif, jxl, heic, avif, svg, pdf, ico (and the rest of `formats --output`)
 - `-q/--quality` 1-100 (default 90); `--png-compression` 0-9 for PNG
 - `--resize WxH --resize-mode fit|fill|stretch|longest-edge|shortest-edge|fit-with-background|crop-to-aspect`, `--resize-percent N`, `--dont-enlarge`. `fill`, `stretch`, `fit-with-background` and `crop-to-aspect` need both sides; `1920x` or `x1080` works with `fit`, `longest-edge` and `shortest-edge`.
-- `-o/--output <dir>` (default: next to the input); `--overwrite` (default writes a renamed copy); `--filename-pattern`
+- `-o/--output <dir>` (default: next to the input); `--overwrite` (default writes a renamed copy); `--skip-existing` (a re-run converts only what is missing); `--filename-pattern`
 - `--effects sepia sharpen` or `--effects "sepia,sharpen:window=5"` (spaces or commas); parameters as `name:key=value,key=value`, e.g. `"colorbrightnesscontrast:brightness=20,contrast=10"`. Unknown names or parameters exit 2 with the valid list; missing parameters take the app defaults. `flip:direction=horizontal|vertical`, `crop:x=0,y=0,width=800,height=600`. Names and ranges: `contenta effects`.
 - `--watermark "text" --watermark-position 0-8 (8 = bottom-right) --watermark-opacity 0-100`
 - Metadata: `--copyright --creator --title --description --keywords "a,b" --rights --creator-city --creator-country --creator-email --creator-url --gps "lat,lon" --datetime ISO8601`. Kept in WebP, HEIC and AVIF too (as XMP, since they have no IPTC block).
 - Multi-size: `--sizes 16,32,48` or `--sizes 1x,2x,3x --base-size 512`, `--size-preset favicon|appicon|srcset`. Writes one file per size (`logo-16.ico`, `logo-32.ico`, ...), not one multi-resolution ICO.
-- RAW: `--white-balance camera|auto|manual`, `--color-temperature K`, `--denoising`, `--sharpness-boost` (on by default for RAW input since 9.0.37, as in the app; `--sharpness-boost false` turns it off), `--color-boost`, `--contrast-boost`
-- batch only: `--include "*.jpg"`, `--exclude`, `--recursive`, `-w/--workers N` (default automatic)
+- RAW: `--white-balance camera|auto|manual`, `--color-temperature K`, `--denoising`, `--sharpness-boost` (on by default for RAW input, as in the app; `--sharpness-boost false` turns it off), `--color-boost`, `--contrast-boost`, `--exposure EV`
+- batch only: `--include "*.jpg"`, `--exclude`, `--recursive`, `-w/--workers N` (default automatic), `--report file.csv`
 - batch only: `--rename-pattern "shop_{seq:3}_{w}x{h}"` renames the outputs with Batch Rename tokens: `{name} {ext} {date} {date:FORMAT} {time} {year} {month} {camera} {make} {lens} {iso} {aperture} {focal} {w} {h} {gps} {seq} {seq:N} {folder}`
 - batch only: `--zip-output [--zip-split-size MB]` also packs the outputs into `contenta-converter-images.zip` (`_part2.zip`... when split; default 25 MB)
 - `--pdf-page N` (0-based) converts only that page of a multi-page PDF or TIFF; without it every page converts
@@ -48,7 +48,7 @@ contenta status                                 # license, clean outputs left, b
 
 ## Multi-page PDF and TIFF
 
-A multi-page PDF or TIFF converts every page. To JPG, PNG, WebP and the like you get one file per page (`scan_page001.jpg`, `scan_page002.jpg`, ...); to PDF or TIFF you get one multi-page file. `--pdf-page N` picks one page (0-based). One conversion writes at most 2000 pages (exit 4 and nothing written beyond that; use `--pdf-page`). With `--json` the result lists `outputs` and `pages`; in a `batch` summary `inputs` counts the files given and `total` the outputs written.
+A multi-page PDF or TIFF converts every page. To JPG, PNG, WebP and the like you get one file per page (`scan_page001.jpg`, `scan_page002.jpg`, ...); to PDF or TIFF you get one multi-page file. `--pdf-page N` picks one page (0-based). One conversion writes at most 2000 pages (a longer document is refused and nothing is written; use `--pdf-page`). With `--json` the result lists `outputs` and `pages`; in a `batch` summary `inputs` counts the files given and `total` the outputs written.
 
 ```bash
 contenta convert scan.tif -f jpg -o ./pages          # scan_page001.jpg, scan_page002.jpg, ...
@@ -58,7 +58,7 @@ contenta convert contract.pdf -f png --pdf-page 2     # the third page only
 
 ## Windows specifics
 
-- The examples are for Git Bash, which is what Claude Code's Bash tool runs on Windows: `./photos/*.jpg` expands there. `contenta` does not expand `*.jpg` itself, so in PowerShell pass `(Get-ChildItem .\photos\*.jpg).FullName` and write paths as `.\out`.
+- The examples are for Git Bash, which is what Claude Code's Bash tool runs on Windows: `./photos/*.jpg` expands there. `contenta` does not expand `*.jpg` itself (an unexpanded wildcard exits 3), so in PowerShell pass `(Get-ChildItem .\photos\*.jpg).FullName` and write paths as `.\out`.
 
 ## Platform sizes
 
@@ -69,10 +69,11 @@ Amazon 2000x2000 · Etsy 2700x2025 · Shopify 2048x2048 · eBay 1600x1600 · Ins
 - **Square product images (Amazon, Shopify, eBay):** `--resize-mode fit-with-background` with the platform's size from the table, for Amazon `--resize 2000x2000`. The whole photo is scaled into the square and the rest is padded with white; nothing is cropped. `fit` keeps the photo's shape (a 4:3 photo comes out 2000x1500), and `fill` crops to fill the square.
 - **Stay under a file size (for example 500 KB per photo):** write JPG or WebP and lower `-q` step by step (90, 80, 70, 60), reading `outputSize` (bytes) from `convert --json` after each try. If 60 is still too big, resize smaller as well. `-q` does not change PNG, which is lossless; switch to JPG or WebP. For a folder, find the quality on one typical file with `convert`, then run the `batch` with it.
 
-## Examples (verified on 9.0.39; the first line on 9.0.41)
+## Examples
 
 ```bash
 contenta batch ./products --output ./amazon-ready --format jpg --resize 2000x2000 --resize-mode fit-with-background
+contenta batch ./products --output ./amazon-ready --format jpg --resize 2000x2000 --resize-mode fit-with-background --skip-existing --json --progress
 contenta convert photo.cr2 --format jpg --quality 92 --output ./out
 contenta convert photo.jpg --output ./proofs --resize 1200x800 --watermark "(c) Studio" --watermark-position 8 --watermark-opacity 60
 contenta convert logo.png --sizes 16,32,48,64 --format ico --output ./icons
@@ -86,15 +87,19 @@ contenta batch ./products --output ./upload --format jpg --resize 2000x2000 --re
 contenta info photo.jpg --json
 ```
 
+## JSON output
+
+With `--json` stdout holds exactly one JSON object, also for errors and parse errors. Read `success` (boolean), `exitCode`, `error` (one sentence or `null`), `errors[]` (one entry per failed file), `warnings[]` and `outputs[]` (the files written; report these paths, not the ones you asked for). Trial keys appear when they apply: `trialWatermarked`, `trialNotice`, `freeFilesRemaining`, `buyUrl`. `batch --json` prints one result object; with `--progress` it first prints one `{"type":"progress","file":...,"status":"done|skipped|failed","completed":N,"total":T}` line per output, so skip the lines that start with `{"type":"progress"` and parse the last line.
+
 ## Exit codes
 
-0 success · 1 general error · 2 invalid arguments (an unknown option, a missing argument, a bad value for `--format`, `-q`, `--resize`, `--resize-mode`, `--color-space`, `--gps`, `--datetime`, `--pdf-page`, an unknown effect or effect parameter, or no Gemini key) · 3 not used (older versions: trial ended) · 4 conversion failed (also a page the document does not have) · 5 file or folder not found (also an unexpanded `*.jpg`) · 6 bundled tools missing (`contenta status`) · 130 cancelled. With `--json` every error, including a parse error, prints exactly one `{"success":false,"error":"...","exitCode":N}` object and nothing else on stdout.
+Same table in all four ContentaSoft CLIs: 0 OK · 1 unexpected error (a bug or a broken install; see the log) · 2 invalid arguments (unknown option, missing argument, a bad value for `--format`, `-q`, `--resize`, `--resize-mode`, `--color-space`, `--gps`, `--datetime`, `--pdf-page`, an unknown effect or effect parameter, a malformed profile, or no Gemini key; nothing was done) · 3 input not found or unreadable (also an unexpanded `*.jpg` and a missing profile) · 4 partial failure (a batch where some files failed) · 5 all failed (a failed `convert`) · 6 license or trial refused (also a key the server rejected) · 130 cancelled.
 
 ## Guidelines
 
-- Ask for or confirm the output folder; never overwrite originals unless the user asks (`--overwrite`).
+- Ask for or confirm the output folder; never overwrite originals unless the user asks (`--overwrite`). To resume an interrupted batch, rerun it with `--skip-existing`.
 - For marketplace or social sizes, use the table above: `--resize-mode fit-with-background` when the platform wants the exact size (square product images), `fit` when the photo only has to fit inside it.
 - `ai-transform` sends the image to Google and bills the user's own Gemini key; confirm before using it. `--prompt` is required unless `--remove-background` is given.
-- Trial: no end date. Every file converts; this computer's first 10 clean outputs (lifetime, plus 10 after the newsletter confirmation in the app) come out without a watermark, then output carries one, including `ai-transform` results. PDF albums, merged PDFs and slideshows are always marked during the trial. `contenta status --json` shows how many are left (`cleanOutputsLeft`). **A batch spends one clean output per file** (`--sizes` one per size). Before a batch, run `contenta status --json`. When `license.state` is `Trial`, tell the user before you start how many of the files will come out clean (`cleanOutputsLeft`; none for a PDF album, merged PDF or slideshow), that the rest will carry the trial watermark, and that a licence removes it: <https://www.contenta-converter.com/buy.php>. Every writing command and MCP tool says what it did: `--json` and the MCP results carry `trialWatermarked` (`true`, or for `batch` the number of marked outputs), `trialNotice` (one sentence with the buy link) and `cleanOutputsLeft`; the human output prints the notice as a yellow line. Registered installs get none of these. Nothing stops working; `contenta register <email> <key>` removes the watermark.
-- A `batch` in which any file fails exits 4 and names the file in `errors`; the other files are still converted (MCP `batch_convert` returns an error result in that case, so read its text). A folder with nothing to convert exits 0 with `"noMatchingFiles": true`, and `skippedFolders` lists folders that could not be read. `watch --json` prints `{"type":"watcherRestarted"}` when it has to re-attach to the folder.
-- MCP: `convert_image` and `batch_convert` also take `watermark_text`, `watermark_position` (0-8) and `watermark_opacity` (0-100), the same options as `--watermark*`.
+- Trial: no end date. Every file converts; this computer's first 10 clean outputs (lifetime, plus 10 after the newsletter confirmation in the app) come out without a watermark, then output carries one, including `ai-transform` results. PDF albums, merged PDFs and slideshows are always marked during the trial. **A batch spends one clean output per file** (`--sizes` one per size). Before a batch, run `contenta status --json` (MCP: `get_license_status`) and read its `license` object: `state` (`Trial` or `Registered`), `freeFilesRemaining`, `nextOutput` (`clean` or `watermark`) and `afterFreeFiles`. When `state` is `Trial`, tell the user before you start how many of the files will come out clean (`freeFilesRemaining`; none for a PDF album, merged PDF or slideshow), that the rest will carry the trial watermark, and that a licence removes it: <https://www.contenta-converter.com/buy.php>. Every writing command and MCP tool says what it did: `--json` and the MCP results carry `trialWatermarked` (`true`, or for `batch` the number of marked outputs), `trialNotice` (one sentence with the buy link) and `freeFilesRemaining`; the human output prints the notice as a yellow line. Registered installs get none of these. Nothing stops working; `contenta register <email> <key>` removes the watermark.
+- A `batch` in which some files fail exits 4 and names each file in `errors`; the other files are still converted (MCP `batch_convert` returns an error result in that case, so read its text). A folder with nothing to convert exits 0 with `"noMatchingFiles": true`, and `skippedFolders` lists folders that could not be read. `watch --json` prints `{"type":"watcherRestarted"}` when it has to re-attach to the folder.
+- MCP: `convert_image` and `batch_convert` also take `watermark_text`, `watermark_position` (0-8) and `watermark_opacity` (0-100), the same options as `--watermark*`. `get_file_info` and `list_formats` match `info` and `formats`.

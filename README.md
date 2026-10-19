@@ -4,20 +4,22 @@ Command-line tools and MCP servers for four Windows desktop apps that process im
 
 | Product | CLI | MCP tools | What you get |
 |---------|-----|-----------|--------------|
-| [Contenta Converter](https://www.contenta-converter.com) 9.0.36 | `contenta` | [10](contenta-converter/mcp-server.md) | Batch image conversion (102 input extensions including 30 camera RAW, 28 output), resize, watermark, metadata, effects, batch rename and ZIP, icon sets, multi-page PDF and TIFF to one file per page, PDF albums and merges, photo slideshows |
-| [VideoRecompress Studio](https://www.contenta-software.com/videorecompress/) 2026.2.22 | `videorecompress` | [5](videorecompress/mcp-server.md) | Smaller videos with H.265, AV1 or VP9, hardware encoding, 24 presets, batch and watch folders |
-| [AI Video Enhancer Studio](https://www.contenta-software.com/aivideoenhancer/) 2026.7.16 | `aivideoenhancer` | [4](ai-video-enhancer/mcp-server.md) | NVIDIA Video Super Resolution upscaling, RIFE AI interpolation to 30/60 fps, stabilization, denoise, still frames, highlight reels |
-| [3D CAD Converter](https://www.contenta-software.com/3dcadconverter/) 1.0.27 | `cadconvert` | [4](cad-converter/mcp-server.md) | STEP/IGES/BREP to STL, OBJ, 3MF, glTF/GLB, FBX and more; VRML in and out; 19 formats read, 14 written |
+| [Contenta Converter](https://www.contenta-converter.com) 9.0.41 | [`contenta`](contenta-converter/cli.md) | [13](contenta-converter/mcp-server.md) | Batch image conversion (102 input extensions including 30 camera RAW, 28 output), resize, watermark, metadata, effects, batch rename and ZIP, icon sets, multi-page PDF and TIFF to one file per page, PDF albums and merges, photo slideshows |
+| [VideoRecompress Studio](https://www.contenta-software.com/videorecompress/) 2026.2.25 | [`videorecompress`](videorecompress/cli.md) | [8](videorecompress/mcp-server.md) | Smaller videos with H.265, AV1 or VP9, hardware encoding, 24 presets, batch and watch folders |
+| [AI Video Enhancer Studio](https://www.contenta-software.com/aivideoenhancer/) 2026.7.21 | [`aivideoenhancer`](ai-video-enhancer/cli.md) | [7](ai-video-enhancer/mcp-server.md) | NVIDIA Video Super Resolution upscaling, RIFE AI interpolation to 30/60 fps, stabilization, denoise, still frames, highlight reels |
+| [3D CAD Converter](https://www.contenta-software.com/3dcadconverter/) 1.0.32 | [`cadconvert`](cad-converter/cli.md) | [5](cad-converter/mcp-server.md) | STEP/IGES/BREP to STL, OBJ, 3MF, glTF/GLB, FBX and more; VRML in and out; 19 formats read, 14 written |
 
-Each product folder has a README with every command, option and exit code, and examples checked against the version shown. Each MCP page lists every tool with its title and its read-only, destructive and network hints.
+Each product folder has a README with the main commands and worked examples, plus two references generated from the app itself, so they match the version shown: a CLI reference (`cli.md`) with every command, option and exit code, and an MCP reference (`mcp-server.md`) with every tool, its title and its read-only, destructive and network hints.
+
+The four CLIs work the same way. `status`, `info <file>`, `formats` and `register <email> <key>` exist in all of them; every command takes `--json`, `--plain`, `--quiet`, `-v/--verbose` and `--progress`; and the exit codes are the same: 0 OK, 1 unexpected error, 2 invalid arguments, 3 input not found, 4 partial failure, 5 all failed, 6 license or trial refused, 130 cancelled.
 
 ## Why a CLI instead of ImageMagick or FFmpeg?
 
 Those tools are excellent if you already know the flags. These CLIs package the decisions for common jobs:
 
 - `contenta convert photo.cr2 --format jpg` decodes a Canon RAW file with the bundled decoder; there is nothing else to install.
-- `videorecompress batch .\videos --preset-id phone_archive --output .\compressed` picks the codec, quality and GPU encoder, then checks every output before reporting success.
-- `cadconvert convert -i part.step -o part.stl --tessellation 0.01 --angular 0.1` meshes a STEP file with OpenCascade at a quality you choose.
+- `videorecompress batch .\videos --preset phone_archive --output .\compressed` picks the codec, quality and GPU encoder, then checks every output before reporting success.
+- `cadconvert convert part.step -o part.stl --quality 0.01 --angular 0.1` meshes a STEP file with OpenCascade at a quality you choose.
 - `aivideoenhancer enhance tape.avi -o .\restored --preset old_video_restoration` stabilizes, denoises and upscales in one pass.
 
 An AI agent connected to the MCP servers can do each of these in one tool call.
@@ -50,7 +52,7 @@ aivideoenhancer --version
 cadconvert --version
 ```
 
-`--version` prints the version followed by a build id (`9.0.36+<id>`). If a command is not found, or prints an older version than the table above, an older copy is earlier on `PATH`: call the exe by its full path, or uninstall the old copy.
+`--version` prints the version followed by a build id (`9.0.41+<id>`). If a command is not found, or prints an older version than the table above, an older copy is earlier on `PATH`: call the exe by its full path, or uninstall the old copy.
 
 ### 3. Try it
 
@@ -58,7 +60,7 @@ cadconvert --version
 contenta batch .\products --output .\amazon-ready --format jpg --resize 2000x2000 --resize-mode fit
 videorecompress recompress video.mp4 --codec h265 --crf 18 --output .\archive
 aivideoenhancer enhance .\clip.mp4 -o .\enhanced --upscale x2 --denoise light
-cadconvert convert -i model.step -o model.stl
+cadconvert convert model.step -o model.stl
 ```
 
 Relative and full paths both work in every CLI.
