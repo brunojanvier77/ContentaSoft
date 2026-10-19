@@ -6,7 +6,7 @@ allowed-tools: Bash
 
 # Contenta Converter (image processing)
 
-Use the `contenta` CLI (Contenta Converter 9.0.41+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\ContentaConverter\contenta.exe`, on the user PATH. Check with `contenta --version` (it prints the build id after a `+`). Full reference: https://github.com/brunojanvier77/ContentaSoft/blob/main/contenta-converter/cli.md
+Use the `contenta` CLI (Contenta Converter 9.0.42+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\ContentaConverter\contenta.exe`, on the user PATH. Check with `contenta --version` (it prints the build id after a `+`). Full reference: https://github.com/brunojanvier77/ContentaSoft/blob/main/contenta-converter/cli.md
 
 Every command accepts `--json`, `--plain`, `--quiet`, `-v/--verbose` and `--progress`. Input files and folders are positional. Relative and absolute paths both work. Check the exit code after each call.
 

@@ -6,7 +6,7 @@ allowed-tools: Bash
 
 # VideoRecompress Studio (video compression)
 
-Use the `videorecompress` CLI (VideoRecompress Studio 2026.2.25+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\VideoRecompressStudio\videorecompress.exe`, on the user PATH. Check with `videorecompress --version` (it prints the build id after a `+`). Full reference: https://github.com/brunojanvier77/ContentaSoft/blob/main/videorecompress/cli.md
+Use the `videorecompress` CLI (VideoRecompress Studio 2026.2.26+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\VideoRecompressStudio\videorecompress.exe`, on the user PATH. Check with `videorecompress --version` (it prints the build id after a `+`). Full reference: https://github.com/brunojanvier77/ContentaSoft/blob/main/videorecompress/cli.md
 
 Relative and full paths both work for inputs, `--output`, `--profile` and watermark images.
 
