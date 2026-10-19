@@ -12,6 +12,13 @@ Relative and full paths both work for inputs, `--output`, `--profile` and waterm
 
 Every command accepts `--json` (one JSON object on stdout, logs on stderr), `--plain`, `--quiet`, `-v/--verbose` and `--progress`.
 
+## Running commands
+
+- **MCP first:** when this app's MCP tools are connected (`recompress_video`, `batch_recompress`, `get_file_info` ...), use them for what they cover and the command line for the rest. They take paths and options as named fields, so there is no quoting or wildcard to get wrong. Give them full paths.
+- **One command per call:** run one `videorecompress` command at a time, with no `cd`, `&&`, `;`, pipes, loops, variables or `$(...)`. Anything else on the line can stop the run to ask the user for approval, and the CLI already handles folders and reports its results (below).
+- **Let the CLI do the folder work:** `videorecompress batch <folder>` compresses a folder and its subfolders (`--include "*.mp4"` picks the files, `--skip-existing` makes a re-run do only what is missing), and `recompress` and `batch` create a missing `--output` folder.
+- **Read the results, don't measure them:** every `--json` result lists the written files in `outputs`; `recompress` adds `outputSize` (bytes), `reductionPercent` and `durationMs`, and a `batch` summary adds `durationMs` and one `files` row per video. No `stat`, `date` or `Get-Item` wrapper is needed. To see what is in a folder, use the agent's own file tools.
+
 ## Commands
 
 ```bash

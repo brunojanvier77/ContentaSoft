@@ -10,6 +10,13 @@ Use the `cadconvert` CLI (3D CAD Converter 1.0.32+, Windows). Default per-user i
 
 Every command accepts `--json` (one JSON object on stdout), `--plain`, `--quiet`, `-v/--verbose` and `--progress`. A conversion that writes several part files lists the extra ones in `additionalOutputs`; side files such as `.bin` or `.mtl` are not listed. When stdout is not a terminal (or with `--plain`) the text output is plain `Key: Value` lines and ASCII tables, and every number uses a `.` decimal point with no thousands separator.
 
+## Running commands
+
+- **MCP first:** when this app's MCP tools are connected (`convert_cad`, `get_file_info`, `list_formats` ...), use them for what they cover and the command line for the rest. They take paths and options as named fields, so there is no quoting or wildcard to get wrong. Give them full paths.
+- **One command per call:** run one `cadconvert` command at a time, with no `cd`, `&&`, `;`, pipes, loops, variables or `$(...)`. Anything else on the line can stop the run to ask the user for approval, and the CLI already handles folders and reports its results (below).
+- **Let the CLI do the folder work:** `cadconvert batch <folder> -o <output-folder>` converts every 3D file in the folder and its subfolders (`--include "*.step"` picks the files, `--skip-existing` makes a re-run do only what is missing), and both `batch` and `convert -o` create the output folder when it is missing.
+- **Read the results, don't measure them:** every `--json` result lists the written files in `outputs`; `convert`, and each `files` row of a `batch`, add `outputBytes` and `durationMs`. No `stat`, `date` or `Get-Item` wrapper is needed. To see what is in a folder, use the agent's own file tools.
+
 ## Commands
 
 ```bash

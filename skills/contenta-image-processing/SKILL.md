@@ -10,6 +10,13 @@ Use the `contenta` CLI (Contenta Converter 9.0.41+, Windows). Default per-user i
 
 Every command accepts `--json`, `--plain`, `--quiet`, `-v/--verbose` and `--progress`. Input files and folders are positional. Relative and absolute paths both work. Check the exit code after each call.
 
+## Running commands
+
+- **MCP first:** when this app's MCP tools are connected (`convert_image`, `batch_convert`, `create_pdf_album` ...), use them for what they cover and the command line for the rest. They take paths and options as named fields, so there is no quoting or wildcard to get wrong. Give them full paths.
+- **One command per call:** run one `contenta` command at a time, with no `cd`, `&&`, `;`, pipes, loops, variables or `$(...)`. Anything else on the line can stop the run to ask the user for approval, and the CLI already handles folders and reports its results (below).
+- **Let the CLI do the folder work:** `contenta batch <folder>` converts a whole folder (`--include "*.jpg"` picks the files, `--recursive` adds subfolders, `--skip-existing` makes a re-run do only what is missing). `-o` on `convert`, `batch` and `pdf-album` creates missing folders. `pdf-album`, `slideshow` and `pdf-merge` take files, not a folder.
+- **Read the results, don't measure them:** every `--json` result lists the written files in `outputs`; `convert` adds `outputSize` (bytes) and `durationMs`, and a `batch` summary adds `durationMs`. No `stat`, `date` or `Get-Item` wrapper is needed. To see what is in a folder, use the agent's own file tools.
+
 ## Commands
 
 ```bash
@@ -58,7 +65,7 @@ contenta convert contract.pdf -f png --pdf-page 2     # the third page only
 
 ## Windows specifics
 
-- The examples are for Git Bash, which is what Claude Code's Bash tool runs on Windows: `./photos/*.jpg` expands there. `contenta` does not expand `*.jpg` itself (an unexpanded wildcard exits 3), so in PowerShell pass `(Get-ChildItem .\photos\*.jpg).FullName` and write paths as `.\out`.
+- The examples are for Git Bash, which is what Claude Code's Bash tool runs on Windows: `./photos/*.jpg` expands there. `contenta` does not expand `*.jpg` itself (an unexpanded wildcard exits 3). In PowerShell, convert a folder with `contenta batch .\photos --include "*.jpg"`, and give `pdf-album`, `slideshow` and `pdf-merge` their files by name (`contenta pdf-album a.jpg b.jpg c.jpg --output album.pdf`), since they do not take a folder. `(Get-ChildItem .\photos\*.jpg).FullName` also works, but it puts a second command inside the first, which can stop the run to ask the user. Write paths as `.\out`.
 
 ## Platform sizes
 
