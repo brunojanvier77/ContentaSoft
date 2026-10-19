@@ -166,7 +166,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `input_paths` | array of string | no | Required. Absolute paths to images. |
+| `input_paths` | array of string | yes | Required. Absolute paths to images. |
 | `output_path` | string | yes | Output PDF file path. |
 | `photos_per_page` | integer | no | Photos per page: 1, 2, 4, 6, 8, 10, 12, 16, 24, 48 (default: 4). |
 | `page_size` | string | no | Page size: A4, Letter, Legal (default: A4). |
@@ -179,7 +179,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `input_paths` | array of string | no | Required. Array of image file paths (minimum 2). |
+| `input_paths` | array of string | yes | Required. Array of image file paths (minimum 2). |
 | `output_path` | string | yes | Output video file path. |
 | `template` | string | no | Video template: tiktok (9:16), shorts (9:16), facebook-reels (9:16), snapchat (9:16), youtube (16:9), linkedin (16:9), twitter (16:9), instagram (1:1), pinterest (2:3). Default: youtube. |
 | `duration_ms` | integer | no | Duration per slide in milliseconds (default: 3000). |
@@ -196,7 +196,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `input_path` | string | no | Required. Absolute path to the image file. |
+| `input_path` | string | yes | Required. Absolute path to the image file. |
 
 ### get_file_info
 
@@ -232,7 +232,7 @@ No parameters.
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `input_paths` | array of string | no | Required. Absolute paths to PDF files, appended in this order. |
+| `input_paths` | array of string | yes | Required. Absolute paths to PDF files, appended in this order. |
 | `output_path` | string | yes | Output PDF file path. |
 
 ### read_metadata
@@ -241,7 +241,7 @@ No parameters.
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `input_path` | string | no | Required. Absolute path to the image file. |
+| `input_path` | string | yes | Required. Absolute path to the image file. |
 
 ### write_metadata
 
@@ -249,7 +249,7 @@ No parameters.
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `input_path` | string | no | Required. Absolute path to the image file. |
+| `input_path` | string | yes | Required. Absolute path to the image file. |
 | `copyright` | string | no | Copyright notice. |
 | `creator` | string | no | Creator/photographer name. |
 | `title` | string | no | Image title. |

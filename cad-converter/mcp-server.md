@@ -76,7 +76,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `max_size_mb` | number or string | no | glTF/GLB only: the largest file to write, in MB (5, 0.5, 15; 1 MB = 1,000,000 bytes). A file over it is written again with fewer triangles until it fits, down to 5% of its triangles. The result's withinBudget is true when the written file fits and false when it was written at the smallest size reached and is still over; outputBytes, trianglesBefore and trianglesAfter are what was measured. |
 | `repair` | boolean | no | Repair STEP/IGES/BREP surfaces before meshing (fixes broken edges and faces, closes small gaps). No effect on mesh sources such as STL or OBJ. |
 | `binary` | boolean | no | Use binary output for STL/PLY (default: true). |
-| `overwrite` | boolean | no | Replace an output file that already exists (default: write a renamed copy beside it, name_1). |
+| `overwrite` | boolean | no | Replace an output file that already exists (default: the existing file is kept and the new one is written beside it as name (1)). |
 | `skip_existing` | boolean | no | Leave the input alone when its output file already exists: nothing is converted and no free conversion is used; the result says skipped: true. |
 
 ### detect_format

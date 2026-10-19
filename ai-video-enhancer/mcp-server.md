@@ -1,6 +1,6 @@
 # AI Video Enhancer Studio: MCP server
 
-`aivideoenhancer serve` exposes 7 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
+`aivideoenhancer serve` exposes 6 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
 
 Generated from `aivideoenhancer catalog`, version 2026.7.21. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
@@ -48,7 +48,6 @@ All four ContentaSoft servers run on the same host, which behaves like this:
 
 | Tool | Title | Read-only | Destructive | Idempotent | Network |
 |---|---|---|---|---|---|
-| [`analyze_video`](#analyze_video) | Analyze video | yes | no | yes | no |
 | [`enhance_video`](#enhance_video) | Enhance video | no | no | no | no |
 | [`get_file_info`](#get_file_info) | Get video file info | yes | no | yes | no |
 | [`get_license_status`](#get_license_status) | Get license and trial status | yes | no | yes | no |
@@ -59,14 +58,6 @@ All four ContentaSoft servers run on the same host, which behaves like this:
 Destructive: the tool can replace a file that already exists. Network: the tool uses the internet.
 
 ## Tools
-
-### analyze_video
-
-**Analyze video.** Old name of get_file_info (same parameters, same answer): a video file's codec, resolution, duration, bitrate, frame rate, audio and HDR. Use get_file_info.
-
-| Parameter | Type | Required | Description |
-|---|---|---|---|
-| `input_path` | string | no | Absolute path to the video file (required). |
 
 ### enhance_video
 
@@ -106,7 +97,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
-| `input_path` | string | no | Absolute path to the video file (required). |
+| `input_path` | string | yes | Absolute path to the video file. |
 
 ### get_license_status
 

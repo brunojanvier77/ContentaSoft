@@ -1,6 +1,6 @@
 # VideoRecompress Studio: MCP server
 
-`videorecompress serve` exposes 8 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
+`videorecompress serve` exposes 7 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
 
 Generated from `videorecompress catalog`, version 2026.2.25. The same reference is on the website: [www.contenta-software.com/videorecompress/docs/cli.html](https://www.contenta-software.com/videorecompress/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
@@ -48,7 +48,6 @@ All four ContentaSoft servers run on the same host, which behaves like this:
 
 | Tool | Title | Read-only | Destructive | Idempotent | Network |
 |---|---|---|---|---|---|
-| [`analyze_video`](#analyze_video) | Analyze video (old name of get_file_info) | yes | no | yes | no |
 | [`batch_recompress`](#batch_recompress) | Batch recompress videos | no | no | no | no |
 | [`estimate_savings`](#estimate_savings) | Estimate space savings | yes | no | yes | no |
 | [`get_file_info`](#get_file_info) | Get video file info | yes | no | yes | no |
@@ -60,14 +59,6 @@ All four ContentaSoft servers run on the same host, which behaves like this:
 Destructive: the tool can replace a file that already exists. Network: the tool uses the internet.
 
 ## Tools
-
-### analyze_video
-
-**Analyze video (old name of get_file_info).** Deprecated: the old name of get_file_info (same arguments, same result). Use get_file_info.
-
-| Parameter | Type | Required | Description |
-|---|---|---|---|
-| `input_path` | string | yes | Absolute path to the video file. |
 
 ### batch_recompress
 
