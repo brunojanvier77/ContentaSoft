@@ -2,7 +2,7 @@
 
 `cadconvert` is the command line of 3D CAD Converter. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\CadConverter\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `cadconvert catalog`, version 1.0.32. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html).
+Generated from `cadconvert catalog`, version 1.0.34. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html).
 
 ```powershell
 cadconvert <command> [arguments] [options]

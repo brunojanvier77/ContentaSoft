@@ -2,7 +2,7 @@
 
 `aivideoenhancer` is the command line of AI Video Enhancer Studio. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\AIVideoEnhancerStudio\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `aivideoenhancer catalog`, version 2026.7.21. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html).
+Generated from `aivideoenhancer catalog`, version 2026.7.23. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html).
 
 ```powershell
 aivideoenhancer <command> [arguments] [options]

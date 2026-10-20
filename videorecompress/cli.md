@@ -2,7 +2,7 @@
 
 `videorecompress` is the command line of VideoRecompress Studio. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\VideoRecompressStudio\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `videorecompress catalog`, version 2026.2.25. The same reference is on the website: [www.contenta-software.com/videorecompress/docs/cli.html](https://www.contenta-software.com/videorecompress/docs/cli.html).
+Generated from `videorecompress catalog`, version 2026.2.27. The same reference is on the website: [www.contenta-software.com/videorecompress/docs/cli.html](https://www.contenta-software.com/videorecompress/docs/cli.html).
 
 ```powershell
 videorecompress <command> [arguments] [options]

@@ -2,7 +2,7 @@
 
 `contenta serve` exposes 13 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
 
-Generated from `contenta catalog`, version 9.0.41. The same reference is on the website: [www.contenta-converter.com/docs/cli.html](https://www.contenta-converter.com/docs/cli.html). The command line is documented in [cli.md](cli.md).
+Generated from `contenta catalog`, version 9.0.43. The same reference is on the website: [www.contenta-converter.com/docs/cli.html](https://www.contenta-converter.com/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
 ## Setup
 
@@ -33,7 +33,7 @@ Pass absolute paths to every tool.
 | Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
 | Capabilities | `tools` only (no resources or prompts) |
 | Server name | `contenta-converter` |
-| Server version | `9.0.41` |
+| Server version | `9.0.43` |
 
 All four ContentaSoft servers run on the same host, which behaves like this:
 
