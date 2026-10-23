@@ -173,7 +173,7 @@ aivideoenhancer enhance <input> [options]
 
 | Option | Type | Description |
 |---|---|---|
-| `--output` | string | Output directory (default: beside each source). |
+| `--output` | string | Output file or folder. A folder: an existing one, a path ending in \\ or /, or a name without an extension (the output is named after the input); anything else is the output file; a file must end in .mp4, .mov or .mkv (it picks the container). Default: beside the source. |
 | `--preset` | string | Preset name (e.g. tape_restoration for VHS/Hi8/MiniDV captures: CPU only, no graphics card needed; `presets` lists them all). With the other presets an interlaced source (DV, DVD, TV capture) gets --deinterlace yadif automatically unless you pass --deinterlace yourself. |
 | `--profile` | string | Load the enhancement settings from a JSON file (the EnhancementProfile fields, e.g. {"upscale":"X2","denoise":"Light","outputCodec":"H265","crfValue":18}); the options below override it. Not with --preset. |
 | `--upscale` | string | Upscale: off\|enhance\|x2\|x3\|x4 (enhance = clean up at same resolution). |

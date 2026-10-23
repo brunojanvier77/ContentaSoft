@@ -293,7 +293,7 @@ videorecompress recompress <input> [options]
 
 | Option | Type | Description |
 |---|---|---|
-| `--output` | string | Output directory. |
+| `--output` | string | Output file or folder. A folder: an existing one, a path ending in \\ or /, or a name without an extension (the output is named after the input); anything else is the output file; a file's extension picks the container (.mp4 .mkv .webm .mov .ts). Default: the input's folder. |
 | `--codec` | string | Video codec: h264, h265, av1, vp9, copy. |
 | `--crf` | integer | Constant Rate Factor (0-63). |
 | `--quality-mode` | string | Quality mode: crf, cbr, twopass. |

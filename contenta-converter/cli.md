@@ -226,7 +226,7 @@ contenta convert <input> [options]
 
 | Option | Type | Description |
 |---|---|---|
-| `--output` | string | Output directory (default: same as input). |
+| `--output` | string | Output file or folder. A folder: an existing one, a path ending in \\ or /, or a name without an extension (the output is named after the input); anything else is the output file. Default: the input's folder. |
 | `--format` | string | Output format (jpg, png, webp, tiff, bmp, gif, jxl, heic, avif, svg, pdf, ico). |
 | `--quality` | integer | Quality 1-100. |
 | `--resize` | string | Resize to WxH (e.g., 1920x1080). |
