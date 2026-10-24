@@ -278,10 +278,10 @@ Exit 2 also covers a badly shaped license key, a `-f` that contradicts the outpu
 
 ## Trial and license
 
-- **10 free conversions at full quality** within 30 days of the first launch (plus 10 more after you confirm the newsletter in the app). The count is per computer, never per batch.
+- **10 free conversions at full quality**, with no end date (plus 10 more after you confirm the newsletter in the app). The count is per computer, never per batch; nothing expires.
 - **After that nothing is blocked.** The CLI, `batch`, `watch` and the MCP server keep converting, as trial exports: STEP, IGES and BREP to a mesh format is meshed at the `draft` quality whatever you chose, and every trial export carries a note in the file where the format has a place for one (all of them except FBX). Conversions that do not mesh a CAD file (mesh to mesh, STEP to IGES) keep their full geometry and carry the note only. There is no watermark.
 - `convert` and `batch` print `Buy:` and a link when an output was a trial export; `--json` and the MCP tool return `trialExport: true` and a `buyUrl`.
-- `cadconvert status` shows the free conversions and trial days left. In `cadconvert status --json` the `license` object has `state` (`Trial` or `Registered`), `freeFilesRemaining`, `trialDaysRemaining`, `trialExpired`, `nextOutput` (`clean` or `draft_quality`) and `afterFreeFiles`; the MCP tool `get_license_status` returns the same object.
+- `cadconvert status` shows the free conversions left. In `cadconvert status --json` the `license` object has `state` (`Trial` or `Registered`), `freeFilesRemaining`, `nextOutput` (`clean` or `draft_quality`) and `afterFreeFiles`, the same shape as the other Contenta CLIs; the MCP tool `get_license_status` returns the same object.
 - License: **$179 one-time** for a lifetime license; the [buy page](https://www.contenta-software.com/3dcadconverter/buy.php) also lists a quarterly plan. Registering removes the trial exports.
 - Register from the CLI with `cadconvert register <email> <key>`, or in the desktop app.
 

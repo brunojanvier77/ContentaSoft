@@ -114,7 +114,7 @@ Every product has a free trial with no account and no credit card, and the CLI a
 | Contenta Converter | 10 clean outputs per computer, for life; no end date. PDF albums, merged PDFs and slideshows are always marked | Every later output carries a watermark | $129 |
 | VideoRecompress Studio | 10 files without restrictions, for life; no end date | Watermark and a 10-minute cut | $79 |
 | AI Video Enhancer Studio | 5 full exports at full resolution, for life; no end date. Free clean 10-second clips with `enhance --clip` | Watermark and a 1280x720 cap | $129 |
-| 3D CAD Converter | 10 conversions at full quality within 30 days of the first launch | Conversion continues as a trial export: draft-quality meshes for STEP, IGES and BREP, and a note in the file. No watermark | $179 |
+| 3D CAD Converter | 10 conversions at full quality (plus a newsletter bonus), no end date | Conversion continues as a trial export: draft-quality meshes for STEP, IGES and BREP, and a note in the file. No watermark | $179 |
 
 A lifetime license is a one-time payment and removes the trial limits. Each product's buy page also lists a quarterly plan.
 
