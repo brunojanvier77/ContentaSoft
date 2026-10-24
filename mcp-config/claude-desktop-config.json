@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "contenta-converter": {
+    "contenta-photo-converter": {
       "command": "contenta",
       "args": ["serve"]
     },

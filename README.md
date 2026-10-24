@@ -78,7 +78,7 @@ For Claude Desktop, add this to `%APPDATA%\Claude\claude_desktop_config.json` an
 ```json
 {
   "mcpServers": {
-    "contenta-converter": { "command": "contenta", "args": ["serve"] },
+    "contenta-photo-converter": { "command": "contenta", "args": ["serve"] },
     "videorecompress": { "command": "videorecompress", "args": ["serve"] },
     "ai-video-enhancer": { "command": "aivideoenhancer", "args": ["serve"] },
     "cad-converter": { "command": "cadconvert", "args": ["serve"] }

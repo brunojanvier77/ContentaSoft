@@ -33,7 +33,7 @@ Edit `%APPDATA%\Claude\claude_desktop_config.json` (Settings > Developer > Edit 
 ```json
 {
   "mcpServers": {
-    "contenta-converter": { "command": "contenta", "args": ["serve"] },
+    "contenta-photo-converter": { "command": "contenta", "args": ["serve"] },
     "videorecompress": { "command": "videorecompress", "args": ["serve"] },
     "ai-video-enhancer": { "command": "aivideoenhancer", "args": ["serve"] },
     "cad-converter": { "command": "cadconvert", "args": ["serve"] }
@@ -78,7 +78,7 @@ Add to `.cursor\mcp.json` in your project, or to `%USERPROFILE%\.cursor\mcp.json
 ```json
 {
   "mcpServers": {
-    "contenta-converter": { "command": "contenta", "args": ["serve"] }
+    "contenta-photo-converter": { "command": "contenta", "args": ["serve"] }
   }
 }
 ```
@@ -90,7 +90,7 @@ Add to `%USERPROFILE%\.codeium\windsurf\mcp_config.json`:
 ```json
 {
   "mcpServers": {
-    "contenta-converter": { "command": "contenta", "args": ["serve"] }
+    "contenta-photo-converter": { "command": "contenta", "args": ["serve"] }
   }
 }
 ```
@@ -102,7 +102,7 @@ Contenta Converter's `ai_transform` tool uses your own Google Gemini API key. Pu
 ```json
 {
   "mcpServers": {
-    "contenta-converter": {
+    "contenta-photo-converter": {
       "command": "contenta",
       "args": ["serve"],
       "env": { "GEMINI_API_KEY": "<your key>" }

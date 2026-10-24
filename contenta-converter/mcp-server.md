@@ -9,7 +9,7 @@ Generated from `contenta catalog`, version 9.0.43. The same reference is on the 
 ```json
 {
   "mcpServers": {
-    "contenta-converter": {
+    "contenta-photo-converter": {
       "command": "contenta",
       "args": ["serve"]
     }
