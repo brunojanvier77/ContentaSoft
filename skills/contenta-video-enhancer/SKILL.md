@@ -70,11 +70,14 @@ Frames always go into `<dir>\<name>_frames\` (one subfolder per video).
 ## remix
 
 ```bash
-aivideoenhancer remix suggest <file> [--duration 30] [--clips N] [--min-clip 3] [--max-clip 6] [--threshold 10] [--audio-weight 0.4] [--json]
-aivideoenhancer remix render <file> --clips "1-4,8-11" -o <reel.mp4> [--aspect original|9:16|1:1|16:9] [--music <file>] [--music-volume 30] [--duck] [--mute] [--max-duration 30]
+aivideoenhancer remix suggest <file>... [--folder <dir>] [--duration 30] [--clips N] [--share duration|equal|score] [--order recorded|listed|best] [--min-clip 3] [--max-clip 6] [--threshold 10] [--audio-weight 0.4] [--json]
+aivideoenhancer remix render <file>... --clips "1-4,8-11" -o <reel.mp4> [--aspect original|9:16|1:1|16:9] [--music <file>] [--music-volume 30] [--duck] [--mute] [--max-duration 30]
 ```
 
-`remix suggest` prints a ready-to-run `remix render` command. `remix render` writes one H.264 MP4.
+Several files (or `--folder <dir>`) make one reel from the best moments across all of them; sources
+of different size, frame rate or audio are normalised to one profile. With several inputs each
+`--clips` range carries the input index: `--clips "0:12-16,1:40-44.5"`. `remix suggest` prints a
+ready-to-run `remix render` command. `remix render` writes one H.264 MP4.
 
 ## Examples
 
