@@ -2,7 +2,7 @@
 
 `aivideoenhancer` is the command line of AI Video Enhancer Studio. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\AIVideoEnhancerStudio\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `aivideoenhancer catalog`, version 2026.7.23. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html).
+Generated from `aivideoenhancer catalog`, version 2026.7.24. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html).
 
 ```powershell
 aivideoenhancer <command> [arguments] [options]
@@ -24,9 +24,9 @@ Every command has `--help`. Older spellings of some commands and options still w
 | [`aivideoenhancer info <file>`](#aivideoenhancer-info) | Show a video file's metadata: codec, resolution, duration, frame rate, bitrate, audio, HDR. |
 | [`aivideoenhancer presets`](#aivideoenhancer-presets) | List available enhancement presets. |
 | [`aivideoenhancer register <email> <key>`](#aivideoenhancer-register) | Register your license key. |
-| [`aivideoenhancer remix`](#aivideoenhancer-remix) | Suggest and render highlight-reel remixes from a video. |
-| [`aivideoenhancer remix render <input> --clips <clips> --output <output>`](#aivideoenhancer-remix-render) | Render clip ranges into one H.264 MP4. |
-| [`aivideoenhancer remix suggest <input>`](#aivideoenhancer-remix-suggest) | Suggest highlight clip ranges via scene detection. |
+| [`aivideoenhancer remix`](#aivideoenhancer-remix) | Suggest and render highlight-reel remixes from one video or several. |
+| [`aivideoenhancer remix render <input>... --clips <clips> --output <output>`](#aivideoenhancer-remix-render) | Render clip ranges into one H.264 MP4. |
+| [`aivideoenhancer remix suggest <input>...`](#aivideoenhancer-remix-suggest) | Suggest highlight clip ranges via scene detection. |
 | [`aivideoenhancer serve`](#aivideoenhancer-serve) | Start MCP server for AI agent integration. |
 | [`aivideoenhancer status`](#aivideoenhancer-status) | Show system status, GPU capabilities and license / trial state. |
 | [`aivideoenhancer watch <input>`](#aivideoenhancer-watch) | Watch a folder and enhance each video that arrives (until Ctrl+C). |
@@ -286,7 +286,7 @@ Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
 
 ### aivideoenhancer remix
 
-Suggest and render highlight-reel remixes from a video.
+Suggest and render highlight-reel remixes from one video or several.
 
 Subcommands: `aivideoenhancer remix render`, `aivideoenhancer remix suggest`.
 
@@ -295,16 +295,17 @@ Subcommands: `aivideoenhancer remix render`, `aivideoenhancer remix suggest`.
 Render clip ranges into one H.264 MP4.
 
 ```
-aivideoenhancer remix render <input> --clips <clips> --output <output> [options]
+aivideoenhancer remix render <input>... --clips <clips> --output <output> [options]
 ```
 
 | Argument | Description |
 |---|---|
-| `<input>` | Input video file. |
+| `<input>` | Input video file(s); several make one reel from the best moments across all of them. |
 
 | Option | Type | Description |
 |---|---|---|
-| `--clips` | string, required | Clip ranges: "start-end,start-end,..." (sec or hh:mm:ss). |
+| `--folder` | string | Add every supported video directly inside this folder (sorted by name). |
+| `--clips` | string, required | Clip ranges: "start-end,start-end,..." (sec or hh:mm:ss); with several inputs prefix each range with the input index: "0:12-16,1:40-44.5". |
 | `--output` | string, required | Output MP4 path. |
 | `--max-duration` | number | Cap total output length (seconds). |
 | `--mute` | boolean | Drop audio. |
@@ -319,23 +320,26 @@ aivideoenhancer remix render <input> --clips <clips> --output <output> [options]
 Suggest highlight clip ranges via scene detection.
 
 ```
-aivideoenhancer remix suggest <input> [options]
+aivideoenhancer remix suggest <input>... [options]
 ```
 
 | Argument | Description |
 |---|---|
-| `<input>` | Input video file. |
+| `<input>` | Input video file(s); several make one reel from the best moments across all of them. |
 
 | Option | Type | Description |
 |---|---|---|
+| `--folder` | string | Add every supported video directly inside this folder (sorted by name). |
 | `--duration` | number | Target total highlight duration in seconds. |
 | `--clips` | integer | Number of clips (default derived from --duration, 5-8). |
-| `--window-start` | string | Analysis window start (sec or hh:mm:ss); required for videos \> 4 hours. |
+| `--window-start` | string | Analysis window start (sec or hh:mm:ss), applied to every input; required for videos \> 4 hours. |
 | `--window-end` | string | Analysis window end (sec or hh:mm:ss); defaults to start + up to 4 hours. |
 | `--min-clip` | number | Minimum clip length (seconds). |
 | `--max-clip` | number | Maximum clip length (seconds). |
 | `--threshold` | number | Scene-detection threshold 0-100 (higher = fewer cuts). |
 | `--audio-weight` | number | Blend weight 0-1 for audio-loudness spikes vs scene changes (0 = scene detection only); finds loud moments in static-camera footage. |
+| `--share` | enum | With several inputs, how the clips are shared between them: duration (default), equal, score. |
+| `--order` | enum | With several inputs, the reel order: recorded (default), listed, best. |
 
 ### aivideoenhancer serve
 

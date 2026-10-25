@@ -6,7 +6,7 @@ allowed-tools: Bash
 
 # Contenta Converter (image processing)
 
-Use the `contenta` CLI (Contenta Converter 9.0.42+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\ContentaConverter\contenta.exe`, on the user PATH. Check with `contenta --version` (it prints the build id after a `+`). Full reference: https://github.com/brunojanvier77/ContentaSoft/blob/main/contenta-converter/cli.md
+Use the `contenta` CLI (Contenta Converter 9.0.44+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\ContentaConverter\contenta.exe`, on the user PATH. Check with `contenta --version` (it prints the build id after a `+`). Full reference: https://github.com/brunojanvier77/ContentaSoft/blob/main/contenta-converter/cli.md
 
 Every command accepts `--json`, `--plain`, `--quiet`, `-v/--verbose` and `--progress`. Input files and folders are positional. Relative and absolute paths both work. Check the exit code after each call.
 
@@ -47,6 +47,7 @@ contenta register <email> <key>
 - Metadata: `--copyright --creator --title --description --keywords "a,b" --rights --creator-city --creator-country --creator-email --creator-url --gps "lat,lon" --datetime ISO8601`. Kept in WebP, HEIC and AVIF too (as XMP, since they have no IPTC block).
 - Multi-size: `--sizes 16,32,48` or `--sizes 1x,2x,3x --base-size 512`, `--size-preset favicon|appicon|srcset`. Writes one file per size (`logo-16.ico`, `logo-32.ico`, ...), not one multi-resolution ICO.
 - RAW: `--white-balance camera|auto|manual`, `--color-temperature K`, `--denoising`, `--sharpness-boost` (on by default for RAW input, as in the app; `--sharpness-boost false` turns it off), `--color-boost`, `--contrast-boost`, `--exposure EV`
+- RAW highlights and exposure: `--raw-highlights clip|unclip|blend|rebuild[:3-9]` (default clip; unclip and rebuild come out darker, so raise `--exposure`), `--raw-exposure-mode shift|gain` (shift, the default, applies the exposure to the RAW data like the camera; gain is a brightness multiplier after development), `--raw-protect-highlights` (a positive exposure in shift mode without blown highlights), `--raw-auto-bright auto|on|off` (auto: on for camera-maker RAW, off for DNG files that carry their own rendering)
 - batch only: `--include "*.jpg"`, `--exclude`, `--recursive`, `-w/--workers N` (default automatic), `--report file.csv`
 - batch only: `--rename-pattern "shop_{seq:3}_{w}x{h}"` renames the outputs with Batch Rename tokens: `{name} {ext} {date} {date:FORMAT} {time} {year} {month} {camera} {make} {lens} {iso} {aperture} {focal} {w} {h} {gps} {seq} {seq:N} {folder}`
 - batch only: `--zip-output [--zip-split-size MB]` also packs the outputs into `contenta-converter-images.zip` (`_part2.zip`... when split; default 25 MB)

@@ -2,7 +2,7 @@
 
 `contenta serve` exposes 13 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
 
-Generated from `contenta catalog`, version 9.0.43. The same reference is on the website: [www.contenta-converter.com/docs/cli.html](https://www.contenta-converter.com/docs/cli.html). The command line is documented in [cli.md](cli.md).
+Generated from `contenta catalog`, version 9.0.44. The same reference is on the website: [www.contenta-converter.com/docs/cli.html](https://www.contenta-converter.com/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
 ## Setup
 
@@ -20,7 +20,7 @@ Generated from `contenta catalog`, version 9.0.43. The same reference is on the 
 If your AI client cannot find `contenta`, give the full path, for example `"C:\\Users\\<you>\\AppData\\Local\\Programs\\ContentaConverter\\contenta.exe"`. The [MCP config guide](../mcp-config/) covers each client. In Claude Code one command adds it:
 
 ```powershell
-claude mcp add contenta-converter -- contenta serve
+claude mcp add contenta-photo-converter -- contenta serve
 ```
 
 Pass absolute paths to every tool.
@@ -32,8 +32,8 @@ Pass absolute paths to every tool.
 | Transport | stdio, newline-delimited JSON-RPC 2.0 |
 | Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
 | Capabilities | `tools` only (no resources or prompts) |
-| Server name | `contenta-converter` |
-| Server version | `9.0.43` |
+| Server name | `contenta-photo-converter` |
+| Server version | `9.0.44` |
 
 All four ContentaSoft servers run on the same host, which behaves like this:
 
@@ -119,6 +119,10 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `fast_raw_decode` | boolean | no | RAW input only. Faster RAW decode at half resolution when the output is at most half the size of the sensor image (slightly softer; for web and preview exports). |
 | `raw_16bit` | boolean | no | RAW input only. Decode RAW at 16 bits per channel and write a 16-bit TIFF. Needs format tiff and no effects, RAW boosts, watermark or embedded preview (they work on 8 bits per channel); otherwise the file is written with 8 bits and the result carries a warning. Turns the default RAW sharpening off; a file written with 8 bits instead is named in the result's warnings. |
 | `embedded_preview` | boolean | no | RAW input only. Convert the JPEG preview the camera stored in the RAW file instead of developing the RAW data: the fastest way, but the preview can be smaller than the full picture, already has the camera's look, and is 8-bit; white balance, denoising and exposure do not apply to it. A file without a preview is developed as usual (default: false). |
+| `raw_highlights` | string | no | RAW input only. RAW highlight recovery: clip (default: blown areas go white), unclip (keep the detail, can turn pink), blend (soft, neutral highlights), rebuild\[:3-9\] (rebuild the lost colour from the other channels; 3 = whiter, 9 = more colour, default 5). unclip and rebuild turn the automatic brightening off, so the picture comes out darker: raise the exposure to compensate (e.g. rebuild:7). |
+| `raw_exposure_mode` | string | no | RAW input only. How the RAW exposure is applied: shift (the default when the exposure is given: like the camera's exposure, on the RAW data before development) or gain (a brightness multiplier after development, how profiles saved by earlier versions apply it). One of: `gain`, `shift`. |
+| `raw_protect_highlights` | boolean | no | RAW input only. With a positive RAW exposure in shift mode: brighten without blowing out the highlights (default: false). |
+| `raw_auto_bright` | string | no | RAW input only. RAW automatic brightening: auto (default: on for camera-maker RAW files such as NEF, CR2, ARW and for most DNG files; off for DNG files that carry their own rendering (a tone curve, a gain map or a baseline exposure of +0.5 EV or more) and while an exposure shift is applied, which it would otherwise cancel), on, off. auto:T or on:T also sets the share of pixels allowed to reach white, 0.0001 to 0.5 (default 0.01; higher = brighter), e.g. on:0.02; under an exposure shift only on:T keeps it. |
 | `workers` | integer | no | Parallel workers (default: automatic - one per logical CPU, 2x for JPEG downscales to half size or less, one per physical core for RAW batches on 8+ core CPUs). Minimum: 1. |
 
 ### convert_image
@@ -157,6 +161,10 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `fast_raw_decode` | boolean | no | RAW input only. Faster RAW decode at half resolution when the output is at most half the size of the sensor image (slightly softer; for web and preview exports). |
 | `raw_16bit` | boolean | no | RAW input only. Decode RAW at 16 bits per channel and write a 16-bit TIFF. Needs format tiff and no effects, RAW boosts, watermark or embedded preview (they work on 8 bits per channel); otherwise the file is written with 8 bits and the result carries a warning. Turns the default RAW sharpening off; a file written with 8 bits instead is named in the result's warnings. |
 | `embedded_preview` | boolean | no | RAW input only. Convert the JPEG preview the camera stored in the RAW file instead of developing the RAW data: the fastest way, but the preview can be smaller than the full picture, already has the camera's look, and is 8-bit; white balance, denoising and exposure do not apply to it. A file without a preview is developed as usual (default: false). |
+| `raw_highlights` | string | no | RAW input only. RAW highlight recovery: clip (default: blown areas go white), unclip (keep the detail, can turn pink), blend (soft, neutral highlights), rebuild\[:3-9\] (rebuild the lost colour from the other channels; 3 = whiter, 9 = more colour, default 5). unclip and rebuild turn the automatic brightening off, so the picture comes out darker: raise the exposure to compensate (e.g. rebuild:7). |
+| `raw_exposure_mode` | string | no | RAW input only. How the RAW exposure is applied: shift (the default when the exposure is given: like the camera's exposure, on the RAW data before development) or gain (a brightness multiplier after development, how profiles saved by earlier versions apply it). One of: `gain`, `shift`. |
+| `raw_protect_highlights` | boolean | no | RAW input only. With a positive RAW exposure in shift mode: brighten without blowing out the highlights (default: false). |
+| `raw_auto_bright` | string | no | RAW input only. RAW automatic brightening: auto (default: on for camera-maker RAW files such as NEF, CR2, ARW and for most DNG files; off for DNG files that carry their own rendering (a tone curve, a gain map or a baseline exposure of +0.5 EV or more) and while an exposure shift is applied, which it would otherwise cancel), on, off. auto:T or on:T also sets the share of pixels allowed to reach white, 0.0001 to 0.5 (default 0.01; higher = brighter), e.g. on:0.02; under an exposure shift only on:T keeps it. |
 | `lens_corrections` | boolean | no | Apply the lens corrections a DNG file carries: distortion, vignetting, shading (default: true). No effect on other inputs. |
 | `pdf_page` | integer | no | Multi-page PDF or TIFF: convert only this page (0-based: 0 is the first page). Omit it to convert EVERY page: one output file each (name_page001.jpg, name_page002.jpg, ...), or one multi-page file when the output format is pdf or tiff; the result lists every file in outputs. Minimum: 0. |
 

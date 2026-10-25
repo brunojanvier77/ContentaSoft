@@ -2,7 +2,7 @@
 
 `contenta` is the command line of Contenta Converter. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\ContentaConverter\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `contenta catalog`, version 9.0.43. The same reference is on the website: [www.contenta-converter.com/docs/cli.html](https://www.contenta-converter.com/docs/cli.html).
+Generated from `contenta catalog`, version 9.0.44. The same reference is on the website: [www.contenta-converter.com/docs/cli.html](https://www.contenta-converter.com/docs/cli.html).
 
 ```powershell
 contenta <command> [arguments] [options]
@@ -201,6 +201,10 @@ contenta batch <input-dir> [options]
 | `--fast-raw-decode` | boolean | Faster RAW decode at half resolution when the output is at most half the size of the sensor image (slightly softer; for web and preview exports). |
 | `--raw-16bit` | boolean | Decode RAW at 16 bits per channel and write a 16-bit TIFF. Needs -f tiff and no effects, RAW boosts, watermark or embedded preview (they work on 8 bits per channel); otherwise the file is written with 8 bits and the result carries a warning. Turns the default RAW sharpening off. |
 | `--embedded-preview` | boolean | Convert the JPEG preview the camera stored in the RAW file instead of developing the RAW data: the fastest way, but the preview can be smaller than the full picture, already has the camera's look, and is 8-bit; white balance, denoising and exposure do not apply to it. A file without a preview is developed as usual. |
+| `--raw-highlights` | string | RAW highlight recovery: clip (default: blown areas go white), unclip (keep the detail, can turn pink), blend (soft, neutral highlights), rebuild\[:3-9\] (rebuild the lost colour from the other channels; 3 = whiter, 9 = more colour, default 5). unclip and rebuild turn the automatic brightening off, so the picture comes out darker: raise the exposure to compensate. |
+| `--raw-exposure-mode` | string | How the RAW exposure is applied: shift (the default when the exposure is given: like the camera's exposure, on the RAW data before development) or gain (a brightness multiplier after development, how profiles saved by earlier versions apply it). |
+| `--raw-protect-highlights` | boolean | With a positive RAW exposure in shift mode: brighten without blowing out the highlights. |
+| `--raw-auto-bright` | string | RAW automatic brightening: auto (default: on for camera-maker RAW files such as NEF, CR2, ARW and for most DNG files; off for DNG files that carry their own rendering (a tone curve, a gain map or a baseline exposure of +0.5 EV or more) and while an exposure shift is applied, which it would otherwise cancel), on, off. auto:T or on:T also sets the share of pixels allowed to reach white, 0.0001 to 0.5 (default 0.01; higher = brighter), e.g. on:0.02; under an exposure shift only on:T keeps it. |
 
 Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
 
@@ -285,6 +289,10 @@ contenta convert <input> [options]
 | `--fast-raw-decode` | boolean | Faster RAW decode at half resolution when the output is at most half the size of the sensor image (slightly softer; for web and preview exports). |
 | `--raw-16bit` | boolean | Decode RAW at 16 bits per channel and write a 16-bit TIFF. Needs -f tiff and no effects, RAW boosts, watermark or embedded preview (they work on 8 bits per channel); otherwise the file is written with 8 bits and the result carries a warning. Turns the default RAW sharpening off. |
 | `--embedded-preview` | boolean | Convert the JPEG preview the camera stored in the RAW file instead of developing the RAW data: the fastest way, but the preview can be smaller than the full picture, already has the camera's look, and is 8-bit; white balance, denoising and exposure do not apply to it. A file without a preview is developed as usual. |
+| `--raw-highlights` | string | RAW highlight recovery: clip (default: blown areas go white), unclip (keep the detail, can turn pink), blend (soft, neutral highlights), rebuild\[:3-9\] (rebuild the lost colour from the other channels; 3 = whiter, 9 = more colour, default 5). unclip and rebuild turn the automatic brightening off, so the picture comes out darker: raise the exposure to compensate. |
+| `--raw-exposure-mode` | string | How the RAW exposure is applied: shift (the default when the exposure is given: like the camera's exposure, on the RAW data before development) or gain (a brightness multiplier after development, how profiles saved by earlier versions apply it). |
+| `--raw-protect-highlights` | boolean | With a positive RAW exposure in shift mode: brighten without blowing out the highlights. |
+| `--raw-auto-bright` | string | RAW automatic brightening: auto (default: on for camera-maker RAW files such as NEF, CR2, ARW and for most DNG files; off for DNG files that carry their own rendering (a tone curve, a gain map or a baseline exposure of +0.5 EV or more) and while an exposure shift is applied, which it would otherwise cancel), on, off. auto:T or on:T also sets the share of pixels allowed to reach white, 0.0001 to 0.5 (default 0.01; higher = brighter), e.g. on:0.02; under an exposure shift only on:T keeps it. |
 
 Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
 
@@ -530,6 +538,10 @@ contenta watch <dir> [options]
 | `--fast-raw-decode` | boolean | Faster RAW decode at half resolution when the output is at most half the size of the sensor image (slightly softer; for web and preview exports). |
 | `--raw-16bit` | boolean | Decode RAW at 16 bits per channel and write a 16-bit TIFF. Needs -f tiff and no effects, RAW boosts, watermark or embedded preview (they work on 8 bits per channel); otherwise the file is written with 8 bits and the result carries a warning. Turns the default RAW sharpening off. |
 | `--embedded-preview` | boolean | Convert the JPEG preview the camera stored in the RAW file instead of developing the RAW data: the fastest way, but the preview can be smaller than the full picture, already has the camera's look, and is 8-bit; white balance, denoising and exposure do not apply to it. A file without a preview is developed as usual. |
+| `--raw-highlights` | string | RAW highlight recovery: clip (default: blown areas go white), unclip (keep the detail, can turn pink), blend (soft, neutral highlights), rebuild\[:3-9\] (rebuild the lost colour from the other channels; 3 = whiter, 9 = more colour, default 5). unclip and rebuild turn the automatic brightening off, so the picture comes out darker: raise the exposure to compensate. |
+| `--raw-exposure-mode` | string | How the RAW exposure is applied: shift (the default when the exposure is given: like the camera's exposure, on the RAW data before development) or gain (a brightness multiplier after development, how profiles saved by earlier versions apply it). |
+| `--raw-protect-highlights` | boolean | With a positive RAW exposure in shift mode: brighten without blowing out the highlights. |
+| `--raw-auto-bright` | string | RAW automatic brightening: auto (default: on for camera-maker RAW files such as NEF, CR2, ARW and for most DNG files; off for DNG files that carry their own rendering (a tone curve, a gain map or a baseline exposure of +0.5 EV or more) and while an exposure shift is applied, which it would otherwise cancel), on, off. auto:T or on:T also sets the share of pixels allowed to reach white, 0.0001 to 0.5 (default 0.01; higher = brighter), e.g. on:0.02; under an exposure shift only on:T keeps it. |
 
 Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
 

@@ -2,7 +2,7 @@
 
 `cadconvert` is the command line of 3D CAD Converter. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\CadConverter\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `cadconvert catalog`, version 1.0.34. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html).
+Generated from `cadconvert catalog`, version 1.0.35. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html).
 
 ```powershell
 cadconvert <command> [arguments] [options]
@@ -22,7 +22,7 @@ Every command has `--help`. Older spellings of some commands and options still w
 | [`cadconvert info <file>`](#cadconvert-info) | Display information about a 3D file. |
 | [`cadconvert register <email> <key>`](#cadconvert-register) | Register your license. |
 | [`cadconvert serve`](#cadconvert-serve) | Start MCP server for AI agent integration. |
-| [`cadconvert status`](#cadconvert-status) | Show the license and trial state: registered or trial, free conversions left, trial days left, and what exports become after the trial (Draft quality with a trial note). |
+| [`cadconvert status`](#cadconvert-status) | Show the license and trial state: registered or trial, free conversions left (the trial has no end date), and what exports become after them (Draft quality with a trial note). |
 | [`cadconvert watch <input>`](#cadconvert-watch) | Watch a folder and auto-convert new 3D files. |
 
 ## Output options
@@ -213,7 +213,7 @@ cadconvert serve
 
 ### cadconvert status
 
-Show the license and trial state: registered or trial, free conversions left, trial days left, and what exports become after the trial (Draft quality with a trial note).
+Show the license and trial state: registered or trial, free conversions left (the trial has no end date), and what exports become after them (Draft quality with a trial note).
 
 ```
 cadconvert status
