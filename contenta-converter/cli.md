@@ -2,7 +2,7 @@
 
 `contenta` is the command line of Contenta Converter. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\ContentaConverter\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `contenta catalog`, version 9.0.44. The same reference is on the website: [www.contenta-converter.com/docs/cli.html](https://www.contenta-converter.com/docs/cli.html).
+Generated from `contenta catalog`, version 9.0.46. The same reference is on the website: [www.contenta-converter.com/docs/cli.html](https://www.contenta-converter.com/docs/cli.html).
 
 ```powershell
 contenta <command> [arguments] [options]

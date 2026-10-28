@@ -2,7 +2,7 @@
 
 `cadconvert serve` exposes 5 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
 
-Generated from `cadconvert catalog`, version 1.0.35. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html). The command line is documented in [cli.md](cli.md).
+Generated from `cadconvert catalog`, version 1.0.36. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
 ## Setup
 
@@ -33,7 +33,7 @@ Pass absolute paths to every tool.
 | Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
 | Capabilities | `tools` only (no resources or prompts) |
 | Server name | `cad-converter` |
-| Server version | `1.0.35` |
+| Server version | `1.0.36` |
 
 All four ContentaSoft servers run on the same host, which behaves like this:
 
@@ -97,7 +97,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 
 ### get_license_status
 
-**Get license and trial status.** Get the license and trial state before converting: registered or trial, free conversions left, trial days left, and what exports become after the trial (afterFreeFiles: draft_quality = Draft tessellation and a trial note in the file). nextOutput says what the next export will be: clean or draft_quality.
+**Get license and trial status.** Get the license and trial state before converting: registered or trial, free conversions left (freeFilesRemaining), and what exports become after them (afterFreeFiles: draft_quality = Draft tessellation and a trial note in the file). nextOutput says what the next export will be: clean or draft_quality. On a trial, buyUrl is the buy page and listPriceUsd the lifetime licence price in US dollars (a sale on the buy page can be lower); both are null when registered.
 
 No parameters.
 

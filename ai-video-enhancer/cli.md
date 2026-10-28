@@ -2,7 +2,7 @@
 
 `aivideoenhancer` is the command line of AI Video Enhancer Studio. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\AIVideoEnhancerStudio\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `aivideoenhancer catalog`, version 2026.7.24. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html).
+Generated from `aivideoenhancer catalog`, version 2026.7.25. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html).
 
 ```powershell
 aivideoenhancer <command> [arguments] [options]
@@ -129,6 +129,8 @@ aivideoenhancer batch <input> [options]
 | `--compare-layout` | string | Layout for --compare: horizontal\|vertical. horizontal (default) = side by side; vertical = stacked top/bottom, which avoids the very wide 32:9 frame two 16:9 panels make side by side. |
 | `--compare-seconds` | number | Length of the --compare video in seconds, taken a third of the way into the video (default: the whole video; 30 gives a short clip to show a customer). |
 | `--hum` | string | Remove mains hum from the audio: off\|auto\|50\|60 (notches at the mains frequency and its harmonics; auto = 50 Hz for a 25/50 fps picture, 60 Hz for 29.97/59.94). Used with a preset or another enhancement option; the audio is re-encoded. |
+| `--audio-cleanup` | string | Audio noise reduction: off\|light\|strong (strong also cuts below 80 Hz and evens out the volume). The audio is re-encoded. |
+| `--low-cut` | string | Cut the audio below this frequency: off or 20-300 Hz. 80 takes out rumble and the thump a VCR leaves on the sound; 120-150 for a heavier one. Replaces --audio-cleanup strong's own 80 Hz cut. The audio is re-encoded. |
 | `--crop-bottom` | boolean | With --preset tape_restoration: crop the head-switching noise band at the bottom of a VHS/Video8/Hi8 capture (12 lines of 576, 8 of 480). The picture keeps its proportions, it is not stretched to fill. |
 | `--stabilize-keep` | string | With --stabilize (or a preset that stabilizes): keep at least this percent of the picture, 50-100, or auto (default). Stabilizing zooms in to hide the moving edge, by as much as the shake needs; a limit stops the zoom there and leaves the part of the movement it has no room for. 100 = no zoom at all, the edge of the picture then moves. |
 | `--hdr` | string | HDR10 / HLG sources: keep\|sdr (default: keep). keep = the output stays 10-bit HDR when the job has no AI stage, no stabilization, no rolling-shutter correction and no NLMeans denoise, and the codec is h265, av1 or vp9; otherwise the picture is tone-mapped to SDR and a line says so. sdr = always tone-map to SDR (BT.709). |
@@ -197,6 +199,8 @@ aivideoenhancer enhance <input> [options]
 | `--compare-seconds` | number | Length of the --compare video in seconds, taken a third of the way into the video (default: the whole video; 30 gives a short clip to show a customer). |
 | `--clip` | string | Export only a 10-second clip starting at this time (seconds, or m:ss / h:mm:ss) of ONE input file, named \<name\>-clip. On the trial a clip is clean and full resolution and does not use a free export; clips from one video can cover up to 30 seconds a day. |
 | `--hum` | string | Remove mains hum from the audio: off\|auto\|50\|60 (notches at the mains frequency and its harmonics; auto = 50 Hz for a 25/50 fps picture, 60 Hz for 29.97/59.94). Used with a preset or another enhancement option; the audio is re-encoded. |
+| `--audio-cleanup` | string | Audio noise reduction: off\|light\|strong (strong also cuts below 80 Hz and evens out the volume). The audio is re-encoded. |
+| `--low-cut` | string | Cut the audio below this frequency: off or 20-300 Hz. 80 takes out rumble and the thump a VCR leaves on the sound; 120-150 for a heavier one. Replaces --audio-cleanup strong's own 80 Hz cut. The audio is re-encoded. |
 | `--crop-bottom` | boolean | With --preset tape_restoration: crop the head-switching noise band at the bottom of a VHS/Video8/Hi8 capture (12 lines of 576, 8 of 480). The picture keeps its proportions, it is not stretched to fill. |
 | `--stabilize-keep` | string | With --stabilize (or a preset that stabilizes): keep at least this percent of the picture, 50-100, or auto (default). Stabilizing zooms in to hide the moving edge, by as much as the shake needs; a limit stops the zoom there and leaves the part of the movement it has no room for. 100 = no zoom at all, the edge of the picture then moves. |
 | `--hdr` | string | HDR10 / HLG sources: keep\|sdr (default: keep). keep = the output stays 10-bit HDR when the job has no AI stage, no stabilization, no rolling-shutter correction and no NLMeans denoise, and the codec is h265, av1 or vp9; otherwise the picture is tone-mapped to SDR and a line says so. sdr = always tone-map to SDR (BT.709). |
@@ -396,6 +400,8 @@ aivideoenhancer watch <input> [options]
 | `--compare-layout` | string | Layout for --compare: horizontal\|vertical. horizontal (default) = side by side; vertical = stacked top/bottom, which avoids the very wide 32:9 frame two 16:9 panels make side by side. |
 | `--compare-seconds` | number | Length of the --compare video in seconds, taken a third of the way into the video (default: the whole video; 30 gives a short clip to show a customer). |
 | `--hum` | string | Remove mains hum from the audio: off\|auto\|50\|60 (notches at the mains frequency and its harmonics; auto = 50 Hz for a 25/50 fps picture, 60 Hz for 29.97/59.94). Used with a preset or another enhancement option; the audio is re-encoded. |
+| `--audio-cleanup` | string | Audio noise reduction: off\|light\|strong (strong also cuts below 80 Hz and evens out the volume). The audio is re-encoded. |
+| `--low-cut` | string | Cut the audio below this frequency: off or 20-300 Hz. 80 takes out rumble and the thump a VCR leaves on the sound; 120-150 for a heavier one. Replaces --audio-cleanup strong's own 80 Hz cut. The audio is re-encoded. |
 | `--crop-bottom` | boolean | With --preset tape_restoration: crop the head-switching noise band at the bottom of a VHS/Video8/Hi8 capture (12 lines of 576, 8 of 480). The picture keeps its proportions, it is not stretched to fill. |
 | `--stabilize-keep` | string | With --stabilize (or a preset that stabilizes): keep at least this percent of the picture, 50-100, or auto (default). Stabilizing zooms in to hide the moving edge, by as much as the shake needs; a limit stops the zoom there and leaves the part of the movement it has no room for. 100 = no zoom at all, the edge of the picture then moves. |
 | `--hdr` | string | HDR10 / HLG sources: keep\|sdr (default: keep). keep = the output stays 10-bit HDR when the job has no AI stage, no stabilization, no rolling-shutter correction and no NLMeans denoise, and the codec is h265, av1 or vp9; otherwise the picture is tone-mapped to SDR and a line says so. sdr = always tone-map to SDR (BT.709). |
