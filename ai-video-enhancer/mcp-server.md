@@ -1,8 +1,8 @@
 # AI Video Enhancer Studio: MCP server
 
-`aivideoenhancer serve` exposes 6 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
+`aivideoenhancer serve` exposes 7 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
 
-Generated from `aivideoenhancer catalog`, version 2026.7.25. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html). The command line is documented in [cli.md](cli.md).
+Generated from `aivideoenhancer catalog`, version 2026.7.26. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
 ## Setup
 
@@ -33,7 +33,7 @@ Pass absolute paths to every tool.
 | Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
 | Capabilities | `tools` only (no resources or prompts) |
 | Server name | `ai-video-enhancer` |
-| Server version | `2026.7.25` |
+| Server version | `2026.7.26` |
 
 All four ContentaSoft servers run on the same host, which behaves like this:
 
@@ -54,6 +54,7 @@ All four ContentaSoft servers run on the same host, which behaves like this:
 | [`get_status`](#get_status) | Get GPU and license status | yes | no | yes | no |
 | [`list_formats`](#list_formats) | List formats | yes | no | yes | no |
 | [`list_presets`](#list_presets) | List presets | yes | no | yes | no |
+| [`register_license`](#register_license) | Register a license key | no | no | yes | yes |
 
 Destructive: the tool can replace a file that already exists. Network: the tool uses the internet.
 
@@ -127,3 +128,12 @@ No parameters.
 **List presets.** List available video enhancement presets.
 
 No parameters.
+
+### register_license
+
+**Register a license key.** Register a purchased AI Video Enhancer Studio license on this computer: the email address the license was bought with and the license key from the purchase email. The key is checked with the ContentaSoft license server. Once registered, every output is full quality with no trial mark, here, on the command line and in the desktop app. The answer carries the license state after the attempt (the same object as get_license_status).
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `email` | string | yes | The email address the license was bought with. |
+| `key` | string | yes | The license key from the purchase email, with or without its dashes. |

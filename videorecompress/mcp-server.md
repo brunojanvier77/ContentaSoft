@@ -1,8 +1,8 @@
 # VideoRecompress Studio: MCP server
 
-`videorecompress serve` exposes 7 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
+`videorecompress serve` exposes 8 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
 
-Generated from `videorecompress catalog`, version 2026.2.29. The same reference is on the website: [www.contenta-software.com/videorecompress/docs/cli.html](https://www.contenta-software.com/videorecompress/docs/cli.html). The command line is documented in [cli.md](cli.md).
+Generated from `videorecompress catalog`, version 2026.2.30. The same reference is on the website: [www.contenta-software.com/videorecompress/docs/cli.html](https://www.contenta-software.com/videorecompress/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
 ## Setup
 
@@ -33,7 +33,7 @@ Pass absolute paths to every tool.
 | Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
 | Capabilities | `tools` only (no resources or prompts) |
 | Server name | `videorecompress-studio` |
-| Server version | `2026.2.29` |
+| Server version | `2026.2.30` |
 
 All four ContentaSoft servers run on the same host, which behaves like this:
 
@@ -55,6 +55,7 @@ All four ContentaSoft servers run on the same host, which behaves like this:
 | [`list_formats`](#list_formats) | List formats | yes | no | yes | no |
 | [`list_presets`](#list_presets) | List presets | yes | no | yes | no |
 | [`recompress_video`](#recompress_video) | Recompress video | no | no | no | no |
+| [`register_license`](#register_license) | Register a license key | no | no | yes | yes |
 
 Destructive: the tool can replace a file that already exists. Network: the tool uses the internet.
 
@@ -130,3 +131,12 @@ No parameters.
 | `hdr` | string | no | HDR sources (HDR10, HLG): keep (default; stays 10-bit HDR with H.265/AV1/VP9, H.264 is always tone-mapped) or sdr (tone-map to SDR BT.709). Single-layer Dolby Vision is kept only by the H.265 software encoder (hw_accel software) into MP4/MKV without a resize; HDR10+ only by VP9. Otherwise the base HDR10/HLG picture is kept and the result's hdrNote says what was not. |
 | `overwrite` | boolean | no | true: replace the output when it exists. false: give the new file a free name instead. Default: an explicit output_path is replaced, the generated name (\<name\>\_recompressed) is never replaced. |
 | `skip_existing` | boolean | no | true: when the output already exists, write nothing and answer skipped: true (safe re-runs). |
+
+### register_license
+
+**Register a license key.** Register a purchased VideoRecompress Studio license on this computer: the email address the license was bought with and the license key from the purchase email. The key is checked with the ContentaSoft license server. Once registered, every output is full quality with no trial mark, here, on the command line and in the desktop app. The answer carries the license state after the attempt (the same object as get_license_status).
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `email` | string | yes | The email address the license was bought with. |
+| `key` | string | yes | The license key from the purchase email, with or without its dashes. |

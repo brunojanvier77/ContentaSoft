@@ -2,7 +2,7 @@
 
 `cadconvert` is the command line of 3D CAD Converter. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\CadConverter\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `cadconvert catalog`, version 1.0.36. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html).
+Generated from `cadconvert catalog`, version 1.0.37. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html).
 
 ```powershell
 cadconvert <command> [arguments] [options]
@@ -115,6 +115,8 @@ cadconvert batch <input> [options]
 | `--up-axis` | string | Rotate the model so this axis points up: y (game engines, glTF, three.js) or z (CAD, 3D printing). Default: unchanged. A STEP/IGES/BREP re-export cannot be rotated and says so. |
 | `--decimate` | string | Reduce mesh sources (STL, OBJ, PLY, glTF, FBX, 3MF ...) to this share of their triangles: 0.25 or 25% keeps about a quarter. STEP/IGES/BREP are tessellated, not reduced - use --quality. |
 | `--max-size` | string | glTF/GLB only: the largest file to write, in MB (5, 0.5 or 15MB; 1 MB = 1,000,000 bytes). A file over it is written again with fewer triangles until it fits, down to 5% of its triangles. One that still does not fit is written at the smallest size reached, reported as over budget, and the exit code is 4 (partial). |
+| `--compress` | boolean | glTF/GLB only: compress the meshes with meshopt (gltfpack); the file is often 5 to 10 times smaller. The viewer must support EXT_meshopt_compression (three.js, Babylon.js, Blender 3.0+, Unity glTFast). |
+| `--assembly` | string | STEP assemblies: preserve (default) writes one file per top-level body of a STEP that has several; merge writes every body into one file. A one-root assembly is one file either way. |
 | `--profile` | string | Start from a saved conversion profile (JSON, as the app saves it in %APPDATA%\\CadConverter\\profiles). Options given on the command line override the profile's values. |
 | `--overwrite` | boolean | Replace an output file that already exists. |
 | `--skip-existing` | boolean | Leave an input alone when its output file already exists, so a re-run only converts what is missing (a skipped file is not converted and costs no free conversion). |
@@ -153,6 +155,8 @@ cadconvert convert <input> [options]
 | `--up-axis` | string | Rotate the model so this axis points up: y (game engines, glTF, three.js) or z (CAD, 3D printing). Default: unchanged. A STEP/IGES/BREP re-export cannot be rotated and says so. |
 | `--decimate` | string | Reduce mesh sources (STL, OBJ, PLY, glTF, FBX, 3MF ...) to this share of their triangles: 0.25 or 25% keeps about a quarter. STEP/IGES/BREP are tessellated, not reduced - use --quality. |
 | `--max-size` | string | glTF/GLB only: the largest file to write, in MB (5, 0.5 or 15MB; 1 MB = 1,000,000 bytes). A file over it is written again with fewer triangles until it fits, down to 5% of its triangles. One that still does not fit is written at the smallest size reached, reported as over budget, and the exit code is 4 (partial). |
+| `--compress` | boolean | glTF/GLB only: compress the meshes with meshopt (gltfpack); the file is often 5 to 10 times smaller. The viewer must support EXT_meshopt_compression (three.js, Babylon.js, Blender 3.0+, Unity glTFast). |
+| `--assembly` | string | STEP assemblies: preserve (default) writes one file per top-level body of a STEP that has several; merge writes every body into one file. A one-root assembly is one file either way. |
 | `--profile` | string | Start from a saved conversion profile (JSON, as the app saves it in %APPDATA%\\CadConverter\\profiles). Options given on the command line override the profile's values. |
 | `--overwrite` | boolean | Replace an output file that already exists. |
 | `--skip-existing` | boolean | Leave an input alone when its output file already exists, so a re-run only converts what is missing (a skipped file is not converted and costs no free conversion). |
@@ -179,12 +183,17 @@ Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
 Display information about a 3D file.
 
 ```
-cadconvert info <file>
+cadconvert info <file> [options]
 ```
 
 | Argument | Description |
 |---|---|
 | `<file>` | 3D file to inspect. |
+
+| Option | Type | Description |
+|---|---|---|
+| `--bom` | boolean | STEP only: also list the parts (name, quantity, solids, faces, size in mm), one row per unique part. |
+| `--bom-csv` | string | STEP only: write the part list as CSV to this file (the same columns as the app's BOM export). |
 
 Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
 
@@ -250,6 +259,8 @@ cadconvert watch <input> [options]
 | `--up-axis` | string | Rotate the model so this axis points up: y (game engines, glTF, three.js) or z (CAD, 3D printing). Default: unchanged. A STEP/IGES/BREP re-export cannot be rotated and says so. |
 | `--decimate` | string | Reduce mesh sources (STL, OBJ, PLY, glTF, FBX, 3MF ...) to this share of their triangles: 0.25 or 25% keeps about a quarter. STEP/IGES/BREP are tessellated, not reduced - use --quality. |
 | `--max-size` | string | glTF/GLB only: the largest file to write, in MB (5, 0.5 or 15MB; 1 MB = 1,000,000 bytes). A file over it is written again with fewer triangles until it fits, down to 5% of its triangles. One that still does not fit is written at the smallest size reached, reported as over budget, and the exit code is 4 (partial). |
+| `--compress` | boolean | glTF/GLB only: compress the meshes with meshopt (gltfpack); the file is often 5 to 10 times smaller. The viewer must support EXT_meshopt_compression (three.js, Babylon.js, Blender 3.0+, Unity glTFast). |
+| `--assembly` | string | STEP assemblies: preserve (default) writes one file per top-level body of a STEP that has several; merge writes every body into one file. A one-root assembly is one file either way. |
 | `--profile` | string | Start from a saved conversion profile (JSON, as the app saves it in %APPDATA%\\CadConverter\\profiles). Options given on the command line override the profile's values. |
 | `--overwrite` | boolean | Replace an output file that already exists. |
 | `--skip-existing` | boolean | Leave an input alone when its output file already exists, so a re-run only converts what is missing (a skipped file is not converted and costs no free conversion). |
