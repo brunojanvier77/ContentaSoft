@@ -2,7 +2,7 @@
 
 `cadconvert serve` exposes 8 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
 
-Generated from `cadconvert catalog`, version 1.0.37. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html). The command line is documented in [cli.md](cli.md).
+Generated from `cadconvert catalog`, version 1.1.0. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
 ## Setup
 
@@ -33,7 +33,7 @@ Pass absolute paths to every tool.
 | Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
 | Capabilities | `tools` only (no resources or prompts) |
 | Server name | `cad-converter` |
-| Server version | `1.0.37` |
+| Server version | `1.1.0` |
 
 All four ContentaSoft servers run on the same host, which behaves like this:
 
@@ -63,22 +63,34 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 
 ### batch_convert_cad
 
-**Convert a folder of 3D/CAD files.** Convert every 3D file in a folder (STEP, IGES, BREP and the mesh formats convert_cad reads) to one format, with the same options as convert_cad. Outputs are named after their sources; with recursive, subfolders are mirrored under output_dir. Files already in the target format are left alone when output_dir is the input folder. The result lists every file with its own convert_cad result or error. Send a progressToken for progress over the whole folder.
+**Convert a folder of 3D/CAD files.** Convert every 3D file in a folder (STEP, IGES, BREP and the mesh formats convert_cad reads) to one format, with the same options as convert_cad; format, or a preset that names one, is required. Outputs are named after their sources; with recursive, subfolders are mirrored under output_dir. Files already in the target format are left alone when output_dir is the input folder. The result lists every file with its own convert_cad result or error. Send a progressToken for progress over the whole folder.
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `input_dir` | string | yes | Absolute path of the folder with the 3D files. |
 | `output_dir` | string | no | Absolute path of the folder for the outputs (created if missing). Default: input_dir. |
 | `recursive` | boolean | no | Include subfolders (their structure is kept under output_dir). Default: false. |
-| `format` | string | yes | Output format: stl, obj, ply, gltf, glb, 3mf, dae, step, iges, fbx, vrml, off, brep. One of: `stl`, `obj`, `ply`, `gltf`, `glb`, `3mf`, `dae`, `step`, `iges`, `fbx`, `vrml`, `off`, `brep`. |
+| `format` | string | no | Output format: stl, obj, ply, gltf, glb, 3mf, dae, step, iges, fbx, vrml, off, brep. Default: the output_path extension, else the preset's format. One of: `stl`, `obj`, `ply`, `gltf`, `glb`, `3mf`, `dae`, `step`, `iges`, `fbx`, `vrml`, `off`, `brep`. |
 | `quality` | string | no | Mesh quality for STEP/IGES/BREP sources: a preset (draft, standard, fine, ultrafine) or a linear deflection in mm ("0.1" = standard; lower = finer, e.g. "0.001"). Default: standard. No effect on mesh sources (STL, OBJ ...): they keep their triangles. |
 | `angular` | number or string | no | Angular deflection in radians for STEP/IGES/BREP sources (0.5 = about 29 degrees; lower = smoother curves). Default: the preset's value (0.5 for standard and for a numeric quality). |
 | `units` | string | no | Target units for conversion. One of: `mm`, `cm`, `in`, `m`, `ft`. |
 | `up_axis` | string | no | Rotate the model so this axis points up: y (game engines, glTF, three.js) or z (CAD, 3D printing). Default: unchanged. A STEP/IGES/BREP re-export cannot be rotated and the result's notes say so. One of: `y`, `z`, `unchanged`. |
 | `decimate` | number or string | no | Reduce mesh sources (STL, OBJ, PLY, glTF, FBX, 3MF ...) to this share of their triangles: 0.25 or "25%" keeps about a quarter. STEP/IGES/BREP sources are tessellated, not reduced - use quality instead; the result's notes say so. |
-| `max_size_mb` | number or string | no | glTF/GLB only: the largest file to write, in MB (5, 0.5, 15; 1 MB = 1,000,000 bytes). A file over it is written again with fewer triangles until it fits, down to 5% of its triangles. The result's withinBudget is true when the written file fits and false when it was written at the smallest size reached and is still over; outputBytes, trianglesBefore and trianglesAfter are what was measured. |
+| `max_size_mb` | number or string | no | glTF/GLB only: the largest file to write, in MB (5, 0.5, 15; 1 MB = 1,000,000 bytes). A file over it is written again with fewer triangles until it fits, down to 5% of its triangles. The result's withinBudget is true when the written file fits and false when it was written at the smallest size reached and is still over; outputBytes, trianglesBefore and trianglesAfter are what was measured. On a glTF/GLB source with textures ktx2 or webp, the texture size limit is lowered first. |
 | `compress` | boolean | no | glTF/GLB only: compress the meshes with meshopt (gltfpack); the file is often 5 to 10 times smaller. The viewer must support EXT_meshopt_compression (three.js, Babylon.js, Blender 3.0+, Unity glTFast). Default: false. |
-| `assembly` | string | no | STEP assemblies: preserve (default) writes one file per top-level body of a STEP that has several (the result's additionalOutputs lists them); merge writes every body into one file. A one-root assembly is one file either way. One of: `preserve`, `merge`. |
+| `assembly` | string | no | STEP assemblies: preserve (default) writes one file per top-level body of a STEP that has several (the result's additionalOutputs lists them); merge writes every body into one file. A one-root assembly is one file either way. For glTF/GLB output, merge also joins the meshes into one (node names are not kept), but only together with a web option (textures, lods, quantize, compress_fallback, keep_extras); a plain conversion or compress alone keeps the nodes. One of: `preserve`, `merge`. |
+| `textures` | string | no | glTF/GLB only: keep (default), ktx2 or webp. ktx2 converts every texture to KTX2 (Basis Universal), the one format that stays compressed in GPU memory; the viewer needs a KTX2 transcoder (three.js KTX2Loader, Babylon.js). webp makes the download smaller only. The result's web.texturesConverted and the two estimatedGpuTextureBytes say what changed. One of: `keep`, `ktx2`, `webp`. |
+| `texture_mode` | string | no | With textures ktx2: auto (default: ETC1S for colour textures, UASTC for normal and data maps), etc1s (smallest) or uastc (best quality, larger). One of: `auto`, `etc1s`, `uastc`. |
+| `texture_quality` | integer or string | no | Texture encoding quality, a whole number from 1 (smallest) to 10 (best). Default: 8. |
+| `texture_max_size` | integer or string | no | Largest texture side in pixels when textures are converted, such as 2048. Default: no limit; 0 or none removes a limit a preset sets. |
+| `texture_pow2` | boolean | no | Resize converted textures to the nearest power of two (WebGL 1). Default: false. |
+| `lods` | string | no | glTF/GLB only: also write LOD files, one per ratio: "0.5,0.25" or "50%,25%" writes name.lod1 and name.lod2. Each ratio is a target share of the main file's triangles; a mesh that cannot be simplified further without visible damage keeps more. With max_size_mb the LOD files are made from the already reduced main file. They are written without textures (skins and animations stay) and are listed in the result's web.lodFiles. Ratios must fall; at most four; "none" removes the LOD files a preset sets. |
+| `instancing` | boolean | no | glTF/GLB only: write a mesh that is placed several times once (EXT_mesh_gpu_instancing). Node names are not kept. Not with assembly merge. Default: false. |
+| `quantize` | string | no | With compress or compress_fallback: standard (default), fine (more precise positions and normals, slightly larger) or off. One of: `standard`, `fine`, `off`. |
+| `compress_fallback` | boolean | no | glTF/GLB only: compress with a fallback for viewers without meshopt support (a larger file). Implies compress. Default: false. |
+| `keep_extras` | boolean | no | glTF/GLB only: keep the source's extras data. Extras are dropped only when the file is compressed, textures are converted, or meshes are instanced or merged; a plain conversion keeps them. Default: false. |
+| `strict` | boolean | no | Fail the call when compression, texture conversion or a LOD file could not be applied, instead of writing the file with a warning (then web.applied is false and web.problem says why). Default: false. |
+| `preset` | string | no | Start from a built-in preset; the other arguments override it. web-game: GLB, meshopt compression, KTX2 textures up to 2048 px. Without format the preset's format is used (an output_path extension still wins). One of: `web-game`, `3d-printing`, `visualization`, `engineering`, `mesh-review`. |
 | `repair` | boolean | no | Repair STEP/IGES/BREP surfaces before meshing (fixes broken edges and faces, closes small gaps). No effect on mesh sources such as STL or OBJ. |
 | `binary` | boolean | no | Use binary output for STL/PLY (default: true). |
 | `overwrite` | boolean | no | Replace an output file that already exists (default: the existing file is kept and the new one is written beside it as name (1)). |
@@ -86,22 +98,34 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 
 ### convert_cad
 
-**Convert 3D/CAD file.** Convert a 3D CAD file (STEP, IGES) to mesh formats (STL, OBJ, PLY, FBX, glTF, 3MF) or between mesh formats. Mesh sources include VRML (.wrl, .vrml, gzip .wrz): VRML is read in metres (a 1 m cube is 1000 mm) and Y-up, as the specification says. The result's `notes` list what an option could not do on this route (a STEP source is tessellated, not reduced; a STEP re-export cannot be rotated). A large assembly can take minutes: send a progressToken to get progress notifications. Calling again with exactly the same arguments within 30 minutes, while the source and the output are unchanged, returns the earlier result without converting again (for a client that gave up waiting).
+**Convert 3D/CAD file.** Convert a 3D CAD file (STEP, IGES) to mesh formats (STL, OBJ, PLY, FBX, glTF, 3MF) or between mesh formats. Mesh sources include VRML (.wrl, .vrml, gzip .wrz): VRML is read in metres (a 1 m cube is 1000 mm) and Y-up, as the specification says. The result's `notes` list what an option could not do on this route (a STEP source is tessellated, not reduced; a STEP re-export cannot be rotated). For the web and games: textures ktx2, lods and preset web-game optimise a glTF/GLB (a glTF or GLB source keeps its animations and skins); the result's `web` object says what was done. A large assembly can take minutes: send a progressToken to get progress notifications. Calling again with exactly the same arguments within 30 minutes, while the source and the output are unchanged, returns the earlier result without converting again (for a client that gave up waiting).
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `input_path` | string | yes | Absolute path to the source 3D file. |
 | `output_path` | string | no | Absolute path for the converted output file. Give this or output_dir. |
-| `output_dir` | string | no | Absolute path of a folder: the output is written there, named after the input with the format's extension (format is then required). Give this or output_path. |
-| `format` | string | no | Output format: stl, obj, ply, gltf, glb, 3mf, dae, step, iges, fbx, vrml, off, brep. One of: `stl`, `obj`, `ply`, `gltf`, `glb`, `3mf`, `dae`, `step`, `iges`, `fbx`, `vrml`, `off`, `brep`. |
+| `output_dir` | string | no | Absolute path of a folder: the output is written there, named after the input with the format's extension (format, or a preset that names one, is then required). Give this or output_path. |
+| `format` | string | no | Output format: stl, obj, ply, gltf, glb, 3mf, dae, step, iges, fbx, vrml, off, brep. Default: the output_path extension, else the preset's format. One of: `stl`, `obj`, `ply`, `gltf`, `glb`, `3mf`, `dae`, `step`, `iges`, `fbx`, `vrml`, `off`, `brep`. |
 | `quality` | string | no | Mesh quality for STEP/IGES/BREP sources: a preset (draft, standard, fine, ultrafine) or a linear deflection in mm ("0.1" = standard; lower = finer, e.g. "0.001"). Default: standard. No effect on mesh sources (STL, OBJ ...): they keep their triangles. |
 | `angular` | number or string | no | Angular deflection in radians for STEP/IGES/BREP sources (0.5 = about 29 degrees; lower = smoother curves). Default: the preset's value (0.5 for standard and for a numeric quality). |
 | `units` | string | no | Target units for conversion. One of: `mm`, `cm`, `in`, `m`, `ft`. |
 | `up_axis` | string | no | Rotate the model so this axis points up: y (game engines, glTF, three.js) or z (CAD, 3D printing). Default: unchanged. A STEP/IGES/BREP re-export cannot be rotated and the result's notes say so. One of: `y`, `z`, `unchanged`. |
 | `decimate` | number or string | no | Reduce mesh sources (STL, OBJ, PLY, glTF, FBX, 3MF ...) to this share of their triangles: 0.25 or "25%" keeps about a quarter. STEP/IGES/BREP sources are tessellated, not reduced - use quality instead; the result's notes say so. |
-| `max_size_mb` | number or string | no | glTF/GLB only: the largest file to write, in MB (5, 0.5, 15; 1 MB = 1,000,000 bytes). A file over it is written again with fewer triangles until it fits, down to 5% of its triangles. The result's withinBudget is true when the written file fits and false when it was written at the smallest size reached and is still over; outputBytes, trianglesBefore and trianglesAfter are what was measured. |
+| `max_size_mb` | number or string | no | glTF/GLB only: the largest file to write, in MB (5, 0.5, 15; 1 MB = 1,000,000 bytes). A file over it is written again with fewer triangles until it fits, down to 5% of its triangles. The result's withinBudget is true when the written file fits and false when it was written at the smallest size reached and is still over; outputBytes, trianglesBefore and trianglesAfter are what was measured. On a glTF/GLB source with textures ktx2 or webp, the texture size limit is lowered first. |
 | `compress` | boolean | no | glTF/GLB only: compress the meshes with meshopt (gltfpack); the file is often 5 to 10 times smaller. The viewer must support EXT_meshopt_compression (three.js, Babylon.js, Blender 3.0+, Unity glTFast). Default: false. |
-| `assembly` | string | no | STEP assemblies: preserve (default) writes one file per top-level body of a STEP that has several (the result's additionalOutputs lists them); merge writes every body into one file. A one-root assembly is one file either way. One of: `preserve`, `merge`. |
+| `assembly` | string | no | STEP assemblies: preserve (default) writes one file per top-level body of a STEP that has several (the result's additionalOutputs lists them); merge writes every body into one file. A one-root assembly is one file either way. For glTF/GLB output, merge also joins the meshes into one (node names are not kept), but only together with a web option (textures, lods, quantize, compress_fallback, keep_extras); a plain conversion or compress alone keeps the nodes. One of: `preserve`, `merge`. |
+| `textures` | string | no | glTF/GLB only: keep (default), ktx2 or webp. ktx2 converts every texture to KTX2 (Basis Universal), the one format that stays compressed in GPU memory; the viewer needs a KTX2 transcoder (three.js KTX2Loader, Babylon.js). webp makes the download smaller only. The result's web.texturesConverted and the two estimatedGpuTextureBytes say what changed. One of: `keep`, `ktx2`, `webp`. |
+| `texture_mode` | string | no | With textures ktx2: auto (default: ETC1S for colour textures, UASTC for normal and data maps), etc1s (smallest) or uastc (best quality, larger). One of: `auto`, `etc1s`, `uastc`. |
+| `texture_quality` | integer or string | no | Texture encoding quality, a whole number from 1 (smallest) to 10 (best). Default: 8. |
+| `texture_max_size` | integer or string | no | Largest texture side in pixels when textures are converted, such as 2048. Default: no limit; 0 or none removes a limit a preset sets. |
+| `texture_pow2` | boolean | no | Resize converted textures to the nearest power of two (WebGL 1). Default: false. |
+| `lods` | string | no | glTF/GLB only: also write LOD files, one per ratio: "0.5,0.25" or "50%,25%" writes name.lod1 and name.lod2. Each ratio is a target share of the main file's triangles; a mesh that cannot be simplified further without visible damage keeps more. With max_size_mb the LOD files are made from the already reduced main file. They are written without textures (skins and animations stay) and are listed in the result's web.lodFiles. Ratios must fall; at most four; "none" removes the LOD files a preset sets. |
+| `instancing` | boolean | no | glTF/GLB only: write a mesh that is placed several times once (EXT_mesh_gpu_instancing). Node names are not kept. Not with assembly merge. Default: false. |
+| `quantize` | string | no | With compress or compress_fallback: standard (default), fine (more precise positions and normals, slightly larger) or off. One of: `standard`, `fine`, `off`. |
+| `compress_fallback` | boolean | no | glTF/GLB only: compress with a fallback for viewers without meshopt support (a larger file). Implies compress. Default: false. |
+| `keep_extras` | boolean | no | glTF/GLB only: keep the source's extras data. Extras are dropped only when the file is compressed, textures are converted, or meshes are instanced or merged; a plain conversion keeps them. Default: false. |
+| `strict` | boolean | no | Fail the call when compression, texture conversion or a LOD file could not be applied, instead of writing the file with a warning (then web.applied is false and web.problem says why). Default: false. |
+| `preset` | string | no | Start from a built-in preset; the other arguments override it. web-game: GLB, meshopt compression, KTX2 textures up to 2048 px. Without format the preset's format is used (an output_path extension still wins). One of: `web-game`, `3d-printing`, `visualization`, `engineering`, `mesh-review`. |
 | `repair` | boolean | no | Repair STEP/IGES/BREP surfaces before meshing (fixes broken edges and faces, closes small gaps). No effect on mesh sources such as STL or OBJ. |
 | `binary` | boolean | no | Use binary output for STL/PLY (default: true). |
 | `overwrite` | boolean | no | Replace an output file that already exists (default: the existing file is kept and the new one is written beside it as name (1)). |
