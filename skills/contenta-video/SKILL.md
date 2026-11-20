@@ -6,7 +6,7 @@ allowed-tools: Bash
 
 # VideoRecompress Studio (video compression)
 
-Use the `videorecompress` CLI (VideoRecompress Studio 2026.2.26+, Windows; `--loudness` and the `youtube_shorts`, `web_mp4` and `web_av1_webm` presets need 2026.2.33+). Default per-user install: `%LOCALAPPDATA%\Programs\VideoRecompressStudio\videorecompress.exe`, on the user PATH. Check with `videorecompress --version` (it prints the build id after a `+`). Full reference: https://github.com/brunojanvier77/ContentaSoft/blob/main/videorecompress/cli.md
+Use the `videorecompress` CLI (VideoRecompress Studio 2026.2.26+, Windows; `--loudness` and the `youtube_shorts`, `web_mp4` and `web_av1_webm` presets need 2026.2.33+; `info --qa` needs 2026.2.34+). Default per-user install: `%LOCALAPPDATA%\Programs\VideoRecompressStudio\videorecompress.exe`, on the user PATH. Check with `videorecompress --version` (it prints the build id after a `+`). Full reference: https://github.com/brunojanvier77/ContentaSoft/blob/main/videorecompress/cli.md
 
 Relative and full paths both work for inputs, `--output`, `--profile` and watermark images.
 
@@ -22,7 +22,7 @@ Every command accepts `--json` (one JSON object on stdout, logs on stderr), `--p
 ## Commands
 
 ```bash
-videorecompress info <file> --json
+videorecompress info <file> --json [--qa]
 videorecompress recompress <file> --output <dir> [--preset ID | --codec C --crf N] [options]
 videorecompress batch <dir> --output <dir> [--preset ID | --codec C --crf N] [--workers 2] [--include "*.mp4"] [--skip-existing] [--report r.csv]
 videorecompress presets [--json] [--preset ID]
@@ -78,6 +78,7 @@ Trim examples: `--trim-mode keep-first --trim-duration 10` keeps the first 10 s;
 
 ```bash
 videorecompress info video.mp4 --json
+videorecompress info clip.mp4 --json --qa   # adds qa: faststart, blackSeconds, freezeSeconds (longest), silenceSeconds, per-stream durations
 videorecompress recompress video.mp4 --output ./compressed
 videorecompress recompress video.mp4 --codec h265 --crf 18 --encoder-preset slow --output ./archive
 videorecompress recompress video.mp4 --trim-mode keep-first --trim-duration 10 --output ./first10

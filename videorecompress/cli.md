@@ -2,7 +2,7 @@
 
 `videorecompress` is the command line of VideoRecompress Studio. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\VideoRecompressStudio\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `videorecompress catalog`, version 2026.2.33. The same reference is on the website: [www.contenta-software.com/videorecompress/docs/cli.html](https://www.contenta-software.com/videorecompress/docs/cli.html).
+Generated from `videorecompress catalog`, version 2026.2.34. The same reference is on the website: [www.contenta-software.com/videorecompress/docs/cli.html](https://www.contenta-software.com/videorecompress/docs/cli.html).
 
 ```powershell
 videorecompress <command> [arguments] [options]
@@ -174,12 +174,16 @@ Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
 Show video file information (codec, resolution, duration, HDR, audio, subtitles).
 
 ```
-videorecompress info <file>
+videorecompress info <file> [options]
 ```
 
 | Argument | Description |
 |---|---|
 | `<file>` | Path to the video file. |
+
+| Option | Type | Description |
+|---|---|---|
+| `--qa` | boolean | Also check the media: faststart (MP4 index before the media), black picture, longest frozen picture, silence and each stream's length. Decodes the whole file once (JSON: a "qa" object). |
 
 Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
 
