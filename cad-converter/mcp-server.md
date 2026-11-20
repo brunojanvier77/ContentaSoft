@@ -1,8 +1,8 @@
 # 3D CAD Converter: MCP server
 
-`cadconvert serve` exposes 8 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
+`cadconvert serve` exposes 9 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
 
-Generated from `cadconvert catalog`, version 1.1.0. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html). The command line is documented in [cli.md](cli.md).
+Generated from `cadconvert catalog`, version 1.1.1. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
 ## Setup
 
@@ -33,7 +33,7 @@ Pass absolute paths to every tool.
 | Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
 | Capabilities | `tools` only (no resources or prompts) |
 | Server name | `cad-converter` |
-| Server version | `1.1.0` |
+| Server version | `1.1.1` |
 
 All four ContentaSoft servers run on the same host, which behaves like this:
 
@@ -56,6 +56,7 @@ All four ContentaSoft servers run on the same host, which behaves like this:
 | [`get_license_status`](#get_license_status) | Get license and trial status | yes | no | yes | no |
 | [`list_formats`](#list_formats) | List supported formats | yes | no | yes | no |
 | [`register_license`](#register_license) | Register a license key | no | no | yes | yes |
+| [`render_model`](#render_model) | Render 3D model thumbnails | yes | no | yes | no |
 
 Destructive: the tool can replace a file that already exists. Network: the tool uses the internet.
 
@@ -153,11 +154,12 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 
 ### get_file_info
 
-**Get 3D file info.** Get metadata about a 3D file including format, parts, triangles, vertices, and bounding box.
+**Get 3D file info.** Get metadata about a 3D file including format, parts, triangles, vertices, and bounding box; for glTF/GLB also its textures, which extract_textures_dir writes out as PNG/JPEG files.
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `input_path` | string | yes | Absolute path to the 3D file. |
+| `extract_textures_dir` | string | no | glTF/GLB only: absolute folder to write every texture image into (WebP and KTX2 decoded to PNG); each texture then names its file. |
 
 ### get_license_status
 
@@ -179,3 +181,14 @@ No parameters.
 |---|---|---|---|
 | `email` | string | yes | The email address the license was bought with. |
 | `key` | string | yes | The license key from the purchase email, with or without its dashes. |
+
+### render_model
+
+**Render 3D model thumbnails.** Draw lit PNG thumbnails of a 3D file (any input format) from front, side, top, iso, back or bottom, to look at the model, its credits or the lettering on its textures. Writes only the PNGs; uses no trial file.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `input_path` | string | yes | Absolute path to the 3D file. |
+| `output_path` | string | yes | Absolute PNG path; with several views each gets -\<view\> before .png; an existing folder gets \<model\>-\<view\>.png. |
+| `views` | array of string | no | Views to draw (default front, side, top, iso). |
+| `size` | integer | no | Width and height in pixels (default 512). Range: 64 to 4096. |

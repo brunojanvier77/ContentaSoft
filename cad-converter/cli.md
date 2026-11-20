@@ -2,7 +2,7 @@
 
 `cadconvert` is the command line of 3D CAD Converter. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\CadConverter\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `cadconvert catalog`, version 1.1.0. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html).
+Generated from `cadconvert catalog`, version 1.1.1. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html).
 
 ```powershell
 cadconvert <command> [arguments] [options]
@@ -21,6 +21,7 @@ Every command has `--help`. Older spellings of some commands and options still w
 | [`cadconvert formats`](#cadconvert-formats) | List all supported 3D formats. |
 | [`cadconvert info <file>`](#cadconvert-info) | Display information about a 3D file. |
 | [`cadconvert register <email> <key>`](#cadconvert-register) | Register your license. |
+| [`cadconvert render <file> --out <out>`](#cadconvert-render) | Draw a lit PNG thumbnail of a 3D file from one or more views. |
 | [`cadconvert serve`](#cadconvert-serve) | Start MCP server for AI agent integration. |
 | [`cadconvert status`](#cadconvert-status) | Show the license and trial state: registered or trial, free conversions left (the trial has no end date), and what exports become after them (Draft quality with a trial note). |
 | [`cadconvert watch <input>`](#cadconvert-watch) | Watch a folder and auto-convert new 3D files. |
@@ -222,6 +223,7 @@ cadconvert info <file> [options]
 |---|---|---|
 | `--bom` | boolean | STEP only: also list the parts (name, quantity, solids, faces, size in mm), one row per unique part. |
 | `--bom-csv` | string | STEP only: write the part list as CSV to this file (the same columns as the app's BOM export). |
+| `--extract-textures` | string | glTF/GLB only: write every texture image into this folder (PNG and JPEG as they are, WebP and KTX2 decoded to PNG); each texture in the JSON names its file. |
 
 Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
 
@@ -237,6 +239,26 @@ cadconvert register <email> <key>
 |---|---|
 | `<email>` | The email address the license was bought with. |
 | `<key>` | License key. |
+
+Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
+
+### cadconvert render
+
+Draw a lit PNG thumbnail of a 3D file from one or more views.
+
+```
+cadconvert render <file> --out <out> [options]
+```
+
+| Argument | Description |
+|---|---|
+| `<file>` | 3D file to draw (any format `formats --input` lists). |
+
+| Option | Type | Description |
+|---|---|---|
+| `--out` | string, required | PNG to write; with several views each gets -\<view\> before .png; an existing folder gets \<model\>-\<view\>.png. |
+| `--views` | string | Comma-separated views: front, side, top, iso, back, bottom (Y up, the model's front facing +Z). |
+| `--size` | integer | Width and height of each PNG in pixels (64 to 4096). |
 
 Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
 
