@@ -6,7 +6,7 @@ allowed-tools: Bash
 
 # VideoRecompress Studio (video compression)
 
-Use the `videorecompress` CLI (VideoRecompress Studio 2026.2.26+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\VideoRecompressStudio\videorecompress.exe`, on the user PATH. Check with `videorecompress --version` (it prints the build id after a `+`). Full reference: https://github.com/brunojanvier77/ContentaSoft/blob/main/videorecompress/cli.md
+Use the `videorecompress` CLI (VideoRecompress Studio 2026.2.26+, Windows; `--loudness` and the `youtube_shorts`, `web_mp4` and `web_av1_webm` presets need 2026.2.33+). Default per-user install: `%LOCALAPPDATA%\Programs\VideoRecompressStudio\videorecompress.exe`, on the user PATH. Check with `videorecompress --version` (it prints the build id after a `+`). Full reference: https://github.com/brunojanvier77/ContentaSoft/blob/main/videorecompress/cli.md
 
 Relative and full paths both work for inputs, `--output`, `--profile` and watermark images.
 
@@ -59,14 +59,16 @@ Pick the preset by what the footage is:
 | Web (WebM) | `web_optimized` | VP9 / 30 |
 | 4K down to 1080p | `4k_to_1080p` | H.265 / 22 |
 | WhatsApp / email / Discord | `whatsapp`, `email_attachment`, `discord_free` | H.264 / 28-32 |
+| YouTube Shorts (upright 1080x1920, -14 LUFS) | `youtube_shorts` | H.264 / 20 |
+| A website video (starts at once, -16 LUFS) | `web_mp4`, plus `web_av1_webm` as a smaller second source | H.264 / 24, AV1 / 34 |
 
-Full list: `videorecompress presets --json` (24 presets).
+Full list: `videorecompress presets --json` (27 presets).
 
 Before a large batch, recompress one typical file with `--measure-quality` into the batch's final output folder, and report its size saving (`reductionPercent`) and VMAF score (`quality.vmaf` in `--json`). Do this first whenever the user asks to keep the quality ("without it looking worse", "no visible loss"): a VMAF of about 93 or more usually means no visible difference. If the score is lower, recompress the same file into the same folder with a lower `--crf`, `--measure-quality` and `--overwrite`. Then run the batch into that folder with the settings of the last test and `--skip-existing`: it keeps the tested file and encodes the rest. If you change the settings after the test, recompress the tested file once more with the new settings and `--overwrite` before the batch. To compare the size saving of several presets or CRF values, call the MCP tool `estimate_savings` once per setting, when it is connected: it encodes three 4-second samples and writes only temporary files. It does not measure quality. Do not create extra test folders: you may not be allowed to delete them afterwards. If a test output is left over anyway, list its path in your final answer so the user can remove it. On the trial, each test encode uses one of the free files. When the user wants the archive as close to the original as possible, choose `wedding_archive` (CRF 18) over `phone_archive` (CRF 23).
 
 ## Other options (recompress and batch)
 
-`--quality-mode crf|cbr|twopass` + `--bitrate kbps` · `--hw-accel auto|nvenc|qsv|amf|software` · `--audio-mode copy|reencode|remove` · `--audio-codec aac|opus|mp3|flac|ac3|eac3` · `--audio-bitrate` · `--container mp4|mkv|webm` · `--width/--height` (a maximum; smaller videos are not enlarged) · `--trim-mode skip-start|skip-end|keep-first|custom` + `--trim-duration`/`--trim-start`/`--trim-end` (seconds of the source) · `--denoise off|light|medium|strong` · `--deinterlace off|yadif|yadif-bob` · `--watermark-text/--watermark-image` + `--watermark-position TopLeft..BottomRight` · `--fps/--fps-mode` · `--overwrite` · `--skip-existing` · `--profile file.json` · `--measure-quality` (SSIM/VMAF). batch: `-r/--recursive`, `-w/--workers`, `--include/--exclude`, `--report file.csv`.
+`--quality-mode crf|cbr|twopass` + `--bitrate kbps` · `--hw-accel auto|nvenc|qsv|amf|software` · `--audio-mode copy|reencode|remove` · `--audio-codec aac|opus|mp3|flac|ac3|eac3` · `--audio-bitrate` · `--loudness youtube|web|broadcast|<LUFS>` (EBU R128 target -14 / -16 / -23; re-encodes the audio) · `--container mp4|mkv|webm` · `--width/--height` (a maximum; smaller videos are not enlarged) · `--trim-mode skip-start|skip-end|keep-first|custom` + `--trim-duration`/`--trim-start`/`--trim-end` (seconds of the source) · `--denoise off|light|medium|strong` · `--deinterlace off|yadif|yadif-bob` · `--watermark-text/--watermark-image` + `--watermark-position TopLeft..BottomRight` · `--fps/--fps-mode` · `--overwrite` · `--skip-existing` · `--profile file.json` · `--measure-quality` (SSIM/VMAF). batch: `-r/--recursive`, `-w/--workers`, `--include/--exclude`, `--report file.csv`.
 
 Option values are checked: an unknown `--codec`, `--hw-accel`, `--container`, `--quality-mode`, `--audio-*`, `--denoise`, `--deinterlace`, `--trim-mode`, `--fps-mode` or `--watermark-position` exits 2 and names the valid values; `--crf` must be 0-63; `--quality-mode cbr|twopass` needs `--bitrate`; H.264/H.265 cannot go into WebM (use `--codec vp9` or `av1`). The presets `gif_creator`, `youtube_thumbnails` and `video_contact_sheet` write several files and work only with `batch`.
 

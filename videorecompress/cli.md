@@ -2,7 +2,7 @@
 
 `videorecompress` is the command line of VideoRecompress Studio. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\VideoRecompressStudio\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `videorecompress catalog`, version 2026.2.32. The same reference is on the website: [www.contenta-software.com/videorecompress/docs/cli.html](https://www.contenta-software.com/videorecompress/docs/cli.html).
+Generated from `videorecompress catalog`, version 2026.2.33. The same reference is on the website: [www.contenta-software.com/videorecompress/docs/cli.html](https://www.contenta-software.com/videorecompress/docs/cli.html).
 
 ```powershell
 videorecompress <command> [arguments] [options]
@@ -121,6 +121,7 @@ videorecompress batch <input-dir> [options]
 | `--audio-mode` | string | Audio mode: copy, reencode, remove. |
 | `--audio-codec` | string | Audio codec: aac, opus, mp3, flac, ac3, eac3. |
 | `--audio-bitrate` | integer | Audio bitrate in kbps. |
+| `--loudness` | string | Loudness target for the audio: a LUFS value (-14, -16, -23) or youtube (-14), web (-16), broadcast (-23). Re-encodes the audio. |
 | `--container` | string | Container format: mp4, mkv, webm. |
 | `--width` | integer | Target width (0 = keep original). |
 | `--height` | integer | Target height (0 = keep original). |
@@ -241,6 +242,7 @@ videorecompress profile save <file> [options]
 | `--audio-mode` | string | Audio mode: copy, reencode, remove. |
 | `--audio-codec` | string | Audio codec: aac, opus, mp3, flac, ac3, eac3. |
 | `--audio-bitrate` | integer | Audio bitrate in kbps. |
+| `--loudness` | string | Loudness target for the audio: a LUFS value (-14, -16, -23) or youtube (-14), web (-16), broadcast (-23). Re-encodes the audio. |
 | `--container` | string | Container format: mp4, mkv, webm. |
 | `--width` | integer | Target width (0 = keep original). |
 | `--height` | integer | Target height (0 = keep original). |
@@ -304,6 +306,7 @@ videorecompress recompress <input> [options]
 | `--audio-mode` | string | Audio mode: copy, reencode, remove. |
 | `--audio-codec` | string | Audio codec: aac, opus, mp3, flac, ac3, eac3. |
 | `--audio-bitrate` | integer | Audio bitrate in kbps. |
+| `--loudness` | string | Loudness target for the audio: a LUFS value (-14, -16, -23) or youtube (-14), web (-16), broadcast (-23). Re-encodes the audio. |
 | `--container` | string | Container format: mp4, mkv, webm. |
 | `--width` | integer | Target width (0 = keep original). |
 | `--height` | integer | Target height (0 = keep original). |

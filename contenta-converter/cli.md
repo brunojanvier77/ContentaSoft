@@ -2,7 +2,7 @@
 
 `contenta` is the command line of Contenta Converter. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\ContentaConverter\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `contenta catalog`, version 9.1.3. The same reference is on the website: [www.contenta-converter.com/docs/cli.html](https://www.contenta-converter.com/docs/cli.html).
+Generated from `contenta catalog`, version 9.2.0. The same reference is on the website: [www.contenta-converter.com/docs/cli.html](https://www.contenta-converter.com/docs/cli.html).
 
 ```powershell
 contenta <command> [arguments] [options]
@@ -18,6 +18,7 @@ Every command has `--help`. Older spellings of some commands and options still w
 | [`contenta ai-transform <input>`](#contenta-ai-transform) | AI-powered image transformation via Google Gemini. |
 | [`contenta batch <input-dir>`](#contenta-batch) | Batch convert images in a directory. With --json, stdout is one result object {"type":"summary","success":true\|false,"exitCode":N,"succeeded":N,...}. Add --progress for one line per finished output before it, {"type":"progress","file":NAME,"status":"done\|skipped\|failed","completed":N,"total":T} (the result object stays last): skip the lines that start with {"type":"progress". |
 | [`contenta catalog`](#contenta-catalog) | Print every CLI command and MCP tool as JSON (for AI agents, docs and the website). |
+| [`contenta check <inputs>...`](#contenta-check) | Check pictures against a rule. --no-text: find lettering with the Windows OCR on this PC (nothing is uploaded); exit 0 when no picture has text, 4 when one has (the words and their boxes are in --json). |
 | [`contenta convert <input>`](#contenta-convert) | Convert a single image file. |
 | [`contenta effects`](#contenta-effects) | List all available image effects. |
 | [`contenta formats`](#contenta-formats) | List supported input and output formats. |
@@ -29,6 +30,7 @@ Every command has `--help`. Older spellings of some commands and options still w
 | [`contenta profile save <file>`](#contenta-profile-save) | Save current options as a profile JSON file. |
 | [`contenta profile validate <file>`](#contenta-profile-validate) | Validate a profile JSON file. |
 | [`contenta register <email> <key>`](#contenta-register) | Register your license key. |
+| [`contenta run <job>`](#contenta-run) | Run a JSON job file: many named outputs per input (size, resize mode, format, quality, size budget each), one result. Inputs are matched in --input-dir (default: the job file's folder), outputs written under --output-dir (default: the input folder). |
 | [`contenta serve`](#contenta-serve) | Start MCP server for AI agent integration. |
 | [`contenta slideshow <files>...`](#contenta-slideshow) | Create a video slideshow from images. During the trial the video always ends with the branding end card. |
 | [`contenta status`](#contenta-status) | Show license status, tools availability, and version info. |
@@ -165,6 +167,7 @@ contenta batch <input-dir> [options]
 | `--jxl-lossless` | boolean | JXL lossless. |
 | `--preserve-metadata` | boolean | Preserve metadata. |
 | `--profile` | string | Load profile from JSON. |
+| `--max-bytes` | string | Size budget per output, e.g. 350KB, 1.5MB or 200000 (bytes; KB = 1024). With jpg, webp, avif, heic or jxl the highest quality up to -q whose file fits is chosen and reported; a file that cannot fit even at quality 5 is kept at that quality, with a warning and exit code 4. |
 | `--lens-corrections` | boolean | Apply the lens corrections a DNG carries (distortion, vignetting, shading; on by default; --lens-corrections false turns them off). |
 | `--title` | string | Set title metadata. |
 | `--description` | string | Set description metadata. |
@@ -216,6 +219,26 @@ Print every CLI command and MCP tool as JSON (for AI agents, docs and the websit
 contenta catalog
 ```
 
+### contenta check
+
+Check pictures against a rule. --no-text: find lettering with the Windows OCR on this PC (nothing is uploaded); exit 0 when no picture has text, 4 when one has (the words and their boxes are in --json).
+
+```
+contenta check <inputs>... [options]
+```
+
+| Argument | Description |
+|---|---|
+| `<inputs>` | Picture files or folders (a folder: its pictures, not its subfolders). |
+
+| Option | Type | Description |
+|---|---|---|
+| `--no-text` | boolean | Fail a picture that shows text: words of --min-chars or more letters or digits. |
+| `--min-chars` | integer | Shortest word that counts as text (letters and digits). |
+| `--lang` | string | OCR languages, comma-separated BCP-47 tags (default: every OCR language installed in Windows). |
+
+Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
+
 ### contenta convert
 
 Convert a single image file.
@@ -256,6 +279,7 @@ contenta convert <input> [options]
 | `--jxl-lossless` | boolean | JXL lossless mode. |
 | `--preserve-metadata` | boolean | Preserve original metadata. |
 | `--profile` | string | Load conversion profile from JSON file. |
+| `--max-bytes` | string | Size budget per output, e.g. 350KB, 1.5MB or 200000 (bytes; KB = 1024). With jpg, webp, avif, heic or jxl the highest quality up to -q whose file fits is chosen and reported; a file that cannot fit even at quality 5 is kept at that quality, with a warning and exit code 4. |
 | `--lens-corrections` | boolean | Apply the lens corrections a DNG carries (distortion, vignetting, shading; on by default; --lens-corrections false turns them off). |
 | `--title` | string | Set title metadata. |
 | `--description` | string | Set description metadata. |
@@ -425,6 +449,7 @@ contenta profile save <file> [options]
 | `--copyright` | string | Copyright metadata. |
 | `--creator` | string | Creator metadata. |
 | `--overwrite` | boolean | Overwrite existing files. |
+| `--max-bytes` | string | Size budget per output, e.g. 350KB, 1.5MB or 200000 (bytes; KB = 1024). With jpg, webp, avif, heic or jxl the highest quality up to -q whose file fits is chosen and reported; a file that cannot fit even at quality 5 is kept at that quality, with a warning and exit code 4. |
 
 Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
 
@@ -454,6 +479,27 @@ contenta register <email> <key>
 |---|---|
 | `<email>` | Registration email. |
 | `<key>` | 25-character license key. |
+
+Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
+
+### contenta run
+
+Run a JSON job file: many named outputs per input (size, resize mode, format, quality, size budget each), one result. Inputs are matched in --input-dir (default: the job file's folder), outputs written under --output-dir (default: the input folder).
+
+```
+contenta run <job> [options]
+```
+
+| Argument | Description |
+|---|---|
+| `<job>` | Job file (JSON): version, defaults, groups of inputs or first-of, and their outputs. |
+
+| Option | Type | Description |
+|---|---|---|
+| `--input-dir` | string | Folder the job's input patterns are relative to (default: the job file's folder). |
+| `--output-dir` | string | Folder the job's output names are relative to (default: the input folder). |
+| `--skip-existing` | boolean | Leave outputs that already exist as they are (default: replace them). |
+| `--dry-run` | boolean | List the inputs and outputs the job would write, convert nothing. |
 
 Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
 
@@ -527,6 +573,7 @@ contenta watch <dir> [options]
 | `--format` | string | Output format. |
 | `--quality` | integer | Quality 1-100. |
 | `--profile` | string | Load profile from JSON. |
+| `--max-bytes` | string | Size budget per output, e.g. 350KB, 1.5MB or 200000 (bytes; KB = 1024). With jpg, webp, avif, heic or jxl the highest quality up to -q whose file fits is chosen and reported; a file that cannot fit even at quality 5 is kept at that quality, with a warning and exit code 4. |
 | `--white-balance` | string | RAW white balance: camera, auto, manual. |
 | `--color-temperature` | integer | Manual WB: temperature of the light the picture was taken in, in Kelvin (2000-10000, default 5500 = daylight; a lower value gives a cooler picture, a higher one a warmer picture). |
 | `--denoising` | boolean | Apply wavelet denoising during RAW decode (off by default). |

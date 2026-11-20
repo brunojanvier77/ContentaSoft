@@ -1,8 +1,8 @@
 # Contenta Converter: MCP server
 
-`contenta serve` exposes 14 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
+`contenta serve` exposes 16 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
 
-Generated from `contenta catalog`, version 9.1.3. The same reference is on the website: [www.contenta-converter.com/docs/cli.html](https://www.contenta-converter.com/docs/cli.html). The command line is documented in [cli.md](cli.md).
+Generated from `contenta catalog`, version 9.2.0. The same reference is on the website: [www.contenta-converter.com/docs/cli.html](https://www.contenta-converter.com/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
 ## Setup
 
@@ -33,7 +33,7 @@ Pass absolute paths to every tool.
 | Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
 | Capabilities | `tools` only (no resources or prompts) |
 | Server name | `contenta-photo-converter` |
-| Server version | `9.1.3` |
+| Server version | `9.2.0` |
 
 All four ContentaSoft servers run on the same host, which behaves like this:
 
@@ -50,6 +50,7 @@ All four ContentaSoft servers run on the same host, which behaves like this:
 |---|---|---|---|---|---|
 | [`ai_transform`](#ai_transform) | AI transform image (Gemini) | no | yes | no | yes |
 | [`batch_convert`](#batch_convert) | Batch convert images | no | no | no | no |
+| [`check_image`](#check_image) | Check image | yes | no | yes | no |
 | [`convert_image`](#convert_image) | Convert image | no | no | no | no |
 | [`create_pdf_album`](#create_pdf_album) | Create PDF album | no | yes | no | no |
 | [`create_slideshow`](#create_slideshow) | Create video slideshow | no | yes | no | no |
@@ -61,6 +62,7 @@ All four ContentaSoft servers run on the same host, which behaves like this:
 | [`merge_pdfs`](#merge_pdfs) | Merge PDFs | no | yes | no | no |
 | [`read_metadata`](#read_metadata) | Read image metadata | yes | no | yes | no |
 | [`register_license`](#register_license) | Register a license key | no | no | yes | yes |
+| [`run_job`](#run_job) | Run job file | no | no | no | no |
 | [`write_metadata`](#write_metadata) | Write image metadata | no | yes | no | no |
 
 Destructive: the tool can replace a file that already exists. Network: the tool uses the internet.
@@ -97,6 +99,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `skip_existing` | boolean | no | Leave an input alone when its output already exists (reported as skipped), so a re-run only converts what is missing (default: false). |
 | `format` | string | no | Output format (jpg, png, webp, etc.) |
 | `quality` | integer | no | Output quality. Range: 1 to 100. |
+| `max_bytes` | integer or string | no | Size budget per output: bytes (200000) or a size such as "350KB" / "1.5MB". With jpg, webp, avif, heic or jxl the highest quality up to `quality` whose file fits is chosen and reported in `quality`; budgetMet=false when it cannot fit. |
 | `resize_width` | integer | no | Target width (alone: the height follows the aspect ratio). Minimum: 1. |
 | `resize_height` | integer | no | Target height (alone: the width follows the aspect ratio). Minimum: 1. |
 | `resize_mode` | string | no | Resize mode: fit (default), fill, stretch, longest-edge, shortest-edge, fit-with-background, crop-to-aspect. fill, stretch, fit-with-background and crop-to-aspect need both resize_width and resize_height. |
@@ -126,6 +129,17 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `raw_auto_bright` | string | no | RAW input only. RAW automatic brightening: auto (default: on for camera-maker RAW files such as NEF, CR2, ARW and for most DNG files; off for DNG files that carry their own rendering (a tone curve, a gain map or a baseline exposure of +0.5 EV or more) and while an exposure shift is applied, which it would otherwise cancel), on, off. auto:T or on:T also sets the share of pixels allowed to reach white, 0.0001 to 0.5 (default 0.01; higher = brighter), e.g. on:0.02; under an exposure shift only on:T keeps it. |
 | `workers` | integer | no | Parallel workers (default: automatic - one per logical CPU, 2x for JPEG downscales to half size or less, one per physical core for RAW batches on 8+ core CPUs). Minimum: 1. |
 
+### check_image
+
+**Check image.** Check pictures for lettering (no_text) with the Windows OCR on this PC; nothing is uploaded. Returns, per picture, passed and the words found with their boxes in the picture's pixels. For rules such as 'no text in the main product image' or 'no text in store screenshots'.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `input_paths` | array of string | yes | Absolute paths of the pictures. |
+| `no_text` | boolean | yes | The check to run (required: true). |
+| `min_chars` | integer | no | Shortest word that counts as text (default 3). Range: 1 to 50. |
+| `languages` | array of string | no | OCR languages as BCP-47 tags (default: every OCR language installed). |
+
 ### convert_image
 
 **Convert image.** Convert a single image to a different format with optional resize, effects, and metadata. A multi-page PDF or TIFF converts every page: one output file per page, or one multi-page file when the output format is PDF or TIFF (pdf_page picks a single page); the result lists every file in outputs.
@@ -138,6 +152,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `skip_existing` | boolean | no | Leave an input alone when its output already exists (reported as skipped), so a re-run only converts what is missing (default: false). |
 | `format` | string | no | Output format: jpg, png, webp, tiff, bmp, gif, jxl, heic, avif, svg, pdf. |
 | `quality` | integer | no | Output quality (default: 90). Range: 1 to 100. |
+| `max_bytes` | integer or string | no | Size budget per output: bytes (200000) or a size such as "350KB" / "1.5MB". With jpg, webp, avif, heic or jxl the highest quality up to `quality` whose file fits is chosen and reported in `quality`; budgetMet=false when it cannot fit. |
 | `resize_width` | integer | no | Target width in pixels (alone: the height follows the aspect ratio). Minimum: 1. |
 | `resize_height` | integer | no | Target height in pixels (alone: the width follows the aspect ratio). Minimum: 1. |
 | `resize_mode` | string | no | Resize mode: fit (default), fill, stretch, longest-edge, shortest-edge, fit-with-background, crop-to-aspect. fill, stretch, fit-with-background and crop-to-aspect need both resize_width and resize_height. |
@@ -260,6 +275,19 @@ No parameters.
 |---|---|---|---|
 | `email` | string | yes | The email address the license was bought with. |
 | `key` | string | yes | The license key from the purchase email, with or without its dashes. |
+
+### run_job
+
+**Run job file.** Run a job: many named outputs per input image, each with its own size ("1600x", "640x360"), resize mode, format, quality and size budget (maxBytes), in one call with one result per output. Give job_path (a JSON job file) or job (the same JSON). Job: {"version":1,"defaults":{"format":"webp","quality":82},"groups":\[{"inputs":\["shots/\*.png"\],"outputs":\[{"name":"shots/{index:00}.webp","resize":"1600x","maxBytes":"300KB"}\]},{"first":\["card.png","shots/\*.png"\],"outputs":\[{"name":"card.webp","resize":"640x360","mode":"fill"}\]}\]}. Name tokens: {name}, {index}, {index:00}, {group}.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `job_path` | string | no | Absolute path of a JSON job file. |
+| `job` | object | no | The job itself (same JSON as a job file), instead of job_path. |
+| `input_dir` | string | no | Folder the input patterns are relative to (default: the job file's folder; required with job). |
+| `output_dir` | string | no | Folder the output names are relative to (default: input_dir). |
+| `skip_existing` | boolean | no | Leave an input alone when its output already exists (reported as skipped), so a re-run only converts what is missing (default: false). |
+| `dry_run` | boolean | no | List the planned outputs, convert nothing. |
 
 ### write_metadata
 

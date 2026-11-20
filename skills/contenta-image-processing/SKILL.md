@@ -6,7 +6,7 @@ allowed-tools: Bash
 
 # Contenta Converter (image processing)
 
-Use the `contenta` CLI (Contenta Converter 9.0.44+, Windows). Default per-user install: `%LOCALAPPDATA%\Programs\ContentaConverter\contenta.exe`, on the user PATH. Check with `contenta --version` (it prints the build id after a `+`). Full reference: https://github.com/brunojanvier77/ContentaSoft/blob/main/contenta-converter/cli.md
+Use the `contenta` CLI (Contenta Converter 9.0.44+, Windows; `--max-bytes`, `run`, `check --no-text` and the alpha fields of `info` need 9.2.0+). Default per-user install: `%LOCALAPPDATA%\Programs\ContentaConverter\contenta.exe`, on the user PATH. Check with `contenta --version` (it prints the build id after a `+`). Full reference: https://github.com/brunojanvier77/ContentaSoft/blob/main/contenta-converter/cli.md
 
 Every command accepts `--json`, `--plain`, `--quiet`, `-v/--verbose` and `--progress`. Input files and folders are positional. Relative and absolute paths both work. Check the exit code after each call.
 
@@ -22,7 +22,9 @@ Every command accepts `--json`, `--plain`, `--quiet`, `-v/--verbose` and `--prog
 ```bash
 contenta convert <input> [options]              # one image
 contenta batch <input-dir> [options]            # a folder (not recursive unless --recursive); without -f each file keeps its format
-contenta info <file> --json                     # format, width/height, dpi, copyright, creator + full metadata
+contenta info <file> --json                     # format, width/height, dpi, copyright, creator, alpha (transparency) + full metadata
+contenta run job.json [--input-dir D] [--output-dir D] [--dry-run] [--skip-existing]   # many named outputs per input, one result
+contenta check --no-text <files|dirs> [--min-chars 3] [--lang en-US]   # lettering in pictures (Windows OCR, local); exit 4 = text found
 contenta effects --json                         # 51 effects with parameters
 contenta formats --json [--input|--output]      # 102 input / 28 output extensions
 contenta pdf-album <files>... --output album.pdf [--photos-per-page N] [--page-size A4|Letter|Legal] [--embed-quality 1-100] [--background-image img --background-mode stretch|center|tile]
@@ -45,7 +47,8 @@ contenta register <email> <key>
 - `--effects sepia sharpen` or `--effects "sepia,sharpen:window=5"` (spaces or commas); parameters as `name:key=value,key=value`, e.g. `"colorbrightnesscontrast:brightness=20,contrast=10"`. Unknown names or parameters exit 2 with the valid list; missing parameters take the app defaults. `flip:direction=horizontal|vertical`, `crop:x=0,y=0,width=800,height=600`. Names and ranges: `contenta effects`.
 - `--watermark "text" --watermark-position 0-8 (8 = bottom-right) --watermark-opacity 0-100`
 - Metadata: `--copyright --creator --title --description --keywords "a,b" --rights --creator-city --creator-country --creator-email --creator-url --gps "lat,lon" --datetime ISO8601`. Kept in WebP, HEIC and AVIF too (as XMP, since they have no IPTC block).
-- Multi-size: `--sizes 16,32,48` or `--sizes 1x,2x,3x --base-size 512`, `--size-preset favicon|appicon|srcset`. Writes one file per size (`logo-16.ico`, `logo-32.ico`, ...), not one multi-resolution ICO.
+- Multi-size: `--sizes 16,32,48` or `--sizes 1x,2x,3x --base-size 512`, `--size-preset favicon|appicon|srcset`. Writes one file per size (`logo-16.ico`, `logo-32.ico`, ...), not one multi-resolution ICO. `1600w` / `900h` set one edge; `=suffix` names that size: `--sizes 1600w=,480w=-480` writes `photo.webp` and `photo-480.webp`.
+- `--max-bytes 350KB` (or `1.5MB`, `200000`): a size budget per file. With jpg, webp, avif, heic or jxl the highest quality up to `-q` that fits is written; `--json` reports `quality` and `budgetMet`. A file that does not fit even at quality 5 is kept (smallest found), with a warning and exit 4.
 - RAW: `--white-balance camera|auto|manual`, `--color-temperature K`, `--denoising`, `--sharpness-boost` (on by default for RAW input, as in the app; `--sharpness-boost false` turns it off), `--color-boost`, `--contrast-boost`, `--exposure EV`
 - RAW highlights and exposure: `--raw-highlights clip|unclip|blend|rebuild[:3-9]` (default clip; unclip and rebuild come out darker, so raise `--exposure`), `--raw-exposure-mode shift|gain` (shift, the default, applies the exposure to the RAW data like the camera; gain is a brightness multiplier after development), `--raw-protect-highlights` (a positive exposure in shift mode without blown highlights), `--raw-auto-bright auto|on|off` (auto: on for camera-maker RAW, off for DNG files that carry their own rendering)
 - batch only: `--include "*.jpg"`, `--exclude`, `--recursive`, `-w/--workers N` (default automatic), `--report file.csv`
@@ -75,7 +78,9 @@ Amazon 2000x2000 · Etsy 2700x2025 · Shopify 2048x2048 · eBay 1600x1600 · Ins
 ## Recipes
 
 - **Square product images (Amazon, Shopify, eBay):** `--resize-mode fit-with-background` with the platform's size from the table, for Amazon `--resize 2000x2000`. The whole photo is scaled into the square and the rest is padded with white; nothing is cropped. `fit` keeps the photo's shape (a 4:3 photo comes out 2000x1500), and `fill` crops to fill the square.
-- **Stay under a file size (for example 500 KB per photo):** write JPG or WebP and lower `-q` step by step (90, 80, 70, 60), reading `outputSize` (bytes) from `convert --json` after each try. If 60 is still too big, resize smaller as well. `-q` does not change PNG, which is lossless; switch to JPG or WebP. For a folder, find the quality on one typical file with `convert`, then run the `batch` with it.
+- **Stay under a file size (for example 500 KB per photo):** write JPG or WebP with `--max-bytes 500KB`; the converter lowers the quality only as far as each file needs and reports it. If `budgetMet` is false (exit 4), resize smaller as well. PNG is lossless: switch to JPG or WebP.
+- **Many sizes and names from each picture (web shops, game portals):** a job file run with `contenta run job.json`: `{"version":1,"defaults":{"format":"webp"},"groups":[{"inputs":["shots/*.png"],"outputs":[{"name":"shots/{index:00}.webp","resize":"1600x","quality":82,"maxBytes":"300KB"},{"name":"shots/{index:00}-480.webp","resize":"480x"}]},{"first":["card.png","shots/*.png"],"outputs":[{"name":"card.webp","resize":"640x360","mode":"fill"}]}]}`. Output keys: name ({name} {index} {index:00} {group}), format, quality, resize, mode, background, maxBytes, lossless, dontEnlarge, keepMetadata, effects. `--dry-run` lists the plan.
+- **No text in a picture (marketplace main images, store screenshots):** `contenta check --no-text <folder> --json`; each result has `passed` and the words found with their boxes. Only the OCR languages installed in Windows are read.
 
 ## Examples
 
@@ -93,6 +98,9 @@ contenta batch ./products --profile etsy.json --output ./etsy-ready
 contenta convert photo.jpg --effects blackwhite "crop:x=100,y=100,width=800,height=600" --output ./fx
 contenta batch ./products --output ./upload --format jpg --resize 2000x2000 --resize-mode fit --rename-pattern "shop_{seq:3}" --zip-output
 contenta info photo.jpg --json
+contenta convert photo.jpg --format webp --max-bytes 300KB --output ./web
+contenta run media-job.json --input-dir ./sources --output-dir ./site --json
+contenta check --no-text ./screenshots --json
 ```
 
 ## JSON output
