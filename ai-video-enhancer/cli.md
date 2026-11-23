@@ -2,7 +2,7 @@
 
 `aivideoenhancer` is the command line of AI Video Enhancer Studio. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\AIVideoEnhancerStudio\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `aivideoenhancer catalog`, version 2026.7.27. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html).
+Generated from `aivideoenhancer catalog`, version 2026.7.28. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html).
 
 ```powershell
 aivideoenhancer <command> [arguments] [options]
@@ -113,11 +113,11 @@ aivideoenhancer batch <input> [options]
 | `--denoise` | string | Denoise: off\|light\|medium\|strong. |
 | `--denoise-method` | string | Denoise method: nlmeans\|hqdn3d\|chroma (default: hqdn3d; chroma = colour noise reduced much harder than luma, for tape). |
 | `--stabilize` | string | Stabilize: off\|light\|medium\|strong. |
-| `--deinterlace` | string | Deinterlace: off\|yadif\|yadifbob\|bwdif\|bwdifbob (bwdifbob = full motion: one frame per field, 25i becomes 50p, 29.97i becomes 59.94p). With --preset and no --deinterlace, interlaced sources get yadif; --deinterlace off keeps it off. |
+| `--deinterlace` | string | Deinterlace: off\|yadif\|yadifbob\|bwdif\|bwdifbob (bwdifbob = full motion: one frame per field, 25i becomes 50p, 29.97i becomes 59.94p). With --preset and no --deinterlace, flagged interlaced sources get yadif. Without --deinterlace, an SD source (576 lines or fewer) that measures interlaced is deinterlaced to field rate (25i becomes 50p) with square pixels, which also changes its frame size (720x576 becomes 768x576). --deinterlace off keeps it off and prevents both. |
 | `--sharpen` | string | Sharpen: off\|light\|medium\|strong. |
 | `--rolling-shutter` | string | Rolling-shutter (jello) correction: off\|light\|medium\|strong. |
 | `--interpolate` | string | Target frame rate for smoother motion (RIFE): off\|30\|60. Only raises the rate — a clip already at/above the target is left unchanged. |
-| `--codec` | string | Output codec: h264\|h265\|av1\|vp9. |
+| `--codec` | string | Output codec: h264\|h265\|av1\|vp9\|prores\|dnxhr. prores = ProRes 422 HQ and dnxhr = DNxHR HQ, editing intermediates for DaVinci Resolve, Premiere or Final Cut; both are written to a .mov (the default for them; an .mp4 or .mkv -o file is refused). |
 | `--crf` | integer | Quality (CRF value, 1-51, lower=better). |
 | `--upscale-tile` | integer | Upscale tile size override (0=auto). Accepted for script compatibility; NVIDIA Video Super Resolution has no tiles and ignores it. |
 | `--frame-batch` | integer | Frames per AI-runner invocation (0=auto, the default: sized from free VRAM). |
@@ -182,11 +182,11 @@ aivideoenhancer enhance <input> [options]
 | `--denoise` | string | Denoise: off\|light\|medium\|strong. |
 | `--denoise-method` | string | Denoise method: nlmeans\|hqdn3d\|chroma (default: hqdn3d; chroma = colour noise reduced much harder than luma, for tape). |
 | `--stabilize` | string | Stabilize: off\|light\|medium\|strong. |
-| `--deinterlace` | string | Deinterlace: off\|yadif\|yadifbob\|bwdif\|bwdifbob (bwdifbob = full motion: one frame per field, 25i becomes 50p, 29.97i becomes 59.94p). With --preset and no --deinterlace, interlaced sources get yadif; --deinterlace off keeps it off. |
+| `--deinterlace` | string | Deinterlace: off\|yadif\|yadifbob\|bwdif\|bwdifbob (bwdifbob = full motion: one frame per field, 25i becomes 50p, 29.97i becomes 59.94p). With --preset and no --deinterlace, flagged interlaced sources get yadif. Without --deinterlace, an SD source (576 lines or fewer) that measures interlaced is deinterlaced to field rate (25i becomes 50p) with square pixels, which also changes its frame size (720x576 becomes 768x576). --deinterlace off keeps it off and prevents both. |
 | `--sharpen` | string | Sharpen: off\|light\|medium\|strong. |
 | `--rolling-shutter` | string | Rolling-shutter (jello) correction: off\|light\|medium\|strong. |
 | `--interpolate` | string | Target frame rate for smoother motion (RIFE): off\|30\|60. Only raises the rate — a clip already at/above the target is left unchanged. |
-| `--codec` | string | Output codec: h264\|h265\|av1\|vp9. |
+| `--codec` | string | Output codec: h264\|h265\|av1\|vp9\|prores\|dnxhr. prores = ProRes 422 HQ and dnxhr = DNxHR HQ, editing intermediates for DaVinci Resolve, Premiere or Final Cut; both are written to a .mov (the default for them; an .mp4 or .mkv -o file is refused). |
 | `--crf` | integer | Quality (CRF value, 1-51, lower=better). |
 | `--upscale-tile` | integer | Upscale tile size override (0=auto). Accepted for script compatibility; NVIDIA Video Super Resolution has no tiles and ignores it. |
 | `--frame-batch` | integer | Frames per AI-runner invocation (0=auto, the default: sized from free VRAM). |
@@ -384,11 +384,11 @@ aivideoenhancer watch <input> [options]
 | `--denoise` | string | Denoise: off\|light\|medium\|strong. |
 | `--denoise-method` | string | Denoise method: nlmeans\|hqdn3d\|chroma (default: hqdn3d; chroma = colour noise reduced much harder than luma, for tape). |
 | `--stabilize` | string | Stabilize: off\|light\|medium\|strong. |
-| `--deinterlace` | string | Deinterlace: off\|yadif\|yadifbob\|bwdif\|bwdifbob (bwdifbob = full motion: one frame per field, 25i becomes 50p, 29.97i becomes 59.94p). With --preset and no --deinterlace, interlaced sources get yadif; --deinterlace off keeps it off. |
+| `--deinterlace` | string | Deinterlace: off\|yadif\|yadifbob\|bwdif\|bwdifbob (bwdifbob = full motion: one frame per field, 25i becomes 50p, 29.97i becomes 59.94p). With --preset and no --deinterlace, flagged interlaced sources get yadif. Without --deinterlace, an SD source (576 lines or fewer) that measures interlaced is deinterlaced to field rate (25i becomes 50p) with square pixels, which also changes its frame size (720x576 becomes 768x576). --deinterlace off keeps it off and prevents both. |
 | `--sharpen` | string | Sharpen: off\|light\|medium\|strong. |
 | `--rolling-shutter` | string | Rolling-shutter (jello) correction: off\|light\|medium\|strong. |
 | `--interpolate` | string | Target frame rate for smoother motion (RIFE): off\|30\|60. Only raises the rate — a clip already at/above the target is left unchanged. |
-| `--codec` | string | Output codec: h264\|h265\|av1\|vp9. |
+| `--codec` | string | Output codec: h264\|h265\|av1\|vp9\|prores\|dnxhr. prores = ProRes 422 HQ and dnxhr = DNxHR HQ, editing intermediates for DaVinci Resolve, Premiere or Final Cut; both are written to a .mov (the default for them; an .mp4 or .mkv -o file is refused). |
 | `--crf` | integer | Quality (CRF value, 1-51, lower=better). |
 | `--upscale-tile` | integer | Upscale tile size override (0=auto). Accepted for script compatibility; NVIDIA Video Super Resolution has no tiles and ignores it. |
 | `--frame-batch` | integer | Frames per AI-runner invocation (0=auto, the default: sized from free VRAM). |

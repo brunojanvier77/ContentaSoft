@@ -2,7 +2,7 @@
 
 `aivideoenhancer serve` exposes 7 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
 
-Generated from `aivideoenhancer catalog`, version 2026.7.27. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html). The command line is documented in [cli.md](cli.md).
+Generated from `aivideoenhancer catalog`, version 2026.7.28. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
 ## Setup
 
@@ -33,7 +33,7 @@ Pass absolute paths to every tool.
 | Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
 | Capabilities | `tools` only (no resources or prompts) |
 | Server name | `ai-video-enhancer` |
-| Server version | `2026.7.27` |
+| Server version | `2026.7.28` |
 
 All four ContentaSoft servers run on the same host, which behaves like this:
 
@@ -74,7 +74,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `denoise` | string | no | Denoise level: off, light, medium, strong. One of: `off`, `light`, `medium`, `strong`. |
 | `stabilize` | string | no | Stabilization level: off, light, medium, strong. One of: `off`, `light`, `medium`, `strong`. |
 | `stabilize_keep` | integer | no | With stabilize (or a preset that stabilizes): keep at least this percent of the picture, 50-100. Stabilizing zooms in to hide the moving edge, by as much as the shake needs; a limit stops the zoom there and leaves the part of the movement it has no room for. 100 = no zoom at all, the edge of the picture then moves. Leave it out to let the stabilizer choose. Range: 50 to 100. |
-| `deinterlace` | string | no | Deinterlace: off, yadif, yadifbob, bwdif, bwdifbob (full motion: one frame per field, 25i becomes 50p). With a preset and no deinterlace value, an interlaced source (DV, DVD, TV capture) gets yadif automatically; pass off to keep it off. One of: `off`, `yadif`, `yadifbob`, `bwdif`, `bwdifbob`. |
+| `deinterlace` | string | no | Deinterlace: off, yadif, yadifbob, bwdif, bwdifbob (full motion: one frame per field, 25i becomes 50p). With a preset and no deinterlace value, a flagged interlaced source (DV, DVD, TV capture) gets yadif automatically. With no deinterlace value, an SD source (576 lines or fewer) that measures interlaced is deinterlaced to field rate (25i becomes 50p) with square pixels (720x576 becomes 768x576). Pass off to prevent both. One of: `off`, `yadif`, `yadifbob`, `bwdif`, `bwdifbob`. |
 | `denoise_method` | string | no | Denoise method: hqdn3d (default), nlmeans, chroma (colour noise reduced much harder than luma, for tape). One of: `hqdn3d`, `nlmeans`, `chroma`. |
 | `hum` | string | no | Remove mains hum from the audio: off, auto (50 Hz for a 25/50 fps picture, 60 Hz for 29.97/59.94), 50, 60. Used with a preset or another enhancement; the audio is re-encoded. One of: `off`, `auto`, `50`, `60`. |
 | `audio_cleanup` | string | no | Audio noise reduction: off, light, strong (strong also cuts below 80 Hz and evens out the volume). The audio is re-encoded. One of: `off`, `light`, `strong`. |
@@ -83,7 +83,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `sharpen` | string | no | Sharpen: off, light, medium, strong. One of: `off`, `light`, `medium`, `strong`. |
 | `rolling_shutter` | string | no | Rolling-shutter (jello) correction: off, light, medium, strong. One of: `off`, `light`, `medium`, `strong`. |
 | `interpolate` | string | no | Target frame rate for smoother motion (RIFE): off, 30, 60. Only raises the rate — a clip already at/above the target is left unchanged. One of: `off`, `30`, `60`. |
-| `codec` | string | no | Output codec: h264, h265, av1, vp9. One of: `h264`, `h265`, `av1`, `vp9`. |
+| `codec` | string | no | Output codec: h264, h265, av1, vp9, prores (ProRes 422 HQ) or dnxhr (DNxHR HQ). prores and dnxhr are editing intermediates for DaVinci Resolve, Premiere or Final Cut, written to a .mov (an output_path ending .mp4 or .mkv is refused). One of: `h264`, `h265`, `av1`, `vp9`, `prores`, `dnxhr`. |
 | `hdr` | string | no | HDR10 / HLG sources: keep (default) or sdr. keep = the output stays 10-bit HDR when the job has no AI stage (upscale, interpolate), no stabilize, no rolling_shutter and no nlmeans denoise, and the codec is h265, av1 or vp9; otherwise the picture is tone-mapped to SDR. sdr = always tone-map to SDR (BT.709). hdrNotice in the result says what was done. One of: `keep`, `sdr`. |
 | `crf` | integer | no | Quality (CRF value, 1-51, lower = better quality, default: 18). Range: 1 to 51. |
 | `skip_existing` | boolean | no | Leave the video alone when its output file already exists (default: write a renamed copy beside it). A skipped video is not enhanced and costs no free file. |

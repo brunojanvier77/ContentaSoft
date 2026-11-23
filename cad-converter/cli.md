@@ -2,7 +2,7 @@
 
 `cadconvert` is the command line of 3D CAD Converter. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\CadConverter\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `cadconvert catalog`, version 1.1.1. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html).
+Generated from `cadconvert catalog`, version 1.1.2. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html).
 
 ```powershell
 cadconvert <command> [arguments] [options]
@@ -224,6 +224,7 @@ cadconvert info <file> [options]
 | `--bom` | boolean | STEP only: also list the parts (name, quantity, solids, faces, size in mm), one row per unique part. |
 | `--bom-csv` | string | STEP only: write the part list as CSV to this file (the same columns as the app's BOM export). |
 | `--extract-textures` | string | glTF/GLB only: write every texture image into this folder (PNG and JPEG as they are, WebP and KTX2 decoded to PNG); each texture in the JSON names its file. |
+| `--check-colours` | boolean | STEP over 10 MB: also count the colours a conversion carries (a second OpenCascade pass, about as long as the info itself). Smaller STEP files are always checked; without it a larger one reports the colours as not checked (hasMaterials and materialCount left out, coloursChecked false). IGES and BREP carry no colours. |
 
 Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
 

@@ -2,7 +2,7 @@
 
 `cadconvert serve` exposes 9 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
 
-Generated from `cadconvert catalog`, version 1.1.1. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html). The command line is documented in [cli.md](cli.md).
+Generated from `cadconvert catalog`, version 1.1.2. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
 ## Setup
 
@@ -33,7 +33,7 @@ Pass absolute paths to every tool.
 | Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
 | Capabilities | `tools` only (no resources or prompts) |
 | Server name | `cad-converter` |
-| Server version | `1.1.1` |
+| Server version | `1.1.2` |
 
 All four ContentaSoft servers run on the same host, which behaves like this:
 
@@ -64,7 +64,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 
 ### batch_convert_cad
 
-**Convert a folder of 3D/CAD files.** Convert every 3D file in a folder (STEP, IGES, BREP and the mesh formats convert_cad reads) to one format, with the same options as convert_cad; format, or a preset that names one, is required. Outputs are named after their sources; with recursive, subfolders are mirrored under output_dir. Files already in the target format are left alone when output_dir is the input folder. The result lists every file with its own convert_cad result or error. Send a progressToken for progress over the whole folder.
+**Convert a folder of 3D/CAD files.** Convert every 3D file in a folder (STEP, IGES, BREP and the mesh formats convert_cad reads) to one format, with the same options as convert_cad; format, or a preset that names one, is required. Outputs are named after their sources; with recursive, subfolders are mirrored under output_dir. Files already in the target format are left alone when output_dir is the input folder. The result lists every file with its own convert_cad result or error (success false = a failed conversion). A CAD program's own file or a known 3D format no reader opens is listed too, never converted, with success true, skipped true, status Skipped and reason native_cad (nativeFormat names the program: export STEP from it first) or unsupported_format, counted in refused, not in total; other files (PDFs, images) are only counted in ignored. Send a progressToken for progress over the whole folder.
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
@@ -154,12 +154,13 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 
 ### get_file_info
 
-**Get 3D file info.** Get metadata about a 3D file including format, parts, triangles, vertices, and bounding box; for glTF/GLB also its textures, which extract_textures_dir writes out as PNG/JPEG files.
+**Get 3D file info.** Get metadata about a 3D file including format, parts, triangles, vertices, and bounding box; for glTF/GLB also its textures, which extract_textures_dir writes out as PNG/JPEG files. For STEP, hasMaterials and materialCount are the colours a conversion carries; above 10 MB they are checked only with check_colours (else hasMaterials and materialCount are left out and coloursChecked is false). IGES and BREP carry no colours (materialCount 0).
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `input_path` | string | yes | Absolute path to the 3D file. |
 | `extract_textures_dir` | string | no | glTF/GLB only: absolute folder to write every texture image into (WebP and KTX2 decoded to PNG); each texture then names its file. |
+| `check_colours` | boolean | no | STEP over 10 MB: also count the colours a conversion carries (a second OpenCascade pass, about as long as the info itself). Smaller STEP files are always checked. Default: false. |
 
 ### get_license_status
 
