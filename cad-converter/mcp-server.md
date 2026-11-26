@@ -1,8 +1,8 @@
 # 3D CAD Converter: MCP server
 
-`cadconvert serve` exposes 9 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
+`cadconvert serve` exposes 13 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
 
-Generated from `cadconvert catalog`, version 1.1.2. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html). The command line is documented in [cli.md](cli.md).
+Generated from `cadconvert catalog`, version 1.2.0. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
 ## Setup
 
@@ -33,7 +33,7 @@ Pass absolute paths to every tool.
 | Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
 | Capabilities | `tools` only (no resources or prompts) |
 | Server name | `cad-converter` |
-| Server version | `1.1.2` |
+| Server version | `1.2.0` |
 
 All four ContentaSoft servers run on the same host, which behaves like this:
 
@@ -48,6 +48,10 @@ All four ContentaSoft servers run on the same host, which behaves like this:
 
 | Tool | Title | Read-only | Destructive | Idempotent | Network |
 |---|---|---|---|---|---|
+| [`bake_ao`](#bake_ao) | Bake vertex AO and ground contact shadow | no | yes | no | no |
+| [`bake_environment`](#bake_environment) | Bake HDR sky panorama to Babylon .env | no | yes | no | no |
+| [`bake_impostor`](#bake_impostor) | Bake far-card impostor atlas | no | yes | no | no |
+| [`bake_pbr`](#bake_pbr) | Bake PBR texture maps and KTX2 | no | yes | no | no |
 | [`batch_convert_cad`](#batch_convert_cad) | Convert a folder of 3D/CAD files | no | yes | no | no |
 | [`convert_cad`](#convert_cad) | Convert 3D/CAD file | no | yes | no | no |
 | [`detect_format`](#detect_format) | Detect 3D format | yes | no | yes | no |
@@ -61,6 +65,66 @@ All four ContentaSoft servers run on the same host, which behaves like this:
 Destructive: the tool can replace a file that already exists. Network: the tool uses the internet.
 
 ## Tools
+
+### bake_ao
+
+**Bake vertex AO and ground contact shadow.** Offline BVH raycast ambient occlusion baker: writes per-vertex AO into glTF COLOR_0 of a static copy of the model (\<prefix\>.ao.glb: geometry, base colour, metallic and roughness factors; skins, animations and other texture maps are not carried, the result's warnings say what was left out) and/or renders a soft ground contact-shadow decal (\<prefix\>.shadow.png + \<prefix\>.shadow.json) for zero-GPU-cost grounding.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `input_path` | string | yes | Absolute path to the 3D model. |
+| `output_path` | string | yes | Absolute output directory or prefix (writes \<prefix\>.ao.glb, .shadow.png, .shadow.json). |
+| `samples` | integer | no | Hemisphere ray count (default 32). Range: 8 to 256. |
+| `max_distance` | number | no | Max occlusion ray distance in world units (0 = auto 35% of diagonal). Minimum: 0. |
+| `strength` | number | no | AO contrast curve strength (default 1.0). Range: 0.1 to 3. |
+| `bake_vertex_ao` | boolean | no | Emit .ao.glb with COLOR_0 vertex AO (default true). |
+| `bake_contact_shadow` | boolean | no | Emit .shadow.png and .shadow.json ground decal (default true). |
+| `shadow_size` | integer | no | Contact-shadow decal resolution in pixels (default 256). Range: 64 to 1024. |
+| `shadow_padding` | number | no | Margin around model XZ footprint as a fraction of max XZ span (default 0.25). Range: 0 to 1.5. |
+
+### bake_environment
+
+**Bake HDR sky panorama to Babylon .env.** Prefilter a Radiance (.hdr) or OpenEXR (.exr) equirectangular sky panorama into a Babylon.js .env v2 container (spherical polynomial diffuse irradiance and RGBD GGX specular mip chain). No GPU required.
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `input_path` | string | yes | Absolute path to the .hdr or .exr sky panorama. |
+| `output_path` | string | yes | Absolute path for the output .env file. |
+| `size` | integer | no | Cubemap face resolution in pixels (power of two, default 256). One of: `64`, `128`, `256`, `512`. |
+| `samples` | integer | no | GGX importance samples per texel (default 64). Range: 8 to 512. |
+
+### bake_impostor
+
+**Bake far-card impostor atlas.** Render a 3D model from N evenly spaced orthographic azimuth angles at a pitch angle into a packed transparent RGBA atlas (.impostor.png or .webp with alpha color bleed), a JSON metadata descriptor (.impostor.json with world-space bounds), and an optional crossed-card billboard mesh (.impostor.glb).
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `input_path` | string | yes | Absolute path to the 3D model. |
+| `output_path` | string | yes | Absolute output directory or prefix (writes \<prefix\>.impostor.png/webp, \<prefix\>.impostor.json and optional .impostor.glb). |
+| `angles` | integer | no | Evenly spaced azimuth angles (default 8). Range: 4 to 16. |
+| `pitch` | number | no | Elevation pitch angle in degrees (default 8). Range: -45 to 45. |
+| `tile_size` | integer | no | Square tile width and height in pixels (default 256). Range: 64 to 1024. |
+| `format` | string | no | Atlas image format: png (default) or webp. One of: `png`, `webp`. |
+| `emit_glb` | boolean | no | Also emit a crossed-card \<prefix\>.impostor.glb billboard mesh (default false). |
+
+### bake_pbr
+
+**Bake PBR texture maps and KTX2.** Synthesize a glTF/Babylon.js PBR material texture set from one albedo/diffuse image: optional seamless toroidal tiling, multi-scale tangent-space normal map, cavity AO, roughness, packed ORM (R=AO, G=Roughness, B=Metallic), metadata JSON, and optional standalone KTX2 textures (ETC1S albedo, UASTC normal/ORM).
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `input_path` | string | yes | Absolute path to the source texture (.png, .jpg, .webp, .ktx2). |
+| `output_path` | string | yes | Absolute output directory or prefix (writes \<prefix\>.albedo.png, .normal.png, .orm.png, .pbr.json and optional .ktx2). |
+| `seamless` | boolean | no | Make the texture seamlessly tileable before baking maps (default false). |
+| `normal_strength` | number | no | Normal slope strength (default 2.0). Range: 0.1 to 10. |
+| `invert_normal_y` | boolean | no | Flip normal green channel for DirectX -Y instead of OpenGL/glTF +Y (default false). |
+| `roughness_min` | number | no | Minimum roughness value (default 0.25). Range: 0 to 1. |
+| `roughness_max` | number | no | Maximum roughness value (default 0.85). Range: 0 to 1. |
+| `metallic` | number | no | Constant metallic channel in ORM blue (default 0.0). Range: 0 to 1. |
+| `ao_strength` | number | no | Cavity AO strength (default 1.0). Range: 0 to 2. |
+| `invert_roughness` | boolean | no | Invert luminance-to-roughness mapping (default false). |
+| `ktx2` | boolean | no | Also emit standalone KTX2 files via gltfpack (default false). |
+| `ktx2_quality` | integer | no | KTX2 quality 1..10 (default 8). Range: 1 to 10. |
 
 ### batch_convert_cad
 
@@ -81,6 +145,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `compress` | boolean | no | glTF/GLB only: compress the meshes with meshopt (gltfpack); the file is often 5 to 10 times smaller. The viewer must support EXT_meshopt_compression (three.js, Babylon.js, Blender 3.0+, Unity glTFast). Default: false. |
 | `assembly` | string | no | STEP assemblies: preserve (default) writes one file per top-level body of a STEP that has several (the result's additionalOutputs lists them); merge writes every body into one file. A one-root assembly is one file either way. For glTF/GLB output, merge also joins the meshes into one (node names are not kept), but only together with a web option (textures, lods, quantize, compress_fallback, keep_extras); a plain conversion or compress alone keeps the nodes. One of: `preserve`, `merge`. |
 | `textures` | string | no | glTF/GLB only: keep (default), ktx2 or webp. ktx2 converts every texture to KTX2 (Basis Universal), the one format that stays compressed in GPU memory; the viewer needs a KTX2 transcoder (three.js KTX2Loader, Babylon.js). webp makes the download smaller only. The result's web.texturesConverted and the two estimatedGpuTextureBytes say what changed. One of: `keep`, `ktx2`, `webp`. |
+| `keep_textures` | string | no | glTF/GLB only: all (default, keep every texture), base-color (keep only baseColorTexture and strip normal, metallic-roughness, occlusion, emissive and KHR material texture maps) or none (strip all textures). One of: `all`, `base-color`, `none`. |
 | `texture_mode` | string | no | With textures ktx2: auto (default: ETC1S for colour textures, UASTC for normal and data maps), etc1s (smallest) or uastc (best quality, larger). One of: `auto`, `etc1s`, `uastc`. |
 | `base_color` | string | no | glTF/GLB output from FBX, OBJ, DAE and other mesh sources: path of a PNG or JPEG put on every material that has texture coordinates, with a white base colour (an asset pack's shared colour atlas, which its FBX files do not link). |
 | `texture_dir` | string | no | glTF/GLB output from FBX, OBJ, DAE and other mesh sources: a folder searched by file name (and for a PNG or JPEG of the same name) for a texture the source links but that is not where the link says. A link found nowhere is removed with a note. |
@@ -90,6 +155,9 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `lods` | string | no | glTF/GLB only: also write LOD files, one per ratio: "0.5,0.25" or "50%,25%" writes name.lod1 and name.lod2. Each ratio is a target share of the main file's triangles; a mesh that cannot be simplified further without visible damage keeps more. With max_size_mb the LOD files are made from the already reduced main file. They are written without textures (skins and animations stay) and are listed in the result's web.lodFiles. Ratios must fall; at most four; "none" removes the LOD files a preset sets. |
 | `instancing` | boolean | no | glTF/GLB only: write a mesh that is placed several times once (EXT_mesh_gpu_instancing). Node names are not kept. Not with assembly merge. Default: false. |
 | `quantize` | string | no | With compress or compress_fallback: standard (default), fine (more precise positions and normals, slightly larger) or off. One of: `standard`, `fine`, `off`. |
+| `simplify_mode` | string | no | glTF/GLB decimate: quality (default: keeps texture coordinates and stops at the error limit, so it may keep more triangles than asked; web.achievedRatio and web.stoppedForQuality say so) or aggressive (forces the target triangle ratio). max_size_mb always forces its size. One of: `quality`, `aggressive`. |
+| `max_error` | number or string | no | glTF/GLB decimate in quality mode, and LOD files: maximum normalized simplification error (0.001 to 1.0, gltfpack -se). Default: 0.01. |
+| `lock_border` | boolean | no | glTF/GLB decimate: keep the open borders of the mesh in place while simplifying (default: true). LOD files always keep them. |
 | `compress_fallback` | boolean | no | glTF/GLB only: compress with a fallback for viewers without meshopt support (a larger file). Implies compress. Default: false. |
 | `keep_extras` | boolean | no | glTF/GLB only: keep the source's extras data. Extras are dropped only when the file is compressed, textures are converted, or meshes are instanced or merged; a plain conversion keeps them. Default: false. |
 | `strict` | boolean | no | Fail the call when compression, texture conversion or a LOD file could not be applied, instead of writing the file with a warning (then web.applied is false and web.problem says why). Default: false. |
@@ -118,6 +186,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `compress` | boolean | no | glTF/GLB only: compress the meshes with meshopt (gltfpack); the file is often 5 to 10 times smaller. The viewer must support EXT_meshopt_compression (three.js, Babylon.js, Blender 3.0+, Unity glTFast). Default: false. |
 | `assembly` | string | no | STEP assemblies: preserve (default) writes one file per top-level body of a STEP that has several (the result's additionalOutputs lists them); merge writes every body into one file. A one-root assembly is one file either way. For glTF/GLB output, merge also joins the meshes into one (node names are not kept), but only together with a web option (textures, lods, quantize, compress_fallback, keep_extras); a plain conversion or compress alone keeps the nodes. One of: `preserve`, `merge`. |
 | `textures` | string | no | glTF/GLB only: keep (default), ktx2 or webp. ktx2 converts every texture to KTX2 (Basis Universal), the one format that stays compressed in GPU memory; the viewer needs a KTX2 transcoder (three.js KTX2Loader, Babylon.js). webp makes the download smaller only. The result's web.texturesConverted and the two estimatedGpuTextureBytes say what changed. One of: `keep`, `ktx2`, `webp`. |
+| `keep_textures` | string | no | glTF/GLB only: all (default, keep every texture), base-color (keep only baseColorTexture and strip normal, metallic-roughness, occlusion, emissive and KHR material texture maps) or none (strip all textures). One of: `all`, `base-color`, `none`. |
 | `texture_mode` | string | no | With textures ktx2: auto (default: ETC1S for colour textures, UASTC for normal and data maps), etc1s (smallest) or uastc (best quality, larger). One of: `auto`, `etc1s`, `uastc`. |
 | `base_color` | string | no | glTF/GLB output from FBX, OBJ, DAE and other mesh sources: path of a PNG or JPEG put on every material that has texture coordinates, with a white base colour (an asset pack's shared colour atlas, which its FBX files do not link). |
 | `texture_dir` | string | no | glTF/GLB output from FBX, OBJ, DAE and other mesh sources: a folder searched by file name (and for a PNG or JPEG of the same name) for a texture the source links but that is not where the link says. A link found nowhere is removed with a note. |
@@ -127,6 +196,9 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `lods` | string | no | glTF/GLB only: also write LOD files, one per ratio: "0.5,0.25" or "50%,25%" writes name.lod1 and name.lod2. Each ratio is a target share of the main file's triangles; a mesh that cannot be simplified further without visible damage keeps more. With max_size_mb the LOD files are made from the already reduced main file. They are written without textures (skins and animations stay) and are listed in the result's web.lodFiles. Ratios must fall; at most four; "none" removes the LOD files a preset sets. |
 | `instancing` | boolean | no | glTF/GLB only: write a mesh that is placed several times once (EXT_mesh_gpu_instancing). Node names are not kept. Not with assembly merge. Default: false. |
 | `quantize` | string | no | With compress or compress_fallback: standard (default), fine (more precise positions and normals, slightly larger) or off. One of: `standard`, `fine`, `off`. |
+| `simplify_mode` | string | no | glTF/GLB decimate: quality (default: keeps texture coordinates and stops at the error limit, so it may keep more triangles than asked; web.achievedRatio and web.stoppedForQuality say so) or aggressive (forces the target triangle ratio). max_size_mb always forces its size. One of: `quality`, `aggressive`. |
+| `max_error` | number or string | no | glTF/GLB decimate in quality mode, and LOD files: maximum normalized simplification error (0.001 to 1.0, gltfpack -se). Default: 0.01. |
+| `lock_border` | boolean | no | glTF/GLB decimate: keep the open borders of the mesh in place while simplifying (default: true). LOD files always keep them. |
 | `compress_fallback` | boolean | no | glTF/GLB only: compress with a fallback for viewers without meshopt support (a larger file). Implies compress. Default: false. |
 | `keep_extras` | boolean | no | glTF/GLB only: keep the source's extras data. Extras are dropped only when the file is compressed, textures are converted, or meshes are instanced or merged; a plain conversion keeps them. Default: false. |
 | `strict` | boolean | no | Fail the call when compression, texture conversion or a LOD file could not be applied, instead of writing the file with a warning (then web.applied is false and web.problem says why). Default: false. |

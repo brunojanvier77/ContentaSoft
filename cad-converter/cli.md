@@ -2,7 +2,7 @@
 
 `cadconvert` is the command line of 3D CAD Converter. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\CadConverter\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `cadconvert catalog`, version 1.1.2. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html).
+Generated from `cadconvert catalog`, version 1.2.0. The same reference is on the website: [www.contenta-software.com/3dcadconverter/docs/cli.html](https://www.contenta-software.com/3dcadconverter/docs/cli.html).
 
 ```powershell
 cadconvert <command> [arguments] [options]
@@ -15,6 +15,10 @@ Every command has `--help`. Older spellings of some commands and options still w
 
 | Command | What it does |
 |---|---|
+| [`cadconvert bake-ao <file> --out <out>`](#cadconvert-bake-ao) | Bake per-vertex ambient occlusion into a static copy of the model (.ao.glb: geometry, base colour, metallic and roughness factors; no skins, animations or other texture maps) and a ground contact-shadow decal (.shadow.png). |
+| [`cadconvert bake-env <file> --out <out>`](#cadconvert-bake-env) | Prefilter an HDR/EXR sky panorama into a Babylon .env v2 IBL environment. |
+| [`cadconvert bake-impostor <file> --out <out>`](#cadconvert-bake-impostor) | Render N orthographic azimuth views into a far-card impostor atlas, JSON descriptor and optional GLB. |
+| [`cadconvert bake-pbr <file> --out <out>`](#cadconvert-bake-pbr) | Synthesize seamless PBR maps (albedo, normal, ORM) and optional standalone KTX2 from one texture. |
 | [`cadconvert batch <input>`](#cadconvert-batch) | Batch convert a folder of 3D files. |
 | [`cadconvert catalog`](#cadconvert-catalog) | Print every CLI command and MCP tool as JSON (for AI agents, docs and the website). |
 | [`cadconvert convert <input>`](#cadconvert-convert) | Convert a single 3D file. |
@@ -87,6 +91,102 @@ With `--json --progress` a long command first prints one progress line per finis
 
 ## Command reference
 
+### cadconvert bake-ao
+
+Bake per-vertex ambient occlusion into a static copy of the model (.ao.glb: geometry, base colour, metallic and roughness factors; no skins, animations or other texture maps) and a ground contact-shadow decal (.shadow.png).
+
+```
+cadconvert bake-ao <file> --out <out> [options]
+```
+
+| Argument | Description |
+|---|---|
+| `<file>` | 3D model to bake (.glb, .gltf, .obj, .fbx, .step, .stl, ...) |
+
+| Option | Type | Description |
+|---|---|---|
+| `--out` | string, required | Output prefix or directory (writes \<prefix\>.ao.glb, \<prefix\>.shadow.png, \<prefix\>.shadow.json). |
+| `--samples` | integer | Hemisphere occlusion ray count (8 to 256). |
+| `--max-distance` | number | Max ray occlusion distance in world units (0 = auto 35% of model diagonal). |
+| `--strength` | number | Ambient occlusion contrast exponent (0.1 to 3). |
+| `--no-vertex-ao` | boolean | Skip baking per-vertex AO into .ao.glb (emit only the contact-shadow decal). |
+| `--no-shadow` | boolean | Skip baking the ground contact-shadow decal (emit only .ao.glb). |
+| `--shadow-size` | integer | Square contact-shadow decal size in pixels (64 to 1024). |
+| `--shadow-padding` | number | Extra shadow quad margin around model XZ footprint (0.0 to 1.5). |
+
+Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
+
+### cadconvert bake-env
+
+Prefilter an HDR/EXR sky panorama into a Babylon .env v2 IBL environment.
+
+```
+cadconvert bake-env <file> --out <out> [options]
+```
+
+| Argument | Description |
+|---|---|
+| `<file>` | Equirectangular HDR sky panorama (.hdr or .exr). |
+
+| Option | Type | Description |
+|---|---|---|
+| `--out` | string, required | Output .env file path (for example sky.env). |
+| `--size` | integer | Cubemap face size in pixels (power of two, 64 to 512). |
+| `--samples` | integer | GGX importance sample count per roughness mip texel (8 to 512). |
+
+Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
+
+### cadconvert bake-impostor
+
+Render N orthographic azimuth views into a far-card impostor atlas, JSON descriptor and optional GLB.
+
+```
+cadconvert bake-impostor <file> --out <out> [options]
+```
+
+| Argument | Description |
+|---|---|
+| `<file>` | 3D model file to bake into an impostor atlas (any format `formats --input` lists). |
+
+| Option | Type | Description |
+|---|---|---|
+| `--out` | string, required | Output directory or file prefix (writes \<prefix\>.impostor.png/webp, \<prefix\>.impostor.json, and optional .impostor.glb). |
+| `--angles` | integer | Evenly spaced azimuth angles (4 to 16). |
+| `--pitch` | number | Camera elevation angle in degrees (-45 to 45). |
+| `--tile-size` | integer | Square tile resolution in pixels (64 to 1024). |
+| `--format` | string | Atlas image format: png (default) or webp. |
+| `--emit-glb` | boolean | Also write a ready-to-instance crossed-card \<prefix\>.impostor.glb billboard mesh (needs an even --angles). |
+
+Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
+
+### cadconvert bake-pbr
+
+Synthesize seamless PBR maps (albedo, normal, ORM) and optional standalone KTX2 from one texture.
+
+```
+cadconvert bake-pbr <file> --out <out> [options]
+```
+
+| Argument | Description |
+|---|---|
+| `<file>` | Source albedo/diffuse texture (.png, .jpg, .webp, .ktx2). |
+
+| Option | Type | Description |
+|---|---|---|
+| `--out` | string, required | Output prefix or directory (writes \<prefix\>.albedo.png, .normal.png, .orm.png, .pbr.json and optional .ktx2). |
+| `--seamless` | boolean | Make the texture seamlessly tileable with toroidal cross-blending before generating maps. |
+| `--normal-strength` | number | Normal map slope strength (0.1 to 10). |
+| `--invert-normal-y` | boolean | Flip normal green channel for DirectX (-Y) instead of OpenGL/glTF (+Y). |
+| `--roughness-min` | number | Minimum roughness value (0.0 to 1.0). |
+| `--roughness-max` | number | Maximum roughness value (roughness-min to 1.0). |
+| `--metallic` | number | Constant metallic channel written into ORM blue (0.0 to 1.0). |
+| `--ao-strength` | number | Cavity ambient occlusion strength (0 to 2). |
+| `--invert-roughness` | boolean | Invert luminance-to-roughness mapping (bright areas rougher instead of smoother). |
+| `--ktx2` | boolean | Also emit standalone KTX2 textures (ETC1S for albedo, UASTC for normal and ORM) via gltfpack. |
+| `--ktx2-quality` | integer | KTX2 encoding quality (1 to 10). |
+
+Output options: `--json`, `--plain`, `--quiet`, `--verbose`, `--progress`.
+
 ### cadconvert batch
 
 Batch convert a folder of 3D files.
@@ -119,6 +219,7 @@ cadconvert batch <input> [options]
 | `--compress` | boolean | glTF/GLB only: compress the meshes with meshopt (gltfpack); the file is often 5 to 10 times smaller. The viewer must support EXT_meshopt_compression (three.js, Babylon.js, Blender 3.0+, Unity glTFast). |
 | `--assembly` | string | STEP assemblies: preserve (default) writes one file per top-level body of a STEP that has several; merge writes every body into one file. A one-root assembly is one file either way. For glTF/GLB output, merge also joins the meshes into one (node names are not kept), but only together with a web option (--textures, --lods, --quantize, --compress-fallback, --keep-extras); a plain conversion or --compress alone keeps the nodes. |
 | `--textures` | string | glTF/GLB only: keep (default), ktx2 or webp. ktx2 converts every texture to KTX2 (Basis Universal), the one format that stays compressed in GPU memory; the viewer needs a KTX2 transcoder (three.js KTX2Loader, Babylon.js). webp makes the download smaller only. |
+| `--keep-textures` | string | glTF/GLB only: all (default, keep all texture maps), base-color (keep baseColorTexture only and strip normal, metallic-roughness, occlusion, emissive and KHR material texture maps) or none (strip all textures). |
 | `--texture-mode` | string | With --textures ktx2: auto (default: ETC1S for colour textures, UASTC for normal and data maps), etc1s (smallest) or uastc (best quality, larger). |
 | `--base-color` | string | glTF/GLB output from FBX, OBJ, DAE and other mesh sources: a PNG or JPEG put on every material that has texture coordinates, with a white base colour (an asset pack's shared colour atlas, which its FBX files do not link). |
 | `--texture-dir` | string | glTF/GLB output from FBX, OBJ, DAE and other mesh sources: a folder searched by file name (and for a PNG or JPEG of the same name) for a texture the source links but that is not where the link says. A link found nowhere is removed with a note. |
@@ -128,6 +229,9 @@ cadconvert batch <input> [options]
 | `--lods` | string | glTF/GLB only: also write LOD files, one per ratio: 0.5,0.25 (or 0.5 0.25, or 50%,25%) writes name.lod1 and name.lod2. Each ratio is a target share of the main file's triangles; a mesh that cannot be simplified further without visible damage keeps more: the result says how many triangles each LOD file kept (lods in --json). With --max-size the LOD files are made from the already reduced main file. LOD files are written without textures (skins and animations stay). Ratios must fall; at most four; none removes the LOD files a preset sets. |
 | `--instancing` | boolean | glTF/GLB only: write a mesh that is placed several times once (EXT_mesh_gpu_instancing). Node names are not kept. |
 | `--quantize` | string | With --compress or --compress-fallback: standard (default), fine (more precise positions and normals, slightly larger) or off. A quantized mesh moves into a new unnamed child of its node, which carries the scale that undoes the quantization: node names stay, but code that expects the mesh directly on the named node must look one level down. off keeps the structure. |
+| `--simplify-mode` | string | glTF/GLB --decimate: quality (default: keeps texture coordinates and stops at the error limit, so it may keep more triangles than asked; the result says how many) or aggressive (forces the target triangle ratio). --max-size always forces its size. |
+| `--max-error` | string | glTF/GLB --decimate in quality mode, and LOD files: maximum normalized simplification error (0.001 to 1.0, gltfpack -se). Default: 0.01. |
+| `--lock-border` | boolean | glTF/GLB --decimate: keep the open borders of the mesh in place while simplifying (default: true; pass --lock-border false to let them move). LOD files always keep them. |
 | `--compress-fallback` | boolean | glTF/GLB only: compress with a fallback for viewers without meshopt support (a larger file). Implies --compress. |
 | `--keep-extras` | boolean | glTF/GLB only: keep the source's extras data. Extras are dropped only when the file is compressed, textures are converted, or meshes are instanced or merged; a plain conversion keeps them. |
 | `--strict` | boolean | Fail a file when compression, texture conversion or a LOD file could not be applied, instead of writing it with a warning (exit code 5; 4 when other files of a batch succeeded). For build scripts. |
@@ -173,6 +277,7 @@ cadconvert convert <input> [options]
 | `--compress` | boolean | glTF/GLB only: compress the meshes with meshopt (gltfpack); the file is often 5 to 10 times smaller. The viewer must support EXT_meshopt_compression (three.js, Babylon.js, Blender 3.0+, Unity glTFast). |
 | `--assembly` | string | STEP assemblies: preserve (default) writes one file per top-level body of a STEP that has several; merge writes every body into one file. A one-root assembly is one file either way. For glTF/GLB output, merge also joins the meshes into one (node names are not kept), but only together with a web option (--textures, --lods, --quantize, --compress-fallback, --keep-extras); a plain conversion or --compress alone keeps the nodes. |
 | `--textures` | string | glTF/GLB only: keep (default), ktx2 or webp. ktx2 converts every texture to KTX2 (Basis Universal), the one format that stays compressed in GPU memory; the viewer needs a KTX2 transcoder (three.js KTX2Loader, Babylon.js). webp makes the download smaller only. |
+| `--keep-textures` | string | glTF/GLB only: all (default, keep all texture maps), base-color (keep baseColorTexture only and strip normal, metallic-roughness, occlusion, emissive and KHR material texture maps) or none (strip all textures). |
 | `--texture-mode` | string | With --textures ktx2: auto (default: ETC1S for colour textures, UASTC for normal and data maps), etc1s (smallest) or uastc (best quality, larger). |
 | `--base-color` | string | glTF/GLB output from FBX, OBJ, DAE and other mesh sources: a PNG or JPEG put on every material that has texture coordinates, with a white base colour (an asset pack's shared colour atlas, which its FBX files do not link). |
 | `--texture-dir` | string | glTF/GLB output from FBX, OBJ, DAE and other mesh sources: a folder searched by file name (and for a PNG or JPEG of the same name) for a texture the source links but that is not where the link says. A link found nowhere is removed with a note. |
@@ -182,6 +287,9 @@ cadconvert convert <input> [options]
 | `--lods` | string | glTF/GLB only: also write LOD files, one per ratio: 0.5,0.25 (or 0.5 0.25, or 50%,25%) writes name.lod1 and name.lod2. Each ratio is a target share of the main file's triangles; a mesh that cannot be simplified further without visible damage keeps more: the result says how many triangles each LOD file kept (lods in --json). With --max-size the LOD files are made from the already reduced main file. LOD files are written without textures (skins and animations stay). Ratios must fall; at most four; none removes the LOD files a preset sets. |
 | `--instancing` | boolean | glTF/GLB only: write a mesh that is placed several times once (EXT_mesh_gpu_instancing). Node names are not kept. |
 | `--quantize` | string | With --compress or --compress-fallback: standard (default), fine (more precise positions and normals, slightly larger) or off. A quantized mesh moves into a new unnamed child of its node, which carries the scale that undoes the quantization: node names stay, but code that expects the mesh directly on the named node must look one level down. off keeps the structure. |
+| `--simplify-mode` | string | glTF/GLB --decimate: quality (default: keeps texture coordinates and stops at the error limit, so it may keep more triangles than asked; the result says how many) or aggressive (forces the target triangle ratio). --max-size always forces its size. |
+| `--max-error` | string | glTF/GLB --decimate in quality mode, and LOD files: maximum normalized simplification error (0.001 to 1.0, gltfpack -se). Default: 0.01. |
+| `--lock-border` | boolean | glTF/GLB --decimate: keep the open borders of the mesh in place while simplifying (default: true; pass --lock-border false to let them move). LOD files always keep them. |
 | `--compress-fallback` | boolean | glTF/GLB only: compress with a fallback for viewers without meshopt support (a larger file). Implies --compress. |
 | `--keep-extras` | boolean | glTF/GLB only: keep the source's extras data. Extras are dropped only when the file is compressed, textures are converted, or meshes are instanced or merged; a plain conversion keeps them. |
 | `--strict` | boolean | Fail a file when compression, texture conversion or a LOD file could not be applied, instead of writing it with a warning (exit code 5; 4 when other files of a batch succeeded). For build scripts. |
@@ -313,6 +421,7 @@ cadconvert watch <input> [options]
 | `--compress` | boolean | glTF/GLB only: compress the meshes with meshopt (gltfpack); the file is often 5 to 10 times smaller. The viewer must support EXT_meshopt_compression (three.js, Babylon.js, Blender 3.0+, Unity glTFast). |
 | `--assembly` | string | STEP assemblies: preserve (default) writes one file per top-level body of a STEP that has several; merge writes every body into one file. A one-root assembly is one file either way. For glTF/GLB output, merge also joins the meshes into one (node names are not kept), but only together with a web option (--textures, --lods, --quantize, --compress-fallback, --keep-extras); a plain conversion or --compress alone keeps the nodes. |
 | `--textures` | string | glTF/GLB only: keep (default), ktx2 or webp. ktx2 converts every texture to KTX2 (Basis Universal), the one format that stays compressed in GPU memory; the viewer needs a KTX2 transcoder (three.js KTX2Loader, Babylon.js). webp makes the download smaller only. |
+| `--keep-textures` | string | glTF/GLB only: all (default, keep all texture maps), base-color (keep baseColorTexture only and strip normal, metallic-roughness, occlusion, emissive and KHR material texture maps) or none (strip all textures). |
 | `--texture-mode` | string | With --textures ktx2: auto (default: ETC1S for colour textures, UASTC for normal and data maps), etc1s (smallest) or uastc (best quality, larger). |
 | `--base-color` | string | glTF/GLB output from FBX, OBJ, DAE and other mesh sources: a PNG or JPEG put on every material that has texture coordinates, with a white base colour (an asset pack's shared colour atlas, which its FBX files do not link). |
 | `--texture-dir` | string | glTF/GLB output from FBX, OBJ, DAE and other mesh sources: a folder searched by file name (and for a PNG or JPEG of the same name) for a texture the source links but that is not where the link says. A link found nowhere is removed with a note. |
@@ -322,6 +431,9 @@ cadconvert watch <input> [options]
 | `--lods` | string | glTF/GLB only: also write LOD files, one per ratio: 0.5,0.25 (or 0.5 0.25, or 50%,25%) writes name.lod1 and name.lod2. Each ratio is a target share of the main file's triangles; a mesh that cannot be simplified further without visible damage keeps more: the result says how many triangles each LOD file kept (lods in --json). With --max-size the LOD files are made from the already reduced main file. LOD files are written without textures (skins and animations stay). Ratios must fall; at most four; none removes the LOD files a preset sets. |
 | `--instancing` | boolean | glTF/GLB only: write a mesh that is placed several times once (EXT_mesh_gpu_instancing). Node names are not kept. |
 | `--quantize` | string | With --compress or --compress-fallback: standard (default), fine (more precise positions and normals, slightly larger) or off. A quantized mesh moves into a new unnamed child of its node, which carries the scale that undoes the quantization: node names stay, but code that expects the mesh directly on the named node must look one level down. off keeps the structure. |
+| `--simplify-mode` | string | glTF/GLB --decimate: quality (default: keeps texture coordinates and stops at the error limit, so it may keep more triangles than asked; the result says how many) or aggressive (forces the target triangle ratio). --max-size always forces its size. |
+| `--max-error` | string | glTF/GLB --decimate in quality mode, and LOD files: maximum normalized simplification error (0.001 to 1.0, gltfpack -se). Default: 0.01. |
+| `--lock-border` | boolean | glTF/GLB --decimate: keep the open borders of the mesh in place while simplifying (default: true; pass --lock-border false to let them move). LOD files always keep them. |
 | `--compress-fallback` | boolean | glTF/GLB only: compress with a fallback for viewers without meshopt support (a larger file). Implies --compress. |
 | `--keep-extras` | boolean | glTF/GLB only: keep the source's extras data. Extras are dropped only when the file is compressed, textures are converted, or meshes are instanced or merged; a plain conversion keeps them. |
 | `--strict` | boolean | Fail a file when compression, texture conversion or a LOD file could not be applied, instead of writing it with a warning (exit code 5; 4 when other files of a batch succeeded). For build scripts. |
