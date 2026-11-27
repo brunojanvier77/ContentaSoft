@@ -647,6 +647,9 @@ Effect names for `--effects` and the MCP `effects` parameter, as `contenta effec
 | `ripple` | Distortion | Ripple | length: 10 to 200 (default 40), amount: 1 to 50 (default 10), type: sin\|square |
 | `perspective` | Correction | Perspective Correction (in-process) | vertical: -100 to 100 (default 0), horizontal: -100 to 100 (default 0) |
 | `crop` | Transforms | Crop image (in-process) | left: 0 to 100, top: 0 to 100, right: 0 to 100, bottom: 0 to 100 (percent of the picture trimmed from each edge, default 0); or x, y, width, height: pixels from the top-left corner. The crop cuts the picture first and a resize then sizes what is left: both forms count on the picture BEFORE the resize (after a flip or rotate placed before the crop), so the rectangle is in pixels of the source, not of the resized output |
+| `trim` | Transforms | Trim transparent borders (in-process) | threshold: 0 to 254 (default 0; pixels with alpha \<= threshold trim), padding: 0 to 256 (default 0 px). Cuts before resize, like crop |
+| `alphableed` | Transforms | Bleed opaque RGB into transparent pixels (in-process, alias: alpha-bleed) | radius: 0 to 256 (default 0; 0 = fill all transparent pixels), threshold: 0 to 254 (default 0) |
+| `premultiply` | Transforms | Premultiply RGB by alpha (in-process, alias: unpremultiply) | mode: premultiply\|unpremultiply (default premultiply) |
 | `flip` | Transforms | Flip (in-process) | direction: horizontal\|vertical (default horizontal) |
 | `rotate` | Transforms | Rotate (in-process) | angle: 0 to 360 (default 90) |
 | `watermark` | Transforms | Text/image watermark (in-process) | text, placement 0-8, transparency 0-100, font |

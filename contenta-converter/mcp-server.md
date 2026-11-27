@@ -104,7 +104,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `resize_height` | integer | no | Target height (alone: the width follows the aspect ratio). Minimum: 1. |
 | `resize_mode` | string | no | Resize mode: fit (default), fill, stretch, longest-edge, shortest-edge, fit-with-background, crop-to-aspect. fill, stretch, fit-with-background and crop-to-aspect need both resize_width and resize_height. |
 | `background` | string | no | Colour around the picture with resize_mode fit-with-background: white, black, grey, lightgrey or #RRGGBB (default: white). resize_width 2000 + resize_height 2000 + resize_mode fit-with-background + background white = white square product images. |
-| `effects` | array of string | no | Effects to apply in order, each name or name:key=value (e.g. \["sepia", "sharpen:window=5"\]; a comma list "sepia,sharpen" works too). Names and parameters: list_effects. A crop cuts the picture BEFORE the resize (its x, y, width, height are pixels of the source; left, top, right, bottom are percent): the resize then sizes what is left. An unknown name fails the call before anything is converted. |
+| `effects` | array of string | no | Effects to apply in order, each name or name:key=value (e.g. \["sepia", "sharpen:window=5"\]; a comma list "sepia,sharpen" works too). Names and parameters: list_effects. A crop or trim cuts the picture BEFORE the resize (crop x, y, width, height are pixels of the source; left, top, right, bottom are percent): the resize then sizes what is left. Sprite alpha prep effects: trim, alpha-bleed (or alphableed), premultiply, unpremultiply. An unknown name fails the call before anything is converted. |
 | `lut_path` | string | no | Absolute path to a 3D LUT (.cube) applied to every image, after resize and the other effects (the CLI's --lut). A file that is missing or not a 3D .cube LUT fails the call before anything is converted. |
 | `lut_strength` | integer | no | How much of the LUT to apply, 0-100 (default 100). Needs lut_path. Range: 0 to 100. |
 | `watermark_text` | string | no | Text watermark drawn on every output in white, its width 10% of the image (the CLI's --watermark). Nothing is drawn without it. |
@@ -157,7 +157,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `resize_height` | integer | no | Target height in pixels (alone: the width follows the aspect ratio). Minimum: 1. |
 | `resize_mode` | string | no | Resize mode: fit (default), fill, stretch, longest-edge, shortest-edge, fit-with-background, crop-to-aspect. fill, stretch, fit-with-background and crop-to-aspect need both resize_width and resize_height. |
 | `background` | string | no | Colour around the picture with resize_mode fit-with-background: white, black, grey, lightgrey or #RRGGBB (default: white). resize_width 2000 + resize_height 2000 + resize_mode fit-with-background + background white = white square product images. |
-| `effects` | array of string | no | Effects to apply in order, each name or name:key=value (e.g. \["sepia", "sharpen:window=5"\]; a comma list "sepia,sharpen" works too). Names and parameters: list_effects. A crop cuts the picture BEFORE the resize (its x, y, width, height are pixels of the source; left, top, right, bottom are percent): the resize then sizes what is left. An unknown name fails the call before anything is converted. |
+| `effects` | array of string | no | Effects to apply in order, each name or name:key=value (e.g. \["sepia", "sharpen:window=5"\]; a comma list "sepia,sharpen" works too). Names and parameters: list_effects. A crop or trim cuts the picture BEFORE the resize (crop x, y, width, height are pixels of the source; left, top, right, bottom are percent): the resize then sizes what is left. Sprite alpha prep effects: trim, alpha-bleed (or alphableed), premultiply, unpremultiply. An unknown name fails the call before anything is converted. |
 | `lut_path` | string | no | Absolute path to a 3D LUT (.cube) applied to every image, after resize and the other effects (the CLI's --lut). A file that is missing or not a 3D .cube LUT fails the call before anything is converted. |
 | `lut_strength` | integer | no | How much of the LUT to apply, 0-100 (default 100). Needs lut_path. Range: 0 to 100. |
 | `watermark_text` | string | no | Text watermark drawn on every output in white, its width 10% of the image (the CLI's --watermark). Nothing is drawn without it. |
@@ -224,7 +224,7 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 
 ### get_file_info
 
-**Get image file info.** Inspect an image file (the CLI's `contenta info`): real format, pixel size, DPI, file size, copyright and creator.
+**Get image file info.** Inspect an image file (the CLI's `contenta info`): real format, pixel size, DPI, file size, alpha bounds/hidden-RGB analysis, copyright and creator.
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
