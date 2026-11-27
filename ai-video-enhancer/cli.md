@@ -2,7 +2,7 @@
 
 `aivideoenhancer` is the command line of AI Video Enhancer Studio. It is installed with the desktop app, in `%LOCALAPPDATA%\Programs\AIVideoEnhancerStudio\`, and the installer adds that folder to your user `PATH`.
 
-Generated from `aivideoenhancer catalog`, version 2026.7.28. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html).
+Generated from `aivideoenhancer catalog`, version 2026.7.29. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html).
 
 ```powershell
 aivideoenhancer <command> [arguments] [options]
@@ -25,7 +25,7 @@ Every command has `--help`. Older spellings of some commands and options still w
 | [`aivideoenhancer presets`](#aivideoenhancer-presets) | List available enhancement presets. |
 | [`aivideoenhancer register <email> <key>`](#aivideoenhancer-register) | Register your license key. |
 | [`aivideoenhancer remix`](#aivideoenhancer-remix) | Suggest and render highlight-reel remixes from one video or several. |
-| [`aivideoenhancer remix render <input>... --clips <clips> --output <output>`](#aivideoenhancer-remix-render) | Render clip ranges into one H.264 MP4. |
+| [`aivideoenhancer remix render <input>... --output <output>`](#aivideoenhancer-remix-render) | Render clip ranges, or clips around moments, into one H.264 MP4. |
 | [`aivideoenhancer remix suggest <input>...`](#aivideoenhancer-remix-suggest) | Suggest highlight clip ranges via scene detection. |
 | [`aivideoenhancer serve`](#aivideoenhancer-serve) | Start MCP server for AI agent integration. |
 | [`aivideoenhancer status`](#aivideoenhancer-status) | Show system status, GPU capabilities and license / trial state. |
@@ -117,8 +117,11 @@ aivideoenhancer batch <input> [options]
 | `--sharpen` | string | Sharpen: off\|light\|medium\|strong. |
 | `--rolling-shutter` | string | Rolling-shutter (jello) correction: off\|light\|medium\|strong. |
 | `--interpolate` | string | Target frame rate for smoother motion (RIFE): off\|30\|60. Only raises the rate — a clip already at/above the target is left unchanged. |
-| `--codec` | string | Output codec: h264\|h265\|av1\|vp9\|prores\|dnxhr. prores = ProRes 422 HQ and dnxhr = DNxHR HQ, editing intermediates for DaVinci Resolve, Premiere or Final Cut; both are written to a .mov (the default for them; an .mp4 or .mkv -o file is refused). |
-| `--crf` | integer | Quality (CRF value, 1-51, lower=better). |
+| `--codec` | string | Output codec: h264\|h265\|av1\|vp9\|prores\|dnxhr\|copy. prores = ProRes 422 HQ and dnxhr = DNxHR HQ, editing intermediates for DaVinci Resolve, Premiere or Final Cut written to a .mov; copy = stream-copy video without re-encoding (same as --remux). |
+| `--crf` | integer | Quality (CRF value, 1-51, lower=better; NVENC applies VMAF-matched CQ offsets). |
+| `--target-mb` | number | Target maximum output file size in MB (e.g. 15 or 7.5). Uses two-pass software encoding and steps resolution down if needed. |
+| `--remux` | boolean | Stream-copy video without re-encoding (implies --codec copy; writes MP4/MOV +faststart without requiring enhancement filters). |
+| `--reencode` | boolean | Permit a plain video re-encode with the chosen --codec, --crf, or --target-mb without enabling AI or denoise filters. |
 | `--upscale-tile` | integer | Upscale tile size override (0=auto). Accepted for script compatibility; NVIDIA Video Super Resolution has no tiles and ignores it. |
 | `--frame-batch` | integer | Frames per AI-runner invocation (0=auto, the default: sized from free VRAM). |
 | `--temp-dir` | string | Scratch folder for frame extraction / interpolation temp data (default: the desktop app's Settings value, or system temp). |
@@ -186,8 +189,11 @@ aivideoenhancer enhance <input> [options]
 | `--sharpen` | string | Sharpen: off\|light\|medium\|strong. |
 | `--rolling-shutter` | string | Rolling-shutter (jello) correction: off\|light\|medium\|strong. |
 | `--interpolate` | string | Target frame rate for smoother motion (RIFE): off\|30\|60. Only raises the rate — a clip already at/above the target is left unchanged. |
-| `--codec` | string | Output codec: h264\|h265\|av1\|vp9\|prores\|dnxhr. prores = ProRes 422 HQ and dnxhr = DNxHR HQ, editing intermediates for DaVinci Resolve, Premiere or Final Cut; both are written to a .mov (the default for them; an .mp4 or .mkv -o file is refused). |
-| `--crf` | integer | Quality (CRF value, 1-51, lower=better). |
+| `--codec` | string | Output codec: h264\|h265\|av1\|vp9\|prores\|dnxhr\|copy. prores = ProRes 422 HQ and dnxhr = DNxHR HQ, editing intermediates for DaVinci Resolve, Premiere or Final Cut written to a .mov; copy = stream-copy video without re-encoding (same as --remux). |
+| `--crf` | integer | Quality (CRF value, 1-51, lower=better; NVENC applies VMAF-matched CQ offsets). |
+| `--target-mb` | number | Target maximum output file size in MB (e.g. 15 or 7.5). Uses two-pass software encoding and steps resolution down if needed. |
+| `--remux` | boolean | Stream-copy video without re-encoding (implies --codec copy; writes MP4/MOV +faststart without requiring enhancement filters). |
+| `--reencode` | boolean | Permit a plain video re-encode with the chosen --codec, --crf, or --target-mb without enabling AI or denoise filters. |
 | `--upscale-tile` | integer | Upscale tile size override (0=auto). Accepted for script compatibility; NVIDIA Video Super Resolution has no tiles and ignores it. |
 | `--frame-batch` | integer | Frames per AI-runner invocation (0=auto, the default: sized from free VRAM). |
 | `--temp-dir` | string | Scratch folder for frame extraction / interpolation temp data (default: the desktop app's Settings value, or system temp). |
@@ -296,10 +302,10 @@ Subcommands: `aivideoenhancer remix render`, `aivideoenhancer remix suggest`.
 
 ### aivideoenhancer remix render
 
-Render clip ranges into one H.264 MP4.
+Render clip ranges, or clips around moments, into one H.264 MP4.
 
 ```
-aivideoenhancer remix render <input>... --clips <clips> --output <output> [options]
+aivideoenhancer remix render <input>... --output <output> [options]
 ```
 
 | Argument | Description |
@@ -309,7 +315,10 @@ aivideoenhancer remix render <input>... --clips <clips> --output <output> [optio
 | Option | Type | Description |
 |---|---|---|
 | `--folder` | string | Add every supported video directly inside this folder (sorted by name). |
-| `--clips` | string, required | Clip ranges: "start-end,start-end,..." (sec or hh:mm:ss); with several inputs prefix each range with the input index: "0:12-16,1:40-44.5". |
+| `--clips` | string | Clip ranges: "start-end,start-end,..." (sec or hh:mm:ss); with several inputs prefix each range with the input index: "0:12-16,1:40-44.5". Give this or --moments. |
+| `--moments` | string | Instead of --clips: a JSON file of moments to cut the reel around, \[{ "at": 12.4, "kind": "finish", "weight": 6 }\] ("at" in sec or hh:mm:ss; "kind", "weight" and "source", the input index, are optional). One clip per moment, overlapping clips joined; over --max-duration the heaviest moments stay (without weights, the earliest). |
+| `--lead-in` | number | With --moments: seconds shown before each moment. |
+| `--after` | number | With --moments: seconds shown after each moment. |
 | `--output` | string, required | Output MP4 path. |
 | `--max-duration` | number | Cap total output length (seconds). |
 | `--mute` | boolean | Drop audio. |
@@ -388,8 +397,11 @@ aivideoenhancer watch <input> [options]
 | `--sharpen` | string | Sharpen: off\|light\|medium\|strong. |
 | `--rolling-shutter` | string | Rolling-shutter (jello) correction: off\|light\|medium\|strong. |
 | `--interpolate` | string | Target frame rate for smoother motion (RIFE): off\|30\|60. Only raises the rate — a clip already at/above the target is left unchanged. |
-| `--codec` | string | Output codec: h264\|h265\|av1\|vp9\|prores\|dnxhr. prores = ProRes 422 HQ and dnxhr = DNxHR HQ, editing intermediates for DaVinci Resolve, Premiere or Final Cut; both are written to a .mov (the default for them; an .mp4 or .mkv -o file is refused). |
-| `--crf` | integer | Quality (CRF value, 1-51, lower=better). |
+| `--codec` | string | Output codec: h264\|h265\|av1\|vp9\|prores\|dnxhr\|copy. prores = ProRes 422 HQ and dnxhr = DNxHR HQ, editing intermediates for DaVinci Resolve, Premiere or Final Cut written to a .mov; copy = stream-copy video without re-encoding (same as --remux). |
+| `--crf` | integer | Quality (CRF value, 1-51, lower=better; NVENC applies VMAF-matched CQ offsets). |
+| `--target-mb` | number | Target maximum output file size in MB (e.g. 15 or 7.5). Uses two-pass software encoding and steps resolution down if needed. |
+| `--remux` | boolean | Stream-copy video without re-encoding (implies --codec copy; writes MP4/MOV +faststart without requiring enhancement filters). |
+| `--reencode` | boolean | Permit a plain video re-encode with the chosen --codec, --crf, or --target-mb without enabling AI or denoise filters. |
 | `--upscale-tile` | integer | Upscale tile size override (0=auto). Accepted for script compatibility; NVIDIA Video Super Resolution has no tiles and ignores it. |
 | `--frame-batch` | integer | Frames per AI-runner invocation (0=auto, the default: sized from free VRAM). |
 | `--temp-dir` | string | Scratch folder for frame extraction / interpolation temp data (default: the desktop app's Settings value, or system temp). |

@@ -2,7 +2,7 @@
 
 `aivideoenhancer serve` exposes 7 tools over the [Model Context Protocol](https://modelcontextprotocol.io/), so an AI agent (Claude Code, Claude Desktop, Cursor, Windsurf, Codex and others) can work on files on your PC.
 
-Generated from `aivideoenhancer catalog`, version 2026.7.28. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html). The command line is documented in [cli.md](cli.md).
+Generated from `aivideoenhancer catalog`, version 2026.7.29. The same reference is on the website: [www.contenta-software.com/aivideoenhancer/docs/cli.html](https://www.contenta-software.com/aivideoenhancer/docs/cli.html). The command line is documented in [cli.md](cli.md).
 
 ## Setup
 
@@ -33,7 +33,7 @@ Pass absolute paths to every tool.
 | Protocol versions | `2025-11-25`, `2025-06-18`, `2025-03-26`, `2024-11-05`. The server answers with the version the client asks for; for any other version it answers `2025-11-25` |
 | Capabilities | `tools` only (no resources or prompts) |
 | Server name | `ai-video-enhancer` |
-| Server version | `2026.7.28` |
+| Server version | `2026.7.29` |
 
 All four ContentaSoft servers run on the same host, which behaves like this:
 
@@ -83,9 +83,12 @@ Destructive: the tool can replace a file that already exists. Network: the tool 
 | `sharpen` | string | no | Sharpen: off, light, medium, strong. One of: `off`, `light`, `medium`, `strong`. |
 | `rolling_shutter` | string | no | Rolling-shutter (jello) correction: off, light, medium, strong. One of: `off`, `light`, `medium`, `strong`. |
 | `interpolate` | string | no | Target frame rate for smoother motion (RIFE): off, 30, 60. Only raises the rate — a clip already at/above the target is left unchanged. One of: `off`, `30`, `60`. |
-| `codec` | string | no | Output codec: h264, h265, av1, vp9, prores (ProRes 422 HQ) or dnxhr (DNxHR HQ). prores and dnxhr are editing intermediates for DaVinci Resolve, Premiere or Final Cut, written to a .mov (an output_path ending .mp4 or .mkv is refused). One of: `h264`, `h265`, `av1`, `vp9`, `prores`, `dnxhr`. |
+| `codec` | string | no | Output codec: h264, h265, av1, vp9, prores (ProRes 422 HQ), dnxhr (DNxHR HQ), or copy (remux without re-encoding). prores and dnxhr are editing intermediates written to a .mov (an output_path ending .mp4 or .mkv is refused). One of: `h264`, `h265`, `av1`, `vp9`, `prores`, `dnxhr`, `copy`. |
 | `hdr` | string | no | HDR10 / HLG sources: keep (default) or sdr. keep = the output stays 10-bit HDR when the job has no AI stage (upscale, interpolate), no stabilize, no rolling_shutter and no nlmeans denoise, and the codec is h265, av1 or vp9; otherwise the picture is tone-mapped to SDR. sdr = always tone-map to SDR (BT.709). hdrNotice in the result says what was done. One of: `keep`, `sdr`. |
-| `crf` | integer | no | Quality (CRF value, 1-51, lower = better quality, default: 18). Range: 1 to 51. |
+| `crf` | integer | no | Quality (CRF value, 1-51, lower = better quality, default: 18; NVENC maps to VMAF-matched CQ offsets). Range: 1 to 51. |
+| `target_mb` | number | no | Target maximum output file size in MB (decimal MB, e.g. 15 or 7.5). Uses two-pass software encoding and steps resolution down if needed; omit crf when using target_mb. |
+| `remux` | boolean | no | Stream-copy video without re-encoding (implies codec=copy; applies MP4/MOV +faststart without enhancement filters). |
+| `reencode` | boolean | no | Permit a plain video re-encode with codec, crf, or target_mb without AI or denoise filters. |
 | `skip_existing` | boolean | no | Leave the video alone when its output file already exists (default: write a renamed copy beside it). A skipped video is not enhanced and costs no free file. |
 | `overwrite` | boolean | no | Replace the output file when it already exists (default: write a renamed copy beside it). Not with skip_existing. |
 | `clip` | string | no | Export only a 10-second clip starting at this time (seconds such as 42 or 42.5, or m:ss / h:mm:ss such as 1:05) instead of the whole video, named \<name\>-clip; the result carries clipPath. On the trial a clip is clean and full resolution and does not use a free export; clips from one video can cover up to 30 seconds a day. |
